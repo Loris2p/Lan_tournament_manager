@@ -1,0 +1,7 @@
+/target
+.env
+.env.*
+ROAD.md
+.idea/
+.vscode/
+.DS_Store
