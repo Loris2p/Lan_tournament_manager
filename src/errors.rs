@@ -25,8 +25,8 @@ impl IntoResponse for Errors {
     }
 }
 // Erreurs liées à la connexion discord
-impl From<reqwest::Error> for Errors {
-    fn from(err: reqwest::Error) -> Self {
+impl From<bcrypt::BcryptError> for Errors {
+    fn from(err: bcrypt::BcryptError) -> Self {
         Errors::Error500InternalError(err.to_string())
     }
 }
