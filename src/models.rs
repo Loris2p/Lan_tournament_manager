@@ -36,12 +36,24 @@ impl Game {
     pub fn validate_score(&self, score: &SubmissionScore) -> Result<(), Errors> {
         if score.placement < 1 || score.placement > self.max_placement {
             return Err(Errors::Error400BadRequest(
-                "Score de placement illegal !".to_string()
+                "Score de placement illegal !".to_string(),
             ));
         }
-        if score.secondary_stat<=self.max_secondary_stat { return Err(Errors::Error400BadRequest(
-            "Valeur de la stat secondaire illégale !".to_string()
-        )); }
+        if score.secondary_stat <= self.max_secondary_stat {
+            return Err(Errors::Error400BadRequest(
+                "Valeur de la stat secondaire illégale !".to_string(),
+            ));
+        }
         Ok(())
+    }
+    pub fn calculate_points(&self, score: &SubmissionScore) -> u32 {
+        let pts_rang = match self.placement_points.get(usize::from(score.placement - 1)) {
+            None => self.default_placement_points,
+            Some(&n) => n,
+        };
+        let pts_secondary = score
+            .secondary_stat
+            .saturating_mul(self.points_per_secondary_stat);
+        pts_rang + pts_secondary
     }
 }
