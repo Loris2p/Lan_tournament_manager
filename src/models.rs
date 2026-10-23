@@ -109,10 +109,9 @@ pub struct Submission {
     pub status: SubmissionStatus,
 }
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ResetScope {
-    #[serde(rename_all = "snake_case")]
     ScoresOnly, // remet les total_points de toutes les équipes à 0 et supprime toutes les submissions (comptes gardés)
-    UsersAndTeams,  // ScoresOnly + supprime toutes les équipes et les capitaines
+    UsersAndTeams, // ScoresOnly + supprime toutes les équipes et les capitaines
     FullTournament, // UsersAndTeams + matches
 }
-
