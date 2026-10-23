@@ -39,7 +39,7 @@ impl Game {
                 "Score de placement illegal !".to_string(),
             ));
         }
-        if score.secondary_stat <= self.max_secondary_stat {
+        if score.secondary_stat > self.max_secondary_stat {
             return Err(Errors::Error400BadRequest(
                 "Valeur de la stat secondaire illégale !".to_string(),
             ));
@@ -56,4 +56,55 @@ impl Game {
             .saturating_mul(self.points_per_secondary_stat);
         pts_rang + pts_secondary
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Admin {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    pub username: String,
+    pub password_hash: String,
+}
+#[derive(Debug, Clone, Serialize)]
+pub struct PublicTeam {
+    pub id: String,
+    pub name: String,
+    pub captain_username: String,
+    pub total_points: u32,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Team {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    pub name: String,
+    pub captain_username: String,
+    pub captain_password_hash: String,
+    pub total_points: u32,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Match {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    pub title: String,
+    pub game_id: ObjectId,
+    pub game_name: String,
+    pub is_open: bool,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SubmissionStatus {
+    Pending,
+    Approved,
+    Rejected,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Submission {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    pub match_id: ObjectId,
+    pub team_id: ObjectId,
+    pub team_name: String,
+    pub score: SubmissionScore,
+    pub proof_base64: Option<String>,
+    pub calculated_points: u32,
+    pub status: SubmissionStatus,
 }
