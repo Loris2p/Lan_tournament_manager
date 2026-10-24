@@ -24,6 +24,7 @@ pub struct Game {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub name: String,
+    pub cover_image: String,
     pub format: GameFormat,
     pub placement_points: Vec<u32>,
     pub default_placement_points: u32,

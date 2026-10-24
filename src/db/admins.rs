@@ -15,12 +15,16 @@ pub async fn count_admins(db: &Database) -> Result<u64, Errors> {
 pub async fn find_admin_by_username(
     db: &Database,
     username: &str,
-) -> Result<Option<Admin>, Errors> {
+) -> Result<Admin, Errors> {
     let admin = db
         .collection::<Admin>("admins")
         .find_one(doc! {"username":username})
         .await?;
-    Ok(admin)
+    match admin {
+        Some(s) => Ok(s),
+        None => Err(Errors::Error404NotFound("Admin introuvable".to_string())),
+    }
+
 }
 pub async fn list_admins(db: &Database) -> Result<Vec<Admin>, Errors> {
     let admins = db

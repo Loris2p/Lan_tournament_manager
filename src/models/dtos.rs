@@ -22,6 +22,7 @@ pub struct CreateTeamRequest {
 pub struct CreateGameRequest {
     pub name: String,
     pub format: GameFormat,
+    pub cover_image: String,
     pub placement_points: Vec<u32>,
     pub default_placement_points: u32,
     pub secondary_stat_label: Option<String>,
