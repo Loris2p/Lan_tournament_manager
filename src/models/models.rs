@@ -116,3 +116,12 @@ pub enum ResetScope {
     UsersAndTeams, // ScoresOnly + supprime toutes les équipes et les capitaines
     FullTournament, // UsersAndTeams + matches
 }
+impl From<SubmissionStatus> for mongodb::bson::Bson {
+    fn from(status: SubmissionStatus) -> Self {
+        match status {
+            SubmissionStatus::Pending => mongodb::bson::Bson::String("Pending".to_string()),
+            SubmissionStatus::Approved => mongodb::bson::Bson::String("Approved".to_string()),
+            SubmissionStatus::Rejected => mongodb::bson::Bson::String("Rejected".to_string()),
+        }
+    }
+}
