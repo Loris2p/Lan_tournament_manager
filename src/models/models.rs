@@ -109,7 +109,7 @@ pub struct Submission {
     pub calculated_points: u32,
     pub status: SubmissionStatus,
 }
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ResetScope {
     ScoresOnly, // remet les total_points de toutes les équipes à 0 et supprime toutes les submissions (comptes gardés)
