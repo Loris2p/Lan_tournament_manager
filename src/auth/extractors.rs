@@ -6,6 +6,7 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum_extra::extract::CookieJar;
 use std::sync::Arc;
+use crate::auth::UserRole::Captain;
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
@@ -37,14 +38,13 @@ pub struct CaptainUser {
 }
 impl FromRequestParts<Arc<AppState>> for CaptainUser {
     type Rejection = Errors;
-
     async fn from_request_parts(
         parts: &mut Parts,
         state: &Arc<AppState>,
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthenticatedUser::from_request_parts(parts, state).await?;
-         match auth_user.claims.role {
-            UserRole::Captain { .. } => Ok(CaptainUser {
+        match auth_user.claims.role {
+            Captain {..} => Ok(CaptainUser {
                 claims: auth_user.claims,
             }),
             _ => Err(Self::Rejection::Error403Forbidden(
@@ -52,6 +52,7 @@ impl FromRequestParts<Arc<AppState>> for CaptainUser {
             )),
         }
     }
+
 }
 #[derive(Debug, Clone)]
 pub struct AdminUser {
@@ -65,13 +66,13 @@ impl FromRequestParts<Arc<AppState>> for AdminUser {
         state: &Arc<AppState>,
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthenticatedUser::from_request_parts(parts, state).await?;
-        return match auth_user.claims.role {
+        match auth_user.claims.role {
             UserRole::Admin => Ok(AdminUser {
                 claims: auth_user.claims,
             }),
             _ => Err(Self::Rejection::Error403Forbidden(
                 "Accès réservé aux Admins".to_string(),
             )),
-        };
+        }
     }
 }
