@@ -94,7 +94,7 @@ pub struct Match {
     pub assigned_teams : Vec<ObjectId>,
     pub instructions : String,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum SubmissionStatus {
     Pending,
     Approved,
