@@ -25,7 +25,7 @@ pub struct Game {
     pub id: Option<ObjectId>,
     pub name: String,
     pub cover_image: String,
-    pub rules:String,
+    pub rules: String,
     pub format: GameFormat,
     pub placement_points: Vec<u32>,
     pub default_placement_points: u32,
@@ -49,14 +49,17 @@ impl Game {
         Ok(())
     }
     pub fn calculate_points(&self, score: &SubmissionScore) -> u32 {
-        let pts_rang = match self.placement_points.get(usize::from(score.placement - 1)) {
+        let pts_rang = match self
+            .placement_points
+            .get(usize::from(score.placement.saturating_sub(1)))
+        {
             None => self.default_placement_points,
             Some(&n) => n,
         };
         let pts_secondary = score
             .secondary_stat
             .saturating_mul(self.points_per_secondary_stat);
-        pts_rang + pts_secondary
+        pts_rang.saturating_add(pts_secondary)
     }
 }
 
@@ -91,8 +94,8 @@ pub struct Match {
     pub game_id: ObjectId,
     pub game_name: String,
     pub is_open: bool,
-    pub assigned_teams : Vec<ObjectId>,
-    pub instructions : String,
+    pub assigned_teams: Vec<ObjectId>,
+    pub instructions: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum SubmissionStatus {
