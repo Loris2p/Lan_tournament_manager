@@ -1,5 +1,6 @@
 use crate::auth::{
-    UserRole, build_auth_cookie, create_jwt, hash_password, verify_jwt, verify_password,
+    AuthenticatedUser, Claims, UserRole, build_auth_cookie, create_jwt, hash_password, verify_jwt,
+    verify_password,
 };
 use crate::db::{
     count_admins, create_admin, find_admin_by_username, find_team_by_captain_username,
@@ -59,7 +60,8 @@ pub async fn setup_first_admin(
 
 pub async fn login(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<LoginRequest>, jar: CookieJar
+    Json(req): Json<LoginRequest>,
+    jar: CookieJar,
 ) -> Result<(CookieJar, Json<Value>), Errors> {
     let db = &state.db;
     let username = &req.username;
@@ -79,7 +81,10 @@ pub async fn login(
                     &state.jwt_secret,
                 )?;
                 let jar = jar.add(build_auth_cookie(token));
-                return Ok((jar, Json(json!({ "role":"ADMIN", "redirect": "/admin.html" }))));
+                return Ok((
+                    jar,
+                    Json(json!({ "role":"ADMIN", "redirect": "/admin.html" })),
+                ));
             }
         }
         _ => {
@@ -92,12 +97,17 @@ pub async fn login(
                     let token = create_jwt(
                         team_id,
                         team.captain_username,
-                        UserRole::Captain {team_id:team_id.to_hex()},
+                        UserRole::Captain {
+                            team_id: team_id.to_hex(),
+                        },
                         exp,
                         &state.jwt_secret,
                     )?;
                     let jar = jar.add(build_auth_cookie(token));
-                    return Ok((jar, Json(json!({ "role":"CAPTAIN", "redirect": "/captain.html" }))));
+                    return Ok((
+                        jar,
+                        Json(json!({ "role":"CAPTAIN", "redirect": "/captain.html" })),
+                    ));
                 }
             }
         }
@@ -105,4 +115,8 @@ pub async fn login(
     Err(Errors::Error401Unauthorized(
         "Identifiant ou mot de passe incorrect".to_string(),
     ))
+}
+
+pub async fn get_me(user: AuthenticatedUser) -> Json<Claims> {
+    Json(user.claims)
 }
