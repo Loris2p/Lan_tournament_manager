@@ -23,6 +23,7 @@ pub struct CreateGameRequest {
     pub name: String,
     pub format: GameFormat,
     pub cover_image: String,
+    pub rules : String,
     pub placement_points: Vec<u32>,
     pub default_placement_points: u32,
     pub secondary_stat_label: Option<String>,
@@ -34,6 +35,8 @@ pub struct CreateGameRequest {
 pub struct CreateMatchRequest {
     pub title: String,
     pub game_id: String,
+    pub assigned_teams:Vec<String>,
+    pub instructions : String,
 }
 
 #[derive(Deserialize)]
@@ -55,4 +58,8 @@ pub struct AdminBatchScoresRequest {
 #[derive(Deserialize)]
 pub struct ResetTournamentRequest {
     pub scope: ResetScope,
+}
+#[derive(Deserialize)]
+pub struct UpdateMatchInstructionsRequest {
+    pub instructions : String
 }

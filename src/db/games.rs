@@ -1,5 +1,5 @@
 use crate::errors::Errors;
-use crate::models::{ Game, GameFormat};
+use crate::models::{Game, GameFormat};
 use futures::TryStreamExt;
 use mongodb::{
     Database,
@@ -35,7 +35,8 @@ pub async fn create_game(
     secondary_stat_label: Option<String>,
     points_per_secondary_stat: u32,
     max_placement: u8,
-    max_secondary_stat :u32
+    max_secondary_stat: u32,
+    rules: &str,
 ) -> Result<Game, Errors> {
     let mut new_game = Game {
         id: None,
@@ -48,12 +49,13 @@ pub async fn create_game(
         points_per_secondary_stat,
         max_placement,
         max_secondary_stat,
+        rules: rules.to_string(),
     };
     let res = db.collection::<Game>("games").insert_one(&new_game).await?;
     new_game.id = res.inserted_id.as_object_id();
     Ok(new_game)
 }
-pub async fn delete_game(db : &Database, game_id : ObjectId) -> Result<(), Errors>{
+pub async fn delete_game(db: &Database, game_id: ObjectId) -> Result<(), Errors> {
     let res = db
         .collection::<Game>("games")
         .delete_one(doc! {"_id":game_id})

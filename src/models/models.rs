@@ -25,6 +25,7 @@ pub struct Game {
     pub id: Option<ObjectId>,
     pub name: String,
     pub cover_image: String,
+    pub rules:String,
     pub format: GameFormat,
     pub placement_points: Vec<u32>,
     pub default_placement_points: u32,
@@ -90,6 +91,8 @@ pub struct Match {
     pub game_id: ObjectId,
     pub game_name: String,
     pub is_open: bool,
+    pub assigned_teams : Vec<ObjectId>,
+    pub instructions : String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SubmissionStatus {
