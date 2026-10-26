@@ -1,12 +1,12 @@
 use crate::auth::{
-    AuthenticatedUser, Claims, UserRole, build_auth_cookie, create_jwt, hash_password, verify_jwt,
+    AuthenticatedUser, Claims, UserRole, build_auth_cookie, create_jwt, hash_password,
     verify_password,
 };
 use crate::db::{
     count_admins, create_admin, find_admin_by_username, find_team_by_captain_username,
 };
 use crate::errors::Errors;
-use crate::models::{AppState, CreateAdminRequest, LoginRequest, Match};
+use crate::models::{AppState, CreateAdminRequest, LoginRequest};
 use axum::Json;
 use axum::extract::State;
 use axum_extra::extract::CookieJar;

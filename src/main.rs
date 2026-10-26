@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod db;
 mod errors;
 mod models;

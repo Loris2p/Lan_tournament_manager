@@ -1,9 +1,8 @@
 use crate::errors::Errors;
 use crate::models::*;
-use futures::TryStreamExt; // Indispensable pour .try_collect() sur les curseurs !
 use mongodb::{
     Database, IndexModel,
-    bson::{doc, oid::ObjectId},
+    bson::{doc},
     options::IndexOptions,
 };
 

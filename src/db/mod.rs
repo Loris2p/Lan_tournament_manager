@@ -8,8 +8,7 @@ pub mod teams;
 
 pub use admins::*;
 pub use games::*;
-pub use init_indexes::*;
 pub use matches::*;
-pub use reset::*;
+
 pub use submissions::*;
 pub use teams::*;
