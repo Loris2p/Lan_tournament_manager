@@ -27,7 +27,7 @@ pub async fn create_match(
     Ok(Json(json!(res)))
 }
 
-pub async fn update_match_instruction(
+pub async fn update_match_instructions(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,
     Json(req): Json<UpdateMatchInstructionsRequest>,
