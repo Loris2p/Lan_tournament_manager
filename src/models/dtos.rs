@@ -38,6 +38,7 @@ pub struct CreateMatchRequest {
     pub game_id: ObjectId,
     pub assigned_teams: Vec<ObjectId>,
     pub instructions: String,
+    pub is_open: bool,
 }
 
 #[derive(Deserialize)]
@@ -62,5 +63,5 @@ pub struct ResetTournamentRequest {
 }
 #[derive(Deserialize)]
 pub struct UpdateMatchInstructionsRequest {
-    pub instructions : String
+    pub instructions: String,
 }
