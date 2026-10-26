@@ -10,6 +10,7 @@ use crate::models::{AppState, CreateAdminRequest, LoginRequest, Match};
 use axum::Json;
 use axum::extract::State;
 use axum_extra::extract::CookieJar;
+use axum_extra::extract::cookie::Cookie;
 use serde_json::{Value, json};
 use std::sync::Arc;
 
@@ -119,4 +120,13 @@ pub async fn login(
 
 pub async fn get_me(user: AuthenticatedUser) -> Json<Claims> {
     Json(user.claims)
+}
+
+pub async fn logout(jar: CookieJar) -> (CookieJar, Json<Value>) {
+    let new_jar = jar.remove(Cookie::from("lan_session"));
+    (
+        new_jar,
+        Json(json!({ "message": "Déconnecté avec succès"
+        })),
+    )
 }
