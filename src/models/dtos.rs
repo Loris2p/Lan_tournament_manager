@@ -1,4 +1,5 @@
 use crate::models::*;
+use mongodb::bson::oid::ObjectId;
 use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct LoginRequest {
@@ -34,20 +35,20 @@ pub struct CreateGameRequest {
 #[derive(Deserialize)]
 pub struct CreateMatchRequest {
     pub title: String,
-    pub game_id: String,
-    pub assigned_teams:Vec<String>,
-    pub instructions : String,
+    pub game_id: ObjectId,
+    pub assigned_teams: Vec<ObjectId>,
+    pub instructions: String,
 }
 
 #[derive(Deserialize)]
 pub struct CreateSubmissionRequest {
-    pub match_id: String,
+    pub match_id: ObjectId,
     pub score: SubmissionScore,
     pub proof_base64: String,
 }
 #[derive(Deserialize)]
 pub struct AdminTeamScoreEntry {
-    pub team_id: String,
+    pub team_id: ObjectId,
     pub score: SubmissionScore,
 }
 #[derive(Deserialize)]
