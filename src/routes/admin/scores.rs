@@ -9,7 +9,7 @@ use mongodb::bson::oid::ObjectId;
 use serde_json::{Value, json};
 use std::sync::Arc;
 
-pub async fn list_pending_submission(
+pub async fn list_pending_submissions(
     State(state): State<Arc<AppState>>,
     _admin: AdminUser,
 ) -> Result<Json<Vec<Submission>>, Errors> {
@@ -52,6 +52,7 @@ pub async fn submit_match_scores(
     let game = db::find_game_by_id(&state.db, m.game_id).await?;
     for e in &req.results {
         game.validate_score(&e.score)?;
+        db::find_team_by_id(&state.db, e.team_id).await?;
     }
     for e in req.results {
         let pts = game.calculate_points(&e.score);
