@@ -1,12 +1,11 @@
 use crate::errors::Errors;
-use crate::models::{Match, Submission, SubmissionScore, SubmissionStatus};
+use crate::models::{Match, };
 use futures::TryStreamExt;
 use mongodb::{
     Database,
     bson::{doc, oid::ObjectId},
 };
-use serde_json::Value::Null;
-use std::ops::Sub;
+
 
 pub async fn get_open_matches(db: &Database) -> Result<Vec<Match>, Errors> {
     let matches = db
