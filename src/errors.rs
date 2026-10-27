@@ -2,7 +2,7 @@ use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
-
+#[derive(Debug)]
 pub enum Errors {
     Error400BadRequest(String),
     Error401Unauthorized(String),
@@ -10,6 +10,18 @@ pub enum Errors {
     Error404NotFound(String),
     Error409Conflict(String),
     Error500InternalError(String),
+}
+impl std::fmt::Display for Errors {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Errors::Error400BadRequest(msg)
+            | Errors::Error401Unauthorized(msg)
+            | Errors::Error403Forbidden(msg)
+            | Errors::Error404NotFound(msg)
+            | Errors::Error409Conflict(msg)
+            | Errors::Error500InternalError(msg) => write!(f, "{msg}"),
+        }
+    }
 }
 impl IntoResponse for Errors {
     fn into_response(self) -> Response {
