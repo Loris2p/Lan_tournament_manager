@@ -1,6 +1,6 @@
 /target
 .env
-.env.*
+#.env.*
 # ROAD*.md
 .idea/
 .vscode/
