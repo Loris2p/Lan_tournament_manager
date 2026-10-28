@@ -1,3 +1,4 @@
+use aws_sdk_s3;
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -56,6 +57,23 @@ impl From<mongodb::error::Error> for Errors {
         if err.to_string().contains("E11000") {
             return Errors::Error409Conflict(err.to_string());
         }
+        Errors::Error500InternalError(err.to_string())
+    }
+}
+
+impl<E: std::fmt::Display> From<aws_sdk_s3::error::SdkError<E>> for Errors {
+    fn from(err: aws_sdk_s3::error::SdkError<E>) -> Self {
+        Errors::Error500InternalError(err.to_string())
+    }
+}
+
+impl From<std::io::Error> for Errors {
+    fn from(err: std::io::Error) -> Self {
+        Errors::Error500InternalError(err.to_string())
+    }
+}
+impl From<std::num::ParseIntError> for Errors {
+    fn from(err: std::num::ParseIntError) -> Self {
         Errors::Error500InternalError(err.to_string())
     }
 }

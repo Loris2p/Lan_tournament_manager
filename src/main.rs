@@ -1,5 +1,6 @@
 // #![allow(dead_code)]
 
+use crate::errors::Errors;
 use crate::routes::create_router;
 use axum::extract::DefaultBodyLimit;
 
@@ -11,82 +12,95 @@ mod db;
 mod errors;
 mod models;
 mod routes;
+mod services;
 mod ws;
 
 struct Config {
     mongo_uri: String,
     jwt_secret: String,
     port: u16,
+    cellar_host: String,
+    cellar_key_id: String,
+    cellar_key_secret: String,
+    cellar_bucket: String,
+}
+
+fn get_env(key: &str) -> String {
+    match std::env::var(key) {
+        Ok(val) => val,
+        Err(_) => {
+            eprintln!("❌ Variable d'environnement obligatoire manquante : '{key}'");
+            std::process::exit(1);
+        }
+    }
 }
 
 impl Config {
-    pub fn from_env() -> Result<Self, String> {
-        // 1. JWT_SECRET est obligatoire (prod & local)
-        let jwt_secret = std::env::var("JWT_SECRET")
-            .map_err(|_| "La variable d'environnement 'JWT_SECRET' est obligatoire".to_string())?;
-        // 2. MONGODB_ADDON_URI : fournie par Clever Cloud en prod, ou fallback local Docker
-        let mongo_uri = std::env::var("MONGODB_ADDON_URI")
-            .unwrap_or_else(|_| "mongodb://localhost:27017/lan_tournament".to_string());
-        // 3. PORT : fourni par Clever Cloud ou 8080 par défaut
+    pub fn from_env() -> Self {
+        let jwt_secret = get_env("JWT_SECRET");
+        let mongo_uri = get_env("MONGODB_ADDON_URI");
+        // Variables Cellar S3
+        let cellar_host = get_env("CELLAR_ADDON_HOST");
+        let cellar_key_id = get_env("CELLAR_ADDON_KEY_ID");
+        let cellar_key_secret = get_env("CELLAR_ADDON_KEY_SECRET");
+        let cellar_bucket = get_env("CELLAR_BUCKET_NAME");
+        // Pour le PORT (qui est optionnel et doit être converti en u16)
         let port = match std::env::var("PORT") {
-            Ok(p) => p.parse::<u16>().map_err(|_| {
-                format!("La variable 'PORT' doit être un entier valide (reçu : '{p}')")
-            })?,
+            Ok(p) => match p.parse::<u16>() {
+                Ok(val) => val,
+                Err(_) => {
+                    eprintln!("❌ La variable 'PORT' doit être un nombre valide (reçu : '{p}')");
+                    std::process::exit(1);
+                }
+            },
             Err(_) => 8080,
         };
-        Ok(Self {
+
+        Self {
             mongo_uri,
             jwt_secret,
             port,
-        })
+            cellar_host,
+            cellar_key_id,
+            cellar_key_secret,
+            cellar_bucket,
+        }
     }
 }
 
-#[tokio::main]
-async fn main() {
-    println!("Hello, world!");
-    dotenvy::dotenv().ok(); // En local : charge les variables du .env. en prod : fichier non chargé (récup immédiate dans les secrets)
-    let config = match Config::from_env() {
-        Ok(cfg) => cfg,
-        Err(err) => {
-            eprintln!("❌ Erreur de configuration : {err}");
-            std::process::exit(1);
-        }
-    };
-    let client = match mongodb::Client::with_uri_str(&config.mongo_uri).await {
-        Ok(c) => c,
-        Err(err) => {
-            eprintln!("Impossible d'initialiser le client MongoDB : {err}");
-            std::process::exit(1);
-        }
-    };
-    let db = client.database("lan_tournament");
-    if let Err(err) = db::init_indexes(&db).await {
-        eprintln!("Impossible d'initialiser les index de MongoDB : {err}");
-        std::process::exit(1);
-    }
+async fn run() -> Result<(), Errors> {
+    let config = Config::from_env();
 
+    let client = mongodb::Client::with_uri_str(&config.mongo_uri).await?;
+    let db = client.database("lan_tournament");
+    db::init_indexes(&db).await?;
+    let s3=services::S3Service::new(config.cellar_host, config.cellar_key_id, config.cellar_key_secret, config.cellar_bucket);
     let (ws_tx, _) = tokio::sync::broadcast::channel(100);
     let state = std::sync::Arc::new(models::AppState {
         db,
         jwt_secret: config.jwt_secret,
         ws_tx,
+        s3
     });
+
     let routeur = create_router()
         .with_state(state)
         .layer(DefaultBodyLimit::max(5 * 1024 * 1024))
         .fallback_service(ServeDir::new("static"));
+
     let addr = format!("0.0.0.0:{}", config.port);
-    let listener = match TcpListener::bind(&addr).await {
-        Ok(l) => l,
-        Err(err) => {
-            eprintln!("Impossible d'écouter sur {addr} : {err}");
-            std::process::exit(1);
-        }
-    };
+    let listener = TcpListener::bind(&addr).await?;
     println!("Serveur lancé sur http://localhost:{}", config.port);
-    if let Err(err) = axum::serve(listener, routeur).await {
-        eprintln!("Erreur lors de l'exécution du serveur : {err}");
+    axum::serve(listener, routeur).await?;
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() {
+    println!("Hello, world!");
+    dotenvy::dotenv().ok(); // Charge les variables du .env en local
+    if let Err(err) = run().await {
+        eprintln!("❌ Erreur fatale au démarrage : {err}");
         std::process::exit(1);
     }
 }

@@ -6,6 +6,7 @@ pub struct AppState {
     pub db: mongodb::Database,
     pub jwt_secret: String,
     pub ws_tx: tokio::sync::broadcast::Sender<String>,
+    pub s3: crate::services::S3Service,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
