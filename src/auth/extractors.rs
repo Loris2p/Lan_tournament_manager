@@ -1,13 +1,13 @@
+use crate::auth::UserRole::Captain;
 use crate::auth::claims::Claims;
 use crate::auth::{UserRole, verify_jwt};
 use crate::errors::Errors;
-use crate::models::{ AppState};
+use crate::models::AppState;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum_extra::extract::CookieJar;
-use std::sync::Arc;
 use mongodb::bson::oid::ObjectId;
-use crate::auth::UserRole::Captain;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
@@ -35,39 +35,39 @@ impl FromRequestParts<Arc<AppState>> for AuthenticatedUser {
 }
 #[derive(Debug, Clone)]
 pub struct CaptainUser {
-    pub claims: Claims,
-    pub team_id : ObjectId
+
+    pub team_id: ObjectId,
 }
 impl FromRequestParts<Arc<AppState>> for CaptainUser {
     type Rejection = Errors;
     async fn from_request_parts(
-        parts: &mut Parts,        state: &Arc<AppState>,
+        parts: &mut Parts,
+        state: &Arc<AppState>,
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthenticatedUser::from_request_parts(parts, state).await?;
         match auth_user.claims.role {
-
-            Captain {ref team_id} => {
-                let team_oid=match ObjectId::parse_str(team_id){
-                    Ok(id)=>{
-                        id
+            Captain { ref team_id } => {
+                let team_oid = match ObjectId::parse_str(team_id) {
+                    Ok(id) => id,
+                    _ => {
+                        return Err(Errors::Error500InternalError(
+                            "Problème lors de la conversion de la team id en string".to_string(),
+                        ));
                     }
-                    _ => return Err(Errors::Error500InternalError("Problème lors de la conversion de la team id en string".to_string()))
                 };
                 Ok(CaptainUser {
-                    claims: auth_user.claims,
-                    team_id:team_oid,
-                }) }
+
+                    team_id: team_oid,
+                })
+            }
             _ => Err(Self::Rejection::Error403Forbidden(
                 "Accès réservé aux capitaines".to_string(),
             )),
         }
     }
-
 }
 #[derive(Debug, Clone)]
-pub struct AdminUser {
-    pub claims: Claims,
-}
+pub struct AdminUser {}
 impl FromRequestParts<Arc<AppState>> for AdminUser {
     type Rejection = Errors;
 
@@ -77,9 +77,7 @@ impl FromRequestParts<Arc<AppState>> for AdminUser {
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthenticatedUser::from_request_parts(parts, state).await?;
         match auth_user.claims.role {
-            UserRole::Admin => Ok(AdminUser {
-                claims: auth_user.claims,
-            }),
+            UserRole::Admin => Ok(AdminUser {}),
             _ => Err(Self::Rejection::Error403Forbidden(
                 "Accès réservé aux Admins".to_string(),
             )),

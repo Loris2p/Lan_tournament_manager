@@ -56,4 +56,5 @@ fn create_public_routes() -> Router<Arc<AppState>> {
         .route("/leaderboard", get(public::get_leaderboard))
         .route("/games", get(public::list_games))
         .route("/health", get(public::health_check))
+        .route("/matches", get(public::list_open_matches))
 }
