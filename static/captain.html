@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN Tournament Manager — Espace Capitaine</title>
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="captain-page">
+
+    <!-- ========================================== -->
+    <!-- BARRE TECHNIQUE CAPITAINE                  -->
+    <!-- ========================================== -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <a href="/">
+                    <span class="brand-tag">LTM</span>
+                    <span class="brand-title">ESPACE CAPITAINE</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/leaderboard.html" target="_blank" class="nav-link">Classement [Onglet]</a>
+            </nav>
+
+            <div class="topbar-right">
+                <div class="status-indicator">
+                    <span class="status-label" id="captain-team-badge">ÉQUIPE : CHARGEMENT...</span>
+                </div>
+
+                <button type="button" class="btn-text" id="logout-btn">
+                    Déconnexion
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+
+        <!-- Bandeau d'en-tête de l'équipe -->
+        <div class="captain-banner">
+            <div>
+                <span class="meta-tag">SESSION ACTIVE</span>
+                <h1 class="captain-team-title" id="captain-team-name">Chargement de votre équipe...</h1>
+                <p class="captain-team-desc">Déclarez vos résultats de match avec capture d'écran faisant foi pour validation par les arbitres.</p>
+            </div>
+            <div class="captain-points-box">
+                <span class="captain-points-label">TOTAL DES POINTS</span>
+                <span class="captain-points-value" id="captain-team-points">--</span>
+            </div>
+        </div>
+
+        <div class="captain-grid">
+
+            <!-- Colonne 1 : Matchs ouverts assignés -->
+            <section class="section-box">
+                <div class="box-header">
+                    <h3>MATCHS OUVERTS ASSIGNÉS</h3>
+                    <span class="box-badge" id="open-matches-count">0 ACTIF</span>
+                </div>
+
+                <div id="matches-list" class="matches-select-list">
+                    <div class="empty-state">Recherche des matchs ouverts pour votre équipe...</div>
+                </div>
+
+                <!-- Détails du match sélectionné -->
+                <div id="selected-match-details" class="match-details-panel" style="display: none;">
+                    <div class="match-details-header">
+                        <span class="badge-format" id="selected-match-format">FORMAT</span>
+                        <h4 id="selected-match-game">Jeu</h4>
+                    </div>
+                    <div class="match-details-body">
+                        <div class="detail-row">
+                            <span class="detail-k">INSTRUCTIONS / LOBBY :</span>
+                            <span class="detail-v" id="selected-match-instructions">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-k">CONSIGNES DU JEU :</span>
+                            <span class="detail-v" id="selected-match-rules">--</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Colonne 2 : Formulaire de soumission de score & Canvas Upload -->
+            <section class="section-box">
+                <div class="box-header">
+                    <h3>TRANSMETTRE UN RÉSULTAT</h3>
+                    <span class="box-badge">SAISIE CAPITAINE</span>
+                </div>
+
+                <div id="no-match-alert" class="empty-state">
+                    Sélectionnez un match ouvert ci-contre pour transmettre votre score.
+                </div>
+
+                <form id="submission-form" class="submission-form" style="display: none;">
+                    <input type="hidden" id="sub-match-id">
+
+                    <!-- Ligne des scores -->
+                    <div class="form-row-grid">
+                        <div class="form-group">
+                            <label for="sub-placement">CLASSEMENT FINAL (PLACE)</label>
+                            <input type="number" id="sub-placement" min="1" max="64" required placeholder="Ex: 1 (Victoire / Top 1), 2...">
+                            <small class="field-hint" id="placement-hint">1 = Vainqueur</small>
+                        </div>
+
+                        <!-- Statistique secondaire conditionnelle -->
+                        <div class="form-group" id="secondary-stat-group" style="display: none;">
+                            <label for="sub-secondary" id="secondary-stat-label">STATISTIQUE SECONDAIRE</label>
+                            <input type="number" id="sub-secondary" min="0" value="0">
+                            <small class="field-hint" id="secondary-stat-hint">Optionnel</small>
+                        </div>
+                    </div>
+
+                    <!-- Zone de capture d'écran avec compression Canvas & Ctrl + V -->
+                    <div class="form-group">
+                        <label>CAPTURE D'ÉCRAN (PREUVE DE VICTOIRE / SCORE)</label>
+                        <div id="dropzone" class="dropzone-area" tabindex="0">
+                            <div class="dropzone-content" id="dropzone-prompt">
+                                <span class="dropzone-tag">COLLEZ DIRECTEMENT ICI (CTRL + V)</span>
+                                <p>ou glissez-déposez votre capture d'écran</p>
+                                <label for="file-input" class="btn-text" style="display: inline-block; margin-top: 0.5rem; cursor: pointer;">
+                                    Parcourir les fichiers
+                                </label>
+                                <input type="file" id="file-input" accept="image/*" style="display: none;">
+                                <p class="dropzone-notice">Compression Canvas automatique en 1080p JPEG haute vitesse</p>
+                            </div>
+
+                            <!-- Prévisualisation de l'image -->
+                            <div id="preview-wrapper" class="preview-wrapper" style="display: none;">
+                                <img id="preview-img" alt="Capture d'écran">
+                                <div class="preview-actions">
+                                    <span id="preview-size-badge" class="badge-code">0 Ko</span>
+                                    <button type="button" class="btn-text" id="clear-image-btn">Remplacer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block btn-lg" id="submit-score-btn">
+                        Envoyer le Score pour Arbitrage
+                    </button>
+                </form>
+
+                <!-- Statut de confirmation post-envoi -->
+                <div id="submission-success" class="submission-success-box" style="display: none;">
+                    <div class="success-icon">✓</div>
+                    <h4>SCORE TRANSMIS AUX ARBITRES</h4>
+                    <p>Votre résultat et votre capture d'écran ont bien été enregistrés. Le statut passera à <strong>Validé</strong> dès vérification par l'arbitre.</p>
+                    <button type="button" class="btn-outline btn-block" id="new-submission-btn" style="margin-top: 1rem;">
+                        Transmettre un autre match
+                    </button>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>LAN TOURNAMENT MANAGER // SESSION CAPITAINE SÉCURISÉE</span>
+            <span>COMPRESSION CLIENT CANVAS // REQUÊTE MULTIPART</span>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/captain.js"></script>
+
+</body>
+</html>

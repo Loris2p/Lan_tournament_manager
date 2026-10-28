@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN Tournament Manager — Authentification</title>
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="auth-page">
+
+    <!-- ========================================== -->
+    <!-- BARRE DE NAVIGATION UNIFIÉE                -->
+    <!-- ========================================== -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <a href="/">
+                    <span class="brand-tag">LTM</span>
+                    <span class="brand-title">LAN TOURNAMENT MANAGER</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/" class="nav-link">Accueil</a>
+                <a href="/#carousel-section" class="nav-link">Épreuves</a>
+                <a href="/#rules" class="nav-link">Règlement</a>
+                <a href="/leaderboard.html" class="nav-link">Classement</a>
+            </nav>
+
+            <div class="topbar-right">
+                <div class="status-indicator" id="ws-indicator" title="Liaison WebSocket locale">
+                    <span class="status-dot"></span>
+                    <span class="status-label" id="ws-status-text">WS: EN DIRECT</span>
+                </div>
+
+                <a href="/login.html" class="btn-primary active" id="auth-btn">
+                    Connexion
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container auth-container">
+
+        <!-- Carte centrale d'authentification -->
+        <div class="auth-card">
+
+            <!-- Bandeau de notification / alerte -->
+            <div id="auth-alert" class="auth-alert" style="display: none;"></div>
+
+            <!-- ========================================== -->
+            <!-- VUE 1 : ASSISTANT DE PREMIER LANCEMENT     -->
+            <!-- ========================================== -->
+            <div id="setup-form-wrapper" style="display: none;">
+                <div class="auth-header">
+                    <span class="badge-format">INITIALISATION SYSTÈME</span>
+                    <h2>PREMIER DÉMARRAGE</h2>
+                    <p class="auth-subtitle">
+                        Aucun administrateur n'a été détecté. Créez le compte d'administration principal pour sécuriser et verrouiller le tournoi.
+                    </p>
+                </div>
+
+                <form id="setup-form" class="auth-form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="setup-username">PSEUDO ADMINISTRATEUR</label>
+                        <input type="text" id="setup-username" required placeholder="Ex: admin_lan" autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="setup-password">MOT DE PASSE</label>
+                        <input type="password" id="setup-password" required placeholder="••••••••••••">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="setup-password-confirm">CONFIRMER LE MOT DE PASSE</label>
+                        <input type="password" id="setup-password-confirm" required placeholder="••••••••••••">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block" id="setup-submit-btn">
+                        Créer l'Administrateur & Démarrer
+                    </button>
+                </form>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VUE 2 : CONNEXION CLASSIQUE                -->
+            <!-- ========================================== -->
+            <div id="login-form-wrapper" style="display: none;">
+                <div class="auth-header">
+                    <span class="brand-tag">ACCÈS PRIVÉ</span>
+                    <h2>ESPACE CONNEXION</h2>
+                    <p class="auth-subtitle">
+                        Connectez-vous avec vos identifiants d'organisateur ou votre compte d'équipe.
+                    </p>
+                </div>
+
+                <form id="login-form" class="auth-form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="login-username">IDENTIFIANT / PSEUDO</label>
+                        <input type="text" id="login-username" required placeholder="Nom d'équipe ou admin" autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">MOT DE PASSE</label>
+                        <input type="password" id="login-password" required placeholder="••••••••••••">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block" id="login-submit-btn">
+                        Se Connecter
+                    </button>
+                </form>
+            </div>
+
+            <!-- Chargement initial -->
+            <div id="auth-loading" class="empty-state">
+                Vérification du statut du serveur...
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>LAN TOURNAMENT MANAGER // AUTHENTIFICATION</span>
+            <span>PROTECTION PAR COOKIE SÉCURISÉ & BCRYPT</span>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/login.js"></script>
+
+</body>
+</html>

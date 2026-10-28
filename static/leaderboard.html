@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN Tournament Manager — Classement Officiel</title>
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="leaderboard-page">
+
+    <!-- ========================================== -->
+    <!-- BARRE DE NAVIGATION UNIFIÉE                -->
+    <!-- ========================================== -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <a href="/">
+                    <span class="brand-tag">LTM</span>
+                    <span class="brand-title">LAN TOURNAMENT MANAGER</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/" class="nav-link">Accueil</a>
+                <a href="/#carousel-section" class="nav-link">Épreuves</a>
+                <a href="/#rules" class="nav-link">Règlement</a>
+                <a href="/leaderboard.html" class="nav-link active">Classement</a>
+            </nav>
+
+            <div class="topbar-right">
+                <div class="status-indicator" id="ws-indicator" title="Liaison WebSocket locale">
+                    <span class="status-dot"></span>
+                    <span class="status-label" id="ws-status-text">WS: EN DIRECT</span>
+                </div>
+
+                <button type="button" class="btn-text" id="fullscreen-btn" title="Basculer en plein écran [F11]">
+                    Plein écran [F11]
+                </button>
+
+                <a href="/login.html" class="btn-primary" id="auth-btn">
+                    Connexion
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+
+        <!-- ========================================== -->
+        <!-- EN-TÊTE DU CLASSEMENT                      -->
+        <!-- ========================================== -->
+        <section class="section" id="standings">
+            <div class="section-titlebar">
+                <div>
+                    <h2>CLASSEMENT GÉNÉRAL OFFICIEL</h2>
+                    <p class="section-subtitle">Scores cumulés sur l'ensemble des matchs validés par l'arbitrage</p>
+                </div>
+                <div class="standings-meta">
+                    <span id="standings-count">-- ÉQUIPES ENREGISTRÉES</span>
+                </div>
+            </div>
+
+            <!-- PODIUM TOP 3 -->
+            <div class="podium-row" id="podium-container">
+                <!-- Rang 2 (Dauphin) -->
+                <div class="podium-slot rank-second" id="podium-second">
+                    <div class="podium-index">02</div>
+                    <div class="podium-meta">
+                        <span class="team-label">DAUPHIN</span>
+                        <h3 class="team-name" id="podium-2-name">--</h3>
+                    </div>
+                    <div class="team-score" id="podium-2-points">--</div>
+                </div>
+
+                <!-- Rang 1 (Leader) -->
+                <div class="podium-slot rank-first" id="podium-first">
+                    <div class="podium-index">01</div>
+                    <div class="podium-meta">
+                        <span class="team-label">LEADER DU TOURNOI</span>
+                        <h3 class="team-name" id="podium-1-name">--</h3>
+                    </div>
+                    <div class="team-score" id="podium-1-points">--</div>
+                </div>
+
+                <!-- Rang 3 (Troisième) -->
+                <div class="podium-slot rank-third" id="podium-third">
+                    <div class="podium-index">03</div>
+                    <div class="podium-meta">
+                        <span class="team-label">TROISIÈME</span>
+                        <h3 class="team-name" id="podium-3-name">--</h3>
+                    </div>
+                    <div class="team-score" id="podium-3-points">--</div>
+                </div>
+            </div>
+
+            <!-- TABLEAU DES SCORES RANGS 4+ -->
+            <div class="table-frame">
+                <table class="standings-table" id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th class="col-rank">POS</th>
+                            <th class="col-team">ÉQUIPE</th>
+                            <th class="col-points">POINTS CUMULÉS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-tbody">
+                        <tr>
+                            <td colspan="3" class="cell-loading">Récupération du classement...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MATCHS & LOBBIES EN COURS -->
+            <div class="live-lobbies">
+                <div class="lobbies-header">
+                    <h3>MATCHS & LOBBIES EN COURS</h3>
+                    <span class="pulse-indicator">EN LIGNE</span>
+                </div>
+                <div class="lobbies-list" id="live-matches-list">
+                    <div class="empty-state">Aucun match ouvert aux soumissions pour le moment.</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>LAN TOURNAMENT MANAGER // LEADERBOARD EN DIRECT</span>
+            <span>SYNCHRONISATION WEBSOCKET // LATENCE LOCALE</span>
+        </div>
+    </footer>
+
+    <!-- Scripts pour l'actualisation temps réel -->
+    <script type="module" src="/js/leaderboard.js"></script>
+
+</body>
+</html>

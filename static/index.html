@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN Tournament Manager — Accueil</title>
+    <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- BARRE DE NAVIGATION UNIFIÉE                -->
+    <!-- ========================================== -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <a href="/">
+                    <span class="brand-tag">LTM</span>
+                    <span class="brand-title">LAN TOURNAMENT MANAGER</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/" class="nav-link active">Accueil</a>
+                <a href="/#carousel-section" class="nav-link">Épreuves</a>
+                <a href="/#rules" class="nav-link">Règlement</a>
+                <a href="/leaderboard.html" class="nav-link">Classement</a>
+            </nav>
+
+            <div class="topbar-right">
+                <div class="status-indicator" id="ws-indicator" title="Liaison WebSocket locale">
+                    <span class="status-dot"></span>
+                    <span class="status-label" id="ws-status-text">WS: EN DIRECT</span>
+                </div>
+
+                <button type="button" class="btn-text" id="fullscreen-btn" title="Basculer en plein écran [F11]">
+                    Plein écran [F11]
+                </button>
+
+                <a href="/login.html" class="btn-primary" id="auth-btn">
+                    Connexion
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+
+        <!-- ========================================== -->
+        <!-- 1. PRÉSENTATION DU TOURNOI                 -->
+        <!-- ========================================== -->
+        <section class="section" id="presentation">
+            <div class="overview-header">
+                <div class="meta-strip">
+                    <span class="meta-tag">RÉSEAU LOCAL FERMÉ</span>
+                    <span class="meta-tag">SERVEUR AUTONOME</span>
+                    <span class="meta-tag">SAISON 2026</span>
+                </div>
+                <h1 class="main-title">TOURNOI MULTI-JEUX EN RÉSEAU LOCAL</h1>
+                <p class="main-lead">
+                    Bienvenue sur la plateforme centrale de la LAN. Suivez les épreuves, consultez les règles de chaque discipline et découvrez qui prendra la tête de l'événement.
+                </p>
+                <div class="hero-actions">
+                    <a href="/leaderboard.html" class="btn-primary btn-lg">
+                        Consulter le Classement en Direct
+                    </a>
+                    <a href="#carousel-section" class="btn-outline btn-lg">
+                        Découvrir les Épreuves
+                    </a>
+                </div>
+            </div>
+
+            <!-- Grille de spécifications techniques -->
+            <div class="specs-grid">
+                <div class="spec-cell">
+                    <span class="spec-label">INFRASTRUCTURE</span>
+                    <span class="spec-value">100% On-Premise</span>
+                    <span class="spec-desc">Réseau local indépendant, base MongoDB embarquée</span>
+                </div>
+                <div class="spec-cell">
+                    <span class="spec-label">FORMATS</span>
+                    <span class="spec-value">Duels & Brawls</span>
+                    <span class="spec-desc">Confrontations 1v1 par équipes et lobbies multijoueurs</span>
+                </div>
+                <div class="spec-cell">
+                    <span class="spec-label">ARBITRAGE</span>
+                    <span class="spec-value">Validation Preuves</span>
+                    <span class="spec-desc">Contrôle par captures d'écran et saisie directe arbitre</span>
+                </div>
+                <div class="spec-cell">
+                    <span class="spec-label">DIFFUSION</span>
+                    <span class="spec-value">Temps Réel</span>
+                    <span class="spec-desc">Écran géant et scores synchronisés via WebSocket</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 2. CARROUSEL DES JEUX AU PROGRAMME        -->
+        <!-- ========================================== -->
+        <section class="section" id="carousel-section">
+            <div class="section-titlebar">
+                <div>
+                    <h2>ÉPREUVES AU PROGRAMME</h2>
+                    <p class="section-subtitle">Faites défiler le catalogue officiel des jeux configurés pour le tournoi</p>
+                </div>
+                <div class="carousel-controls">
+                    <button type="button" class="carousel-nav-btn" id="carousel-prev" title="Jeu précédent">
+                        &larr; Précédent
+                    </button>
+                    <span class="carousel-counter" id="carousel-counter">01 / 01</span>
+                    <button type="button" class="carousel-nav-btn" id="carousel-next" title="Jeu suivant">
+                        Suivant &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- Conteneur du carrousel -->
+            <div class="carousel-wrapper">
+                <div class="carousel-track" id="carousel-track">
+                    <!-- Slide par défaut / exemple (remplacé dynamiquement par /api/games) -->
+                    <article class="carousel-slide active">
+                        <div class="slide-grid">
+                            <div class="slide-media">
+                                <div class="slide-image-placeholder">
+                                    <span class="media-tag">ILLUSTRATION DU JEU</span>
+                                </div>
+                            </div>
+                            <div class="slide-content">
+                                <div class="slide-header">
+                                    <span class="badge-format">FORMAT : BRAWL</span>
+                                    <span class="badge-code">DISCIPLINE #01</span>
+                                </div>
+                                <h3 class="slide-title">Chargement des épreuves...</h3>
+                                <p class="slide-desc">
+                                    Les jeux configurés par les administrateurs en base de données s'afficheront ici automatiquement avec leurs règles spécifiques et leurs barèmes de points.
+                                </p>
+                                <div class="slide-specs">
+                                    <div class="slide-spec-row">
+                                        <span class="spec-k">BARÈME PLACEMENT :</span>
+                                        <span class="spec-v">Configurable dynamiquement</span>
+                                    </div>
+                                    <div class="slide-spec-row">
+                                        <span class="spec-k">POINTS SECONDAIRES :</span>
+                                        <span class="spec-v">Kills / Dégâts / Manches</span>
+                                    </div>
+                                    <div class="slide-spec-row">
+                                        <span class="spec-k">CONSIGNES :</span>
+                                        <span class="spec-v">Serveur local dédié ou lobby privé</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Indicateurs de pagination (dots) -->
+                <div class="carousel-dots" id="carousel-dots">
+                    <span class="dot active"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 3. RÈGLEMENT GÉNÉRAL & FAIR-PLAY           -->
+        <!-- ========================================== -->
+        <section class="section" id="rules">
+            <div class="section-titlebar">
+                <div>
+                    <h2>RÈGLEMENT & PROTOCOLE DE TOURNOI</h2>
+                    <p class="section-subtitle">Consignes obligatoires pour l'ensemble des équipes participantes</p>
+                </div>
+                <span class="section-badge">OFFICIEL</span>
+            </div>
+
+            <div class="rules-grid">
+                <div class="rule-box">
+                    <span class="rule-num">01</span>
+                    <h4>Ponctualité des Matchs</h4>
+                    <p>Chaque équipe doit être connectée au lobby au plus tard 5 minutes après l'ouverture du match. Tout retard injustifié entraîne un forfait automatique.</p>
+                </div>
+                <div class="rule-box">
+                    <span class="rule-num">02</span>
+                    <h4>Preuve de Résultat</h4>
+                    <p>Le capitaine d'équipe est tenu de transmettre une capture d'écran nette du tableau de fin de partie via son espace dédié. Le collage direct par presse-papier est actif.</p>
+                </div>
+                <div class="rule-box">
+                    <span class="rule-num">03</span>
+                    <h4>Arbitrage & Décisions</h4>
+                    <p>Les arbitres ont tout pouvoir de modification des scores ou d'application de pénalités en cas de contestation ou de non-respect du fair-play.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- PIED DE PAGE                               -->
+    <!-- ========================================== -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>LAN TOURNAMENT MANAGER // ACCUEIL</span>
+            <div class="footer-links">
+                <a href="/leaderboard.html">Classement</a>
+                <a href="/login.html">Espace Connexion</a>
+            </div>
+            <span>SERVEUR AUTONOME // RUST + AXUM</span>
+        </div>
+    </footer>
+
+    <!-- Script du carrousel et des données dynamiques -->
+    <script type="module" src="/js/home.js"></script>
+
+</body>
+</html>
