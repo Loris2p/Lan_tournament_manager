@@ -9,8 +9,8 @@ use std::sync::Arc;
 
 pub async fn reset_tournament(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<ResetTournamentRequest>,
     _admin: AdminUser,
+    Json(req): Json<ResetTournamentRequest>,
 ) -> Result<Json<Value>, Errors> {
     db::reset_tournament(&state.db, req.scope).await?;
     let _ =&state.ws_tx.send("LEADERBOARD_UPDATE".to_string());

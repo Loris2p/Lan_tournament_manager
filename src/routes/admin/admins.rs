@@ -23,8 +23,8 @@ pub async fn list_admins(
 }
 pub async fn create_admin(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<CreateAdminRequest>,
     _admin: AdminUser,
+    Json(req): Json<CreateAdminRequest>,
 ) -> Result<Json<Value>, Errors> {
     let db = &state.db;
     let username = req.username;

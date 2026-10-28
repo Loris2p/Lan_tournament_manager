@@ -22,8 +22,8 @@ pub async fn setup_status(State(state): State<Arc<AppState>>) -> Result<Json<Val
 
 pub async fn setup_first_admin(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<CreateAdminRequest>,
     jar: CookieJar,
+    Json(req): Json<CreateAdminRequest>,
 ) -> Result<(CookieJar, Json<Value>), Errors> {
     let db = &state.db;
     let username = &req.username;
@@ -61,8 +61,8 @@ pub async fn setup_first_admin(
 
 pub async fn login(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<LoginRequest>,
     jar: CookieJar,
+    Json(req): Json<LoginRequest>,
 ) -> Result<(CookieJar, Json<Value>), Errors> {
     let db = &state.db;
     let username = &req.username;

@@ -10,8 +10,8 @@ use serde_json::{Value, json};
 
 pub async fn create_team(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<CreateTeamRequest>,
     _admin: AdminUser,
+    Json(req): Json<CreateTeamRequest>,
 ) -> Result<Json<Value>, Errors> {
     if db::find_team_by_captain_username(&state.db, &req.captain_username)
         .await

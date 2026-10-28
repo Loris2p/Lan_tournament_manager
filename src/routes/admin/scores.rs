@@ -45,8 +45,8 @@ pub async fn reject_submission(
 pub async fn submit_match_scores(
     State(state): State<Arc<AppState>>,
     Path(match_id): Path<ObjectId>,
-    Json(req): Json<AdminBatchScoresRequest>,
     _admin: AdminUser,
+    Json(req): Json<AdminBatchScoresRequest>,
 ) -> Result<Json<Value>, Errors> {
     let m = db::find_match_by_id(&state.db, match_id).await?;
     let game = db::find_game_by_id(&state.db, m.game_id).await?;

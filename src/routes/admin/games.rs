@@ -10,8 +10,8 @@ use std::sync::Arc;
 
 pub async fn create_game(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<CreateGameRequest>,
     _admin: AdminUser,
+    Json(req): Json<CreateGameRequest>,
 ) -> Result<Json<Value>, Errors> {
     db::create_game(
         &state.db,

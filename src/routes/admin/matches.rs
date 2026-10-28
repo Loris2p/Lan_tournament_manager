@@ -10,8 +10,8 @@ use std::sync::Arc;
 
 pub async fn create_match(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<CreateMatchRequest>,
     _admin: AdminUser,
+    Json(req): Json<CreateMatchRequest>,
 ) -> Result<Json<Value>, Errors> {
     let game_name = db::find_game_by_id(&state.db, req.game_id).await?.name;
     let res = db::create_match(
@@ -30,8 +30,8 @@ pub async fn create_match(
 pub async fn update_match_instructions(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,
-    Json(req): Json<UpdateMatchInstructionsRequest>,
     _admin: AdminUser,
+    Json(req): Json<UpdateMatchInstructionsRequest>,
 ) -> Result<Json<Value>, Errors> {
     db::update_match_instructions(&state.db, id, &req.instructions).await?;
     Ok(Json(json!({"success":true})))
