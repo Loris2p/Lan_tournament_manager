@@ -65,3 +65,7 @@ pub struct ResetTournamentRequest {
 pub struct UpdateMatchInstructionsRequest {
     pub instructions: String,
 }
+#[derive(Deserialize)]
+pub struct UpdateTeamPointsRequest {
+    pub points: u32,
+}

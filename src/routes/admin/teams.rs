@@ -1,12 +1,12 @@
-use std::sync::Arc;
 use crate::auth::AdminUser;
 use crate::errors::Errors;
-use crate::models::{AppState, CreateTeamRequest};
+use crate::models::{AppState, CreateTeamRequest, UpdateTeamPointsRequest};
 use crate::{auth, db};
 use axum::Json;
 use axum::extract::{Path, State};
 use mongodb::bson::oid::ObjectId;
 use serde_json::{Value, json};
+use std::sync::Arc;
 
 pub async fn create_team(
     State(state): State<Arc<AppState>>,
@@ -34,9 +34,19 @@ pub async fn delete_team(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Result<Json<Value>, Errors> {
-
-    db::delete_team(&state.db,id ).await?;
+    db::delete_team(&state.db, id).await?;
     let _ = &state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
 
     Ok(Json(json!({"success":true})))
+}
+pub async fn update_teams_points(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+    Json(req): Json<UpdateTeamPointsRequest>,
+) ->Result<Json<Value>, Errors> {
+    db::set_points_to_team(&state.db,id,req.points).await?;
+    let _ = &state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    Ok(Json(json!({"success":true})))
+
 }

@@ -25,6 +25,7 @@ fn create_admin_nest_router() -> Router<Arc<AppState>> {
         .route("/games/{id}", delete(admin::delete_game))
         .route("/teams", post(admin::create_team))
         .route("/teams/{id}", delete(admin::delete_team))
+        .route("/teams/{id}/points", patch(admin::update_teams_points))
         .route("/matches", post(admin::create_match).get(list_matches))
         .route(
             "/matches/{id}/instructions",
