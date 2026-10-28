@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+
 pub mod auth;
 mod db;
 mod errors;
@@ -46,16 +47,23 @@ pub async fn main() {
             std::process::exit(1);
         }
     };
-    let client = match mongodb::Client::with_uri_str(&config.mongo_uri).await{
-        Ok(c)=>c,
-        Err(err)=>{
+    let client = match mongodb::Client::with_uri_str(&config.mongo_uri).await {
+        Ok(c) => c,
+        Err(err) => {
             eprintln!("Impossible d'initialiser le client MongoDB : {err}");
             std::process::exit(1);
         }
     };
-    let db=client.database("lan_tournament");
-    if let Err(err)=db::init_indexes(&db).await{
+    let db = client.database("lan_tournament");
+    if let Err(err) = db::init_indexes(&db).await {
         eprintln!("Impossible d'initialiser les index de MongoDB : {err}");
         std::process::exit(1);
     }
+
+    let (ws_tx, _) = tokio::sync::broadcast::channel(100);
+    let state = std::sync::Arc::new(models::AppState {
+        db,
+        jwt_secret:config.jwt_secret,
+        ws_tx,
+    });
 }
