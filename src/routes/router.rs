@@ -16,7 +16,7 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .route("/ws", get(ws::ws_handler))
 }
 
-pub fn create_admin_nest_router() -> Router<Arc<AppState>> {
+fn create_admin_nest_router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/admins", get(admin::list_admins).post(admin::create_admin))
         .route("/admins/{id}", delete(admin::delete_admin))
@@ -36,12 +36,12 @@ pub fn create_admin_nest_router() -> Router<Arc<AppState>> {
         .route("/submissions/{id}/reject", post(admin::reject_submission))
         .route("/reset", post(admin::reset_tournament))
 }
-pub fn create_captain_nest_routes() -> Router<Arc<AppState>> {
+fn create_captain_nest_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/matches", get(captain::list_open_matches))
         .route("/submissions", post(captain::create_submission))
 }
-pub fn create_auth_nest_routes() -> Router<Arc<AppState>> {
+fn create_auth_nest_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/setup-status", get(auth::setup_status))
         .route("/setup", post(auth::setup_first_admin))
@@ -49,7 +49,7 @@ pub fn create_auth_nest_routes() -> Router<Arc<AppState>> {
         .route("/me", get(auth::get_me))
         .route("/logout", post(auth::logout))
 }
-pub fn create_public_routes() -> Router<Arc<AppState>> {
+fn create_public_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/leaderboard", get(public::get_leaderboard))
         .route("/games", get(public::list_games))

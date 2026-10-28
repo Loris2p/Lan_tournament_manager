@@ -1,10 +1,16 @@
-#![allow(dead_code)]
+// #![allow(dead_code)]
+
+use crate::routes::create_router;
+use axum::extract::DefaultBodyLimit;
+
+use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
 
 pub mod auth;
 mod db;
 mod errors;
 mod models;
-pub mod routes;
+mod routes;
 mod ws;
 
 pub struct Config {
@@ -63,7 +69,24 @@ pub async fn main() {
     let (ws_tx, _) = tokio::sync::broadcast::channel(100);
     let state = std::sync::Arc::new(models::AppState {
         db,
-        jwt_secret:config.jwt_secret,
+        jwt_secret: config.jwt_secret,
         ws_tx,
     });
+    let routeur = create_router()
+        .with_state(state)
+        .layer(DefaultBodyLimit::max(5 * 1024 * 1024))
+        .fallback_service(ServeDir::new("static"));
+    let addr = format!("0.0.0.0:{}", config.port);
+    let listener = match TcpListener::bind(&addr).await {
+        Ok(l) => l,
+        Err(err) => {
+            eprintln!("Impossible d'écouter sur {addr} : {err}");
+            std::process::exit(1);
+        }
+    };
+    print!("Serveur lancé sur http://localhost:{}", config.port);
+    if let Err(err) = axum::serve(listener, routeur).await {
+        eprintln!("Erreur lors de l'exécution du serveur : {err}");
+        std::process::exit(1);
+    }
 }
