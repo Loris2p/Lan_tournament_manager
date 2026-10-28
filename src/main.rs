@@ -6,14 +6,14 @@ use axum::extract::DefaultBodyLimit;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 
-pub mod auth;
+mod auth;
 mod db;
 mod errors;
 mod models;
 mod routes;
 mod ws;
 
-pub struct Config {
+struct Config {
     mongo_uri: String,
     jwt_secret: String,
     port: u16,
@@ -43,7 +43,7 @@ impl Config {
 }
 
 #[tokio::main]
-pub async fn main() {
+async fn main() {
     println!("Hello, world!");
     dotenvy::dotenv().ok(); // En local : charge les variables du .env. en prod : fichier non chargé (récup immédiate dans les secrets)
     let config = match Config::from_env() {

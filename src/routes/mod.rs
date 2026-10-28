@@ -1,7 +1,7 @@
-pub mod auth;
-pub mod public;
-pub mod captain;
-pub mod admin;
-pub mod router;
+pub(crate) mod auth;
+pub(crate) mod public;
+pub(crate) mod captain;
+pub(crate) mod admin;
+mod router;
 
-pub use router::*;
+pub use router::create_router;
