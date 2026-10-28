@@ -84,7 +84,7 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    print!("Serveur lancé sur http://localhost:{}", config.port);
+    println!("Serveur lancé sur http://localhost:{}", config.port);
     if let Err(err) = axum::serve(listener, routeur).await {
         eprintln!("Erreur lors de l'exécution du serveur : {err}");
         std::process::exit(1);
