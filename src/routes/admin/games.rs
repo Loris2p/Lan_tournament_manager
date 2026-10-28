@@ -13,10 +13,19 @@ pub async fn create_game(
     _admin: AdminUser,
     Json(req): Json<CreateGameRequest>,
 ) -> Result<Json<Value>, Errors> {
+    let cover_image = match &req.cover_image.starts_with("data:image/") {
+        true => {
+            &state
+                .s3
+                .upload_base_image(&req.cover_image, "games")
+                .await?
+        }
+        false => &req.cover_image,
+    };
     db::create_game(
         &state.db,
         &req.name,
-        &req.cover_image,
+        &cover_image,
         req.format,
         req.placement_points,
         req.default_placement_points,

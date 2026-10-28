@@ -26,7 +26,6 @@ pub async fn create_submission(
     Json(req): Json<CreateSubmissionRequest>,
 ) -> Result<Json<Submission>, Errors> {
     let db = &state.db;
-
     let team = find_team_by_id(db, user.team_id).await?;
     let m = find_match_by_id(db, req.match_id).await?;
     let game = find_game_by_id(db, m.game_id).await?;
@@ -43,6 +42,7 @@ pub async fn create_submission(
             "Le preuve doit être un image".to_string(),
         ));
     }
+    let proof_url=state.s3.upload_base_image(&req.proof_base64, "submissions").await?;
     game.validate_score(&req.score)?;
     let calculated_points = game.calculate_points(&req.score);
 
@@ -52,7 +52,7 @@ pub async fn create_submission(
         user.team_id,
         team.name,
         req.score,
-        Some(req.proof_base64),
+        Some(proof_url),
         calculated_points,
         SubmissionStatus::Pending,
     )
