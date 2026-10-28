@@ -1,8 +1,10 @@
 use crate::models::AppState;
 use crate::routes::captain;
+use crate::routes::public;
 use crate::routes::{admin, auth};
+use crate::ws;
 use axum::Router;
-use axum::routing::{Route, delete, get, patch, post};
+use axum::routing::{delete, get, patch, post};
 use std::sync::Arc;
 
 pub fn create_router() -> Router<Arc<AppState>> {
@@ -10,7 +12,10 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .nest("/api/admin", create_admin_nest_router())
         .nest("/api/captain", create_captain_nest_routes())
         .nest("/api/auth", create_auth_nest_routes())
+        .nest("/api", create_public_routes())
+        .route("/ws", get(ws::ws_handler))
 }
+
 pub fn create_admin_nest_router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/admins", get(admin::list_admins).post(admin::create_admin))
@@ -43,4 +48,10 @@ pub fn create_auth_nest_routes() -> Router<Arc<AppState>> {
         .route("/login", post(auth::login))
         .route("/me", get(auth::get_me))
         .route("/logout", post(auth::logout))
+}
+pub fn create_public_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/leaderboard", get(public::get_leaderboard))
+        .route("/games", get(public::list_games))
+        .route("/health", get(public::health_check))
 }

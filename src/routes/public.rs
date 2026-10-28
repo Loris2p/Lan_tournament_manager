@@ -3,6 +3,8 @@ use crate::errors::Errors;
 use crate::models::{AppState, Game, PublicTeam};
 use axum::Json;
 use axum::extract::State;
+use mongodb::bson::doc;
+use serde_json::{Value, json};
 use std::sync::Arc;
 
 pub async fn get_leaderboard(
@@ -12,4 +14,8 @@ pub async fn get_leaderboard(
 }
 pub async fn list_games(State(state): State<Arc<AppState>>) -> Result<Json<Vec<Game>>, Errors> {
     Ok(Json(db::list_games(&state.db).await?))
+}
+pub async fn health_check(State(state): State<Arc<AppState>>) -> Result<Json<Value>, Errors> {
+    let _ = &state.db.run_command(doc! { "ping": 1 }).await?;
+    Ok(Json(json!({"status":"ok", "db":"connected"})))
 }
