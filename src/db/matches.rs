@@ -1,5 +1,5 @@
 use crate::errors::Errors;
-use crate::models::{Match, };
+use crate::models::{Match,};
 use futures::TryStreamExt;
 use mongodb::{
     Database,

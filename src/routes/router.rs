@@ -6,6 +6,7 @@ use crate::ws;
 use axum::Router;
 use axum::routing::{delete, get, patch, post};
 use std::sync::Arc;
+use crate::routes::admin::list_matches;
 
 pub fn create_router() -> Router<Arc<AppState>> {
     Router::new()
@@ -24,7 +25,7 @@ fn create_admin_nest_router() -> Router<Arc<AppState>> {
         .route("/games/{id}", delete(admin::delete_game))
         .route("/teams", post(admin::create_team))
         .route("/teams/{id}", delete(admin::delete_team))
-        .route("/matches", post(admin::create_match))
+        .route("/matches", post(admin::create_match).get(list_matches))
         .route(
             "/matches/{id}/instructions",
             patch(admin::update_match_instructions),
