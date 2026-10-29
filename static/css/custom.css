@@ -1674,3 +1674,87 @@ input:focus, select:focus, textarea:focus {
         justify-content: flex-end;
     }
 }
+
+/* ==========================================================================
+   PIED DE PAGE TECHNIQUE (FOOTER)
+   ========================================================================== */
+
+.footer {
+    border-top: 1px solid var(--line-subtle);
+    background: var(--bg-surface);
+    margin-top: auto;
+    width: 100%;
+}
+
+.footer-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    flex-wrap: wrap;
+}
+
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.footer-links a,
+.footer-links button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.footer-links a:hover,
+.footer-links button:hover {
+    color: var(--red);
+}
+
+/* ==========================================================================
+   MODE KIOSQUE / PLEIN ÉCRAN
+   ========================================================================== */
+
+.fullscreen-mode .topbar,
+.fullscreen-mode .footer {
+    display: none !important;
+}
+
+.fullscreen-mode .page-container {
+    max-width: 100%;
+    padding: 1.5rem 2rem;
+}
+
+/* ==========================================================================
+   ACCENTS PODIUM 2E & 3E & CONTENEURS
+   ========================================================================== */
+
+.podium-slot.rank-second {
+    border-top: 3px solid #94a3b8; /* Argent */
+}
+
+.podium-slot.rank-third {
+    border-top: 3px solid #b45309; /* Bronze */
+}
+
+.lobbies-list,
+.matches-admin-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+

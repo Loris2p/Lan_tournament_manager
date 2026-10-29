@@ -9,6 +9,7 @@
 
 import { api } from './api.js';
 import { checkAuth, logout } from './auth-guard.js';
+import { wsClient } from './ws.js';
 import { showToast, escapeHtml } from './ui.js';
 
 let currentUser = null;
@@ -24,6 +25,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     initMatches();
     initDropzoneAndPaste();
     initFormSubmit();
+
+    wsClient.connect();
+    wsClient.on('LEADERBOARD_UPDATE', () => {
+        initCaptainHeader();
+        initMatches();
+    });
 
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);

@@ -6,11 +6,13 @@
 
 import { api } from './api.js';
 import { checkAuth } from './auth-guard.js';
+import { wsClient } from './ws.js';
 import { showToast } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Si déjà connecté, checkAuth redirige vers sa page respective. Sinon renvoie null sans boucle
     await checkAuth(null);
+    wsClient.connect();
     initAuthPage();
 });
 

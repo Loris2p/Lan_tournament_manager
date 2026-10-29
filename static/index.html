@@ -199,14 +199,26 @@
     <!-- ========================================== -->
     <footer class="footer">
         <div class="footer-inner">
-            <span>LAN TOURNAMENT MANAGER // ACCUEIL</span>
+            <span>&copy; 2026 LAN Tournament Manager</span>
             <div class="footer-links">
-                <a href="/leaderboard.html">Classement</a>
-                <a href="/login.html">Espace Connexion</a>
+                <button type="button" class="footer-link-btn" id="btn-legal">Mentions Légales</button>
+                <button type="button" class="footer-link-btn" id="btn-privacy">Données & Confidentialité</button>
+                <a href="#rules">Règlement</a>
             </div>
-            <span>SERVEUR AUTONOME // RUST + AXUM</span>
         </div>
     </footer>
+
+    <!-- Modale Informations Légales & Confidentialité -->
+    <div id="modal-legal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="brand-title" id="legal-modal-title">INFORMATIONS LÉGALES</span>
+                <button type="button" class="btn-text" data-close-modal="modal-legal">Fermer [Échap]</button>
+            </div>
+            <div class="modal-body" id="legal-modal-body" style="font-size: 0.88rem; line-height: 1.6; color: var(--text-secondary);">
+            </div>
+        </div>
+    </div>
 
     <!-- Script du carrousel et des données dynamiques -->
     <script type="module" src="/js/home.js"></script>
