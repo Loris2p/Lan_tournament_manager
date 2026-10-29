@@ -5,7 +5,7 @@ use aws_sdk_s3::config::Credentials;
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::ObjectCannedAcl;
 use base64::prelude::BASE64_STANDARD;
-use base64::{Engine, prelude};
+use base64::{Engine};
 
 #[derive(Clone)]
 pub struct S3Service {
