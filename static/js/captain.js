@@ -47,9 +47,14 @@ function initCaptainHeader() {
     if (title) title.textContent = currentUser.username;
 
     api.get('/api/leaderboard').then(teams => {
-        const team = teams.find(t => t.name.toLowerCase() === currentUser.username.toLowerCase());
-        if (team && pointsEl) {
-            pointsEl.textContent = `${team.points} PTS`;
+        const team = teams.find(t => 
+            (t.captain_username && t.captain_username.toLowerCase() === currentUser.username.toLowerCase()) ||
+            (t.name && t.name.toLowerCase() === currentUser.username.toLowerCase())
+        );
+        if (team) {
+            if (badge) badge.textContent = `ÉQUIPE : ${team.name.toUpperCase()}`;
+            if (title) title.textContent = team.name;
+            if (pointsEl) pointsEl.textContent = `${team.total_points ?? team.points ?? 0} PTS`;
         }
     }).catch(() => {});
 }

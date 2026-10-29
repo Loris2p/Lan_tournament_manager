@@ -67,5 +67,6 @@ pub struct UpdateMatchInstructionsRequest {
 }
 #[derive(Deserialize)]
 pub struct UpdateTeamPointsRequest {
-    pub points: u32,
+    #[serde(alias = "points")]
+    pub adjustment: i32,
 }

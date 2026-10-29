@@ -377,8 +377,11 @@ async function loadTeams() {
         } else {
             tbody.innerHTML = allTeams.map(team => `
                 <tr>
-                    <td><strong>${escapeHtml(team.name)}</strong></td>
-                    <td class="col-points">${team.points} PTS</td>
+                    <td>
+                        <strong>${escapeHtml(team.name)}</strong>
+                        ${team.captain_username ? `<br><small style="color: var(--text-muted);">Capitaine : ${escapeHtml(team.captain_username)}</small>` : ''}
+                    </td>
+                    <td class="col-points">${team.total_points ?? team.points ?? 0} PTS</td>
                     <td>
                         <button type="button" class="btn-text btn-adjust-pts" data-id="${team.id}" data-name="${escapeHtml(team.name)}">
                             +/- Ajuster
@@ -607,10 +610,11 @@ function initForms() {
     document.getElementById('create-team-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('team-name').value.trim();
+        const captain_username = document.getElementById('team-captain-username').value.trim();
         const captain_password = document.getElementById('team-password').value;
 
         try {
-            await api.post('/api/admin/teams', { name, captain_password });
+            await api.post('/api/admin/teams', { name, captain_username, captain_password });
             showToast(`Équipe "${name}" créée avec succès !`, "success");
             e.target.reset();
             loadTeams();

@@ -44,9 +44,8 @@ pub async fn update_teams_points(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
     Json(req): Json<UpdateTeamPointsRequest>,
-) ->Result<Json<Value>, Errors> {
-    db::set_points_to_team(&state.db,id,req.points).await?;
+) -> Result<Json<Value>, Errors> {
+    let new_points = db::adjust_team_points(&state.db, id, req.adjustment).await?;
     let _ = &state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
-    Ok(Json(json!({"success":true})))
-
+    Ok(Json(json!({ "success": true, "points": new_points })))
 }

@@ -64,7 +64,7 @@ function renderPodium(teams) {
     const p1Points = document.getElementById('podium-1-points');
     if (p1Name && p1Points) {
         p1Name.textContent = first ? first.name : '--';
-        p1Points.textContent = first ? `${first.points} PTS` : '--';
+        p1Points.textContent = first ? `${first.total_points ?? first.points ?? 0} PTS` : '--';
     }
 
     // 2ème Place
@@ -72,7 +72,7 @@ function renderPodium(teams) {
     const p2Points = document.getElementById('podium-2-points');
     if (p2Name && p2Points) {
         p2Name.textContent = second ? second.name : '--';
-        p2Points.textContent = second ? `${second.points} PTS` : '--';
+        p2Points.textContent = second ? `${second.total_points ?? second.points ?? 0} PTS` : '--';
     }
 
     // 3ème Place
@@ -80,7 +80,7 @@ function renderPodium(teams) {
     const p3Points = document.getElementById('podium-3-points');
     if (p3Name && p3Points) {
         p3Name.textContent = third ? third.name : '--';
-        p3Points.textContent = third ? `${third.points} PTS` : '--';
+        p3Points.textContent = third ? `${third.total_points ?? third.points ?? 0} PTS` : '--';
     }
 }
 
@@ -103,7 +103,7 @@ function renderTable(teams, tbody) {
             <tr>
                 <td class="col-rank">${rankFormatted}</td>
                 <td class="col-team">${escapeHtml(team.name)}</td>
-                <td class="col-points">${team.points} PTS</td>
+                <td class="col-points">${team.total_points ?? team.points ?? 0} PTS</td>
             </tr>
         `;
     }).join('');

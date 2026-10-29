@@ -101,6 +101,21 @@ pub async fn add_points_to_team(
     }
     Ok(())
 }
+pub async fn adjust_team_points(
+    db: &Database,
+    team_id: ObjectId,
+    adjustment: i32,
+) -> Result<u32, Errors> {
+    let team = find_team_by_id(db, team_id).await?;
+    let new_points = if adjustment < 0 {
+        team.total_points.saturating_sub(adjustment.unsigned_abs())
+    } else {
+        team.total_points.saturating_add(adjustment as u32)
+    };
+    set_points_to_team(db, team_id, new_points).await?;
+    Ok(new_points)
+}
+
 pub async fn set_points_to_team(
     db: &Database,
     team_id: ObjectId,
