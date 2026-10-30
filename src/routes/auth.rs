@@ -9,6 +9,7 @@ use crate::errors::Errors;
 use crate::models::{AppState, CreateAdminRequest, LoginRequest};
 use axum::Json;
 use axum::extract::State;
+use axum::http::HeaderMap;
 use axum_extra::extract::CookieJar;
 use axum_extra::extract::cookie::Cookie;
 use serde_json::{Value, json};
@@ -59,11 +60,28 @@ pub async fn setup_first_admin(
     Ok((jar, Json(json!({ "redirect": "/admin.html" }))))
 }
 
+fn extract_client_ip(headers: &HeaderMap) -> String {
+    headers
+        .get("x-forwarded-for")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.split(',').next())
+        .map(|s| s.trim().to_string())
+        .unwrap_or_else(|| "127.0.0.1".to_string())
+}
+
 pub async fn login(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     jar: CookieJar,
     Json(req): Json<LoginRequest>,
 ) -> Result<(CookieJar, Json<Value>), Errors> {
+    let client_ip = extract_client_ip(&headers);
+    if !state.rate_limiter.check(&client_ip) {
+        return Err(Errors::Error429TooManyRequests(
+            "Trop de tentatives de connexion. Veuillez patienter une minute.".to_string(),
+        ));
+    }
+
     let db = &state.db;
     let username = &req.username;
     let password = &req.password;
@@ -113,6 +131,7 @@ pub async fn login(
             }
         }
     };
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     Err(Errors::Error401Unauthorized(
         "Identifiant ou mot de passe incorrect".to_string(),
     ))

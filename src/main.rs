@@ -76,11 +76,13 @@ async fn run() -> Result<(), Errors> {
     db::init_indexes(&db).await?;
     let s3=services::S3Service::new(config.cellar_host, config.cellar_key_id, config.cellar_key_secret, config.cellar_bucket);
     let (ws_tx, _) = tokio::sync::broadcast::channel(100);
+    let rate_limiter = auth::RateLimiter::new(5, std::time::Duration::from_secs(60));
     let state = std::sync::Arc::new(models::AppState {
         db,
         jwt_secret: config.jwt_secret,
         ws_tx,
-        s3
+        s3,
+        rate_limiter,
     });
 
     let routeur = create_router()

@@ -10,6 +10,7 @@ pub enum Errors {
     Error403Forbidden(String),
     Error404NotFound(String),
     Error409Conflict(String),
+    Error429TooManyRequests(String),
     Error500InternalError(String),
 }
 impl std::fmt::Display for Errors {
@@ -20,6 +21,7 @@ impl std::fmt::Display for Errors {
             | Errors::Error403Forbidden(msg)
             | Errors::Error404NotFound(msg)
             | Errors::Error409Conflict(msg)
+            | Errors::Error429TooManyRequests(msg)
             | Errors::Error500InternalError(msg) => write!(f, "{msg}"),
         }
     }
@@ -32,6 +34,7 @@ impl IntoResponse for Errors {
             Errors::Error403Forbidden(s) => (StatusCode::FORBIDDEN, s),
             Errors::Error404NotFound(s) => (StatusCode::NOT_FOUND, s),
             Errors::Error409Conflict(s) => (StatusCode::CONFLICT, s),
+            Errors::Error429TooManyRequests(s) => (StatusCode::TOO_MANY_REQUESTS, s),
             Errors::Error500InternalError(s) => (StatusCode::INTERNAL_SERVER_ERROR, s),
         };
         (status, Json(json!({"error":message}))).into_response()

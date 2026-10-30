@@ -41,6 +41,6 @@ pub fn build_auth_cookie(token: String) -> Cookie<'static> {
     Cookie::build(("lan_session", token))
         .path("/")
         .http_only(true)
-        .same_site(SameSite::Lax)
+        .same_site(SameSite::Strict).secure(true)
         .build()
 }
