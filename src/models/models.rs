@@ -71,6 +71,8 @@ pub struct Admin {
     pub id: Option<ObjectId>,
     pub username: String,
     pub password_hash: String,
+    #[serde(default)]
+    pub token_version: u32,
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct PublicTeam {
@@ -87,6 +89,8 @@ pub struct Team {
     pub captain_username: String,
     pub captain_password_hash: String,
     pub total_points: u32,
+    #[serde(default)]
+    pub token_version: u32,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Match {

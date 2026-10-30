@@ -13,6 +13,7 @@ pub fn create_jwt(
     sub: ObjectId,
     username: String,
     role: UserRole,
+    token_version: u32,
     exp: usize,
     secret: &str,
 ) -> Result<String, Errors> {
@@ -21,6 +22,7 @@ pub fn create_jwt(
         username,
         role,
         exp,
+        token_version,
     };
     Ok(encode(
         &Header::default(),

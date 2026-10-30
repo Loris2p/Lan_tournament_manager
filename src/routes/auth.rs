@@ -1,6 +1,6 @@
 use crate::auth::{
     AuthenticatedUser, Claims, UserRole, build_auth_cookie, create_jwt, hash_password,
-    verify_password,
+    verify_jwt, verify_password,
 };
 use crate::db::{
     count_admins, create_admin, find_admin_by_username, find_team_by_captain_username,
@@ -12,6 +12,7 @@ use axum::extract::State;
 use axum::http::HeaderMap;
 use axum_extra::extract::CookieJar;
 use axum_extra::extract::cookie::Cookie;
+use mongodb::bson::oid::ObjectId;
 use serde_json::{Value, json};
 use std::sync::Arc;
 
@@ -52,6 +53,7 @@ pub async fn setup_first_admin(
         admin_id,
         admin.username,
         UserRole::Admin,
+        admin.token_version,
         exp,
         &state.jwt_secret,
     )?;
@@ -96,6 +98,7 @@ pub async fn login(
                     admin_id,
                     admin.username,
                     UserRole::Admin,
+                    admin.token_version,
                     exp,
                     &state.jwt_secret,
                 )?;
@@ -119,6 +122,7 @@ pub async fn login(
                         UserRole::Captain {
                             team_id: team_id.to_hex(),
                         },
+                        team.token_version,
                         exp,
                         &state.jwt_secret,
                     )?;
@@ -141,12 +145,28 @@ pub async fn get_me(user: AuthenticatedUser) -> Json<Claims> {
     Json(user.claims)
 }
 
-pub async fn logout(jar: CookieJar) -> (CookieJar, Json<Value>) {
+pub async fn logout(
+    State(state): State<Arc<AppState>>,
+    jar: CookieJar,
+) -> (CookieJar, Json<Value>) {
+    if let Some(cookie) = jar.get("lan_session") {
+        if let Ok(claims) = verify_jwt(cookie.value(), &state.jwt_secret) {
+            if let Ok(oid) = ObjectId::parse_str(&claims.sub) {
+                match claims.role {
+                    UserRole::Admin => {
+                        let _ = crate::db::increment_admin_token_version(&state.db, oid).await;
+                    }
+                    UserRole::Captain { .. } => {
+                        let _ = crate::db::increment_team_token_version(&state.db, oid).await;
+                    }
+                }
+            }
+        }
+    }
     let cookie = Cookie::build("lan_session").path("/").build();
     let new_jar = jar.remove(cookie);
     (
         new_jar,
-        Json(json!({ "message": "Déconnecté avec succès"
-        })),
+        Json(json!({ "message": "Déconnecté avec succès" })),
     )
 }

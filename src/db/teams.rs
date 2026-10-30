@@ -71,6 +71,7 @@ pub async fn create_team(
         captain_username: captain_username.to_string(),
         captain_password_hash: captain_password_hash.to_string(),
         total_points: 0,
+        token_version: 0,
     };
     let res = db.collection::<Team>("teams").insert_one(&equipe).await?;
     equipe.id = res.inserted_id.as_object_id();
@@ -129,4 +130,19 @@ pub async fn set_points_to_team(
         return Err(Errors::Error404NotFound("Équipe introuvable".to_string()));
     }
     Ok(())
+}
+
+pub async fn increment_team_token_version(db: &Database, team_id: ObjectId) -> Result<(), Errors> {
+    db.collection::<Team>("teams")
+        .update_one(doc! {"_id": team_id}, doc! {"$inc": {"token_version": 1}})
+        .await?;
+    Ok(())
+}
+
+pub async fn verify_team_session(db: &Database, team_id: ObjectId, token_version: u32) -> Result<bool, Errors> {
+    let count = db
+        .collection::<Team>("teams")
+        .count_documents(doc! {"_id": team_id, "token_version": token_version})
+        .await?;
+    Ok(count > 0)
 }

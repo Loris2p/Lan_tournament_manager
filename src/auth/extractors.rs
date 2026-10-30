@@ -30,6 +30,25 @@ impl FromRequestParts<Arc<AppState>> for AuthenticatedUser {
             }
         };
         let claims = verify_jwt(cookies_token, &state.jwt_secret)?;
+        let oid = ObjectId::parse_str(&claims.sub).map_err(|_| {
+            Self::Rejection::Error401Unauthorized("ID de session invalide".to_string())
+        })?;
+
+        let is_valid = match claims.role {
+            UserRole::Admin => {
+                crate::db::verify_admin_session(&state.db, oid, claims.token_version).await?
+            }
+            UserRole::Captain { .. } => {
+                crate::db::verify_team_session(&state.db, oid, claims.token_version).await?
+            }
+        };
+
+        if !is_valid {
+            return Err(Self::Rejection::Error401Unauthorized(
+                "Session révoquée ou expirée. Veuillez vous reconnecter.".to_string(),
+            ));
+        }
+
         Ok(Self { claims })
     }
 }

@@ -11,4 +11,6 @@ pub struct Claims {
     pub username: String,
     pub role: UserRole,
     pub exp: usize, // timestamp de l'expiration
+    #[serde(default)]
+    pub token_version: u32,
 }
