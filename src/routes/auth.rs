@@ -123,7 +123,8 @@ pub async fn get_me(user: AuthenticatedUser) -> Json<Claims> {
 }
 
 pub async fn logout(jar: CookieJar) -> (CookieJar, Json<Value>) {
-    let new_jar = jar.remove(Cookie::from("lan_session"));
+    let cookie = Cookie::build("lan_session").path("/").build();
+    let new_jar = jar.remove(cookie);
     (
         new_jar,
         Json(json!({ "message": "Déconnecté avec succès"
