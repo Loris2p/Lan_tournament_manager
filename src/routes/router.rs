@@ -1,5 +1,6 @@
 use crate::models::AppState;
 use crate::routes::captain;
+use crate::routes::pages;
 use crate::routes::public;
 use crate::routes::{admin, auth};
 use crate::ws;
@@ -10,6 +11,10 @@ use crate::routes::admin::list_matches;
 
 pub fn create_router() -> Router<Arc<AppState>> {
     Router::new()
+        .route("/admin", get(pages::serve_admin_page))
+        .route("/admin.html", get(pages::serve_admin_page))
+        .route("/captain", get(pages::serve_captain_page))
+        .route("/captain.html", get(pages::serve_captain_page))
         .nest("/api/admin", create_admin_nest_router())
         .nest("/api/captain", create_captain_nest_routes())
         .nest("/api/auth", create_auth_nest_routes())
