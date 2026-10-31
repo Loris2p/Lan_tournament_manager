@@ -38,8 +38,8 @@
                     Plein écran [F11]
                 </button>
 
-                <a href="/login.html" class="btn-primary" id="auth-btn">
-                    Connexion
+                <a href="{{ auth.target_url }}" class="btn-primary" id="auth-btn">
+                    {{ auth.label }}
                 </a>
             </div>
         </div>
@@ -111,7 +111,7 @@
                     <button type="button" class="carousel-nav-btn" id="carousel-prev" title="Jeu précédent">
                         &larr; Précédent
                     </button>
-                    <span class="carousel-counter" id="carousel-counter">01 / 01</span>
+                    <span class="carousel-counter" id="carousel-counter">01 / {% if games.len() < 10 %}0{{ games.len() }}{% else %}{{ games.len() }}{% endif %}</span>
                     <button type="button" class="carousel-nav-btn" id="carousel-next" title="Jeu suivant">
                         Suivant &rarr;
                     </button>
@@ -121,45 +121,78 @@
             <!-- Conteneur du carrousel -->
             <div class="carousel-wrapper">
                 <div class="carousel-track" id="carousel-track">
-                    <!-- Slide par défaut / exemple (remplacé dynamiquement par /api/games) -->
-                    <article class="carousel-slide active">
-                        <div class="slide-grid">
-                            <div class="slide-media">
-                                <div class="slide-image-placeholder">
-                                    <span class="media-tag">ILLUSTRATION DU JEU</span>
+                    {% if games.is_empty() %}
+                        <article class="carousel-slide active">
+                            <div class="slide-grid">
+                                <div class="slide-media">
+                                    <div class="slide-image-placeholder">
+                                        <span class="media-tag">ILLUSTRATION DU JEU</span>
+                                    </div>
+                                </div>
+                                <div class="slide-content">
+                                    <div class="slide-header">
+                                        <span class="badge-format">FORMAT : BRAWL</span>
+                                        <span class="badge-code">DISCIPLINE #01</span>
+                                    </div>
+                                    <h3 class="slide-title">Aucune épreuve configurée</h3>
+                                    <p class="slide-desc">
+                                        Les jeux configurés par les organisateurs s'afficheront ici automatiquement avec leurs règles spécifiques.
+                                    </p>
                                 </div>
                             </div>
-                            <div class="slide-content">
-                                <div class="slide-header">
-                                    <span class="badge-format">FORMAT : BRAWL</span>
-                                    <span class="badge-code">DISCIPLINE #01</span>
+                        </article>
+                    {% else %}
+                        {% for game in games %}
+                            <article class="carousel-slide{% if loop.first %} active{% endif %}">
+                                <div class="slide-grid">
+                                    <div class="slide-media">
+                                        {% if !game.cover_image.trim().is_empty() %}
+                                            <img src="{{ game.cover_image }}" alt="{{ game.name }}" loading="lazy">
+                                        {% else %}
+                                            <div class="slide-image-placeholder">
+                                                <span class="media-tag">{{ game.name }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="slide-content">
+                                        <div>
+                                            <div class="slide-header">
+                                                <span class="badge-format">{{ game.format }}</span>
+                                                <span class="badge-code">DISCIPLINE #{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</span>
+                                            </div>
+                                            <h3 class="slide-title">{{ game.name }}</h3>
+                                            <p class="slide-desc">{{ game.rules }}</p>
+                                        </div>
+                                        <div class="slide-specs">
+                                            <div class="slide-spec-row">
+                                                <span class="spec-k">BARÈME PLACEMENT :</span>
+                                                <span class="spec-v">{{ game.placement_text }}</span>
+                                            </div>
+                                            <div class="slide-spec-row">
+                                                <span class="spec-k">POINTS SECONDAIRES :</span>
+                                                <span class="spec-v">{{ game.secondary_text }}</span>
+                                            </div>
+                                            <div class="slide-spec-row">
+                                                <span class="spec-k">MAX PLACEMENT :</span>
+                                                <span class="spec-v">{{ game.max_placement }} équipes</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3 class="slide-title">Chargement des épreuves...</h3>
-                                <p class="slide-desc">
-                                    Les jeux configurés par les administrateurs en base de données s'afficheront ici automatiquement avec leurs règles spécifiques et leurs barèmes de points.
-                                </p>
-                                <div class="slide-specs">
-                                    <div class="slide-spec-row">
-                                        <span class="spec-k">BARÈME PLACEMENT :</span>
-                                        <span class="spec-v">Configurable dynamiquement</span>
-                                    </div>
-                                    <div class="slide-spec-row">
-                                        <span class="spec-k">POINTS SECONDAIRES :</span>
-                                        <span class="spec-v">Kills / Dégâts / Manches</span>
-                                    </div>
-                                    <div class="slide-spec-row">
-                                        <span class="spec-k">CONSIGNES :</span>
-                                        <span class="spec-v">Serveur local dédié ou lobby privé</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
+                            </article>
+                        {% endfor %}
+                    {% endif %}
                 </div>
 
                 <!-- Indicateurs de pagination (dots) -->
                 <div class="carousel-dots" id="carousel-dots">
-                    <span class="dot active"></span>
+                    {% if games.is_empty() %}
+                        <span class="dot active"></span>
+                    {% else %}
+                        {% for game in games %}
+                            <span class="dot{% if loop.first %} active{% endif %}"></span>
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </section>

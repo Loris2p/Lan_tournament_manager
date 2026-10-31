@@ -1,12 +1,12 @@
 use std::sync::Arc;
 use askama::Template;
-use axum::extract::{Form, Query, State};
+use axum::extract::{Form, Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::CookieJar;
 use mongodb::bson::oid::ObjectId;
 use serde::Deserialize;
-use crate::auth::{verify_jwt, CaptainUser, UserRole};
+use crate::auth::{verify_jwt, AdminUser, CaptainUser, UserRole};
 use crate::models::AppState;
 
 pub struct HtmlTemplate<T>(pub T);
@@ -76,11 +76,120 @@ impl CaptainTemplate {
     }
 }
 
+#[allow(dead_code)]
+pub struct NavAuth {
+    pub is_logged_in: bool,
+    pub target_url: String,
+    pub label: String,
+}
+
+impl NavAuth {
+    pub fn from_jar(jar: &CookieJar, secret: &str) -> Self {
+        if let Some(c) = jar.get("lan_session") {
+            if let Ok(claims) = verify_jwt(c.value(), secret) {
+                return match claims.role {
+                    UserRole::Admin => Self {
+                        is_logged_in: true,
+                        target_url: "/admin".to_string(),
+                        label: "Espace Arbitre".to_string(),
+                    },
+                    UserRole::Captain { .. } => Self {
+                        is_logged_in: true,
+                        target_url: "/captain".to_string(),
+                        label: "Espace Équipe".to_string(),
+                    },
+                };
+            }
+        }
+        Self {
+            is_logged_in: false,
+            target_url: "/login".to_string(),
+            label: "Connexion".to_string(),
+        }
+    }
+}
+
+pub struct HomeGameView {
+    pub name: String,
+    pub format: String,
+    pub cover_image: String,
+    pub rules: String,
+    pub placement_text: String,
+    pub secondary_text: String,
+    pub max_placement: u8,
+}
+
+#[derive(Template)]
+#[template(path = "index.html")]
+pub struct IndexTemplate {
+    pub games: Vec<HomeGameView>,
+    pub auth: NavAuth,
+}
+
+pub async fn serve_home_page(
+    State(state): State<Arc<AppState>>,
+    jar: CookieJar,
+) -> Response {
+    let games_db = crate::db::list_games(&state.db).await.unwrap_or_default();
+    let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
+
+    let games_view: Vec<HomeGameView> = games_db
+        .into_iter()
+        .map(|g| {
+            let format = match g.format {
+                crate::models::GameFormat::Duel => "DUEL 1V1".to_string(),
+                crate::models::GameFormat::Brawl => "BRAWL // MULTI-ÉQUIPES".to_string(),
+            };
+            let placement_text = if !g.placement_points.is_empty() {
+                g.placement_points
+                    .iter()
+                    .enumerate()
+                    .take(4)
+                    .map(|(i, pts)| format!("{}e: {}pts", i + 1, pts))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            } else {
+                "Non configuré".to_string()
+            };
+            let secondary_text = if let Some(label) = g.secondary_stat_label {
+                format!(
+                    "{} ({} pt/unité, max {})",
+                    label, g.points_per_secondary_stat, g.max_secondary_stat
+                )
+            } else {
+                "Aucune statistique secondaire".to_string()
+            };
+            let rules = if !g.rules.trim().is_empty() {
+                g.rules
+            } else {
+                "Consignes de match standard. Respecter le fair-play et les directives des arbitres.".to_string()
+            };
+
+            HomeGameView {
+                name: g.name,
+                format,
+                cover_image: g.cover_image,
+                rules,
+                placement_text,
+                secondary_text,
+                max_placement: g.max_placement,
+            }
+        })
+        .collect();
+
+    HtmlTemplate(IndexTemplate {
+        games: games_view,
+        auth,
+    })
+    .into_response()
+}
+
 #[derive(Template)]
 #[template(path = "leaderboard.html")]
 pub struct LeaderboardTemplate {
     pub teams: Vec<crate::models::PublicTeam>,
     pub live_matches: Vec<crate::models::Match>,
+    pub auth: NavAuth,
 }
 
 impl LeaderboardTemplate {
@@ -104,13 +213,16 @@ impl LeaderboardTemplate {
 
 pub async fn serve_leaderboard_page(
     State(state): State<Arc<AppState>>,
+    jar: CookieJar,
 ) -> Response {
     let teams = crate::db::get_leaderboard(&state.db).await.unwrap_or_default();
     let live_matches = crate::db::get_open_matches(&state.db).await.unwrap_or_default();
+    let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
 
     HtmlTemplate(LeaderboardTemplate {
         teams,
         live_matches,
+        auth,
     })
     .into_response()
 }
@@ -578,4 +690,264 @@ pub async fn submit_captain_score(
     let _ = state.ws_tx.send("NEW_SUBMISSION".to_string());
 
     Redirect::to("/captain?status=success").into_response()
+}
+
+pub async fn admin_approve_submission(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    if crate::db::approve_or_reject_submission(
+        &state.db,
+        id,
+        crate::models::SubmissionStatus::Approved,
+    )
+    .await
+    .is_ok()
+    {
+        let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    }
+    Redirect::to("/admin?tab=arbitrage").into_response()
+}
+
+pub async fn admin_reject_submission(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    let _ = crate::db::approve_or_reject_submission(
+        &state.db,
+        id,
+        crate::models::SubmissionStatus::Rejected,
+    )
+    .await;
+    Redirect::to("/admin?tab=arbitrage").into_response()
+}
+
+pub async fn admin_toggle_match(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    let _ = crate::db::toggle_match_status(&state.db, id).await;
+    Redirect::to("/admin?tab=matches").into_response()
+}
+
+pub async fn admin_delete_game(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    let _ = crate::db::delete_game(&state.db, id).await;
+    Redirect::to("/admin?tab=games").into_response()
+}
+
+pub async fn admin_delete_team(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    let _ = crate::db::delete_team(&state.db, id).await;
+    let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    Redirect::to("/admin?tab=teams").into_response()
+}
+
+pub async fn admin_delete_admin(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    let _ = crate::db::delete_admin(&state.db, id).await;
+    Redirect::to("/admin?tab=admins").into_response()
+}
+
+#[derive(Deserialize)]
+pub struct AdjustPointsForm {
+    pub adjustment: i32,
+}
+
+pub async fn admin_adjust_points(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+    Form(form): Form<AdjustPointsForm>,
+) -> Response {
+    let _ = crate::db::adjust_team_points(&state.db, id, form.adjustment).await;
+    let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    Redirect::to("/admin?tab=teams").into_response()
+}
+
+#[derive(Deserialize)]
+pub struct CreateGameForm {
+    pub name: String,
+    pub format: String,
+    #[serde(default)]
+    pub cover_image: String,
+    pub placement_points: String,
+    #[serde(default)]
+    pub default_placement_points: u32,
+    #[serde(default = "default_two")]
+    pub max_placement: u8,
+    pub secondary_stat_label: Option<String>,
+    #[serde(default)]
+    pub points_per_secondary_stat: u32,
+    #[serde(default)]
+    pub max_secondary_stat: u32,
+    #[serde(default)]
+    pub rules: String,
+}
+
+fn default_two() -> u8 {
+    2
+}
+
+pub async fn admin_create_game_form(
+    State(state): State<Arc<AppState>>,
+    _admin: AdminUser,
+    Form(form): Form<CreateGameForm>,
+) -> Response {
+    let format = match form.format.as_str() {
+        "duel" => crate::models::GameFormat::Duel,
+        _ => crate::models::GameFormat::Brawl,
+    };
+    let placement_points: Vec<u32> = form
+        .placement_points
+        .split(',')
+        .filter_map(|s| s.trim().parse::<u32>().ok())
+        .collect();
+    let sec_label = form
+        .secondary_stat_label
+        .filter(|s| !s.trim().is_empty());
+
+    let _ = crate::db::create_game(
+        &state.db,
+        &form.name,
+        &form.cover_image,
+        format,
+        placement_points,
+        form.default_placement_points,
+        sec_label,
+        form.points_per_secondary_stat,
+        form.max_placement,
+        form.max_secondary_stat,
+        &form.rules,
+    )
+    .await;
+
+    Redirect::to("/admin?tab=games").into_response()
+}
+
+#[derive(Deserialize)]
+pub struct CreateTeamForm {
+    pub name: String,
+    pub captain_username: String,
+    pub captain_password: String,
+}
+
+pub async fn admin_create_team_form(
+    State(state): State<Arc<AppState>>,
+    _admin: AdminUser,
+    Form(form): Form<CreateTeamForm>,
+) -> Response {
+    if let Ok(hash) = crate::auth::hash_password(&form.captain_password) {
+        let _ = crate::db::create_team(
+            &state.db,
+            &form.name,
+            &form.captain_username,
+            &hash,
+        )
+        .await;
+        let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    }
+    Redirect::to("/admin?tab=teams").into_response()
+}
+
+#[derive(Deserialize)]
+pub struct CreateAdminForm {
+    pub username: String,
+    pub password: String,
+}
+
+pub async fn admin_create_admin_form(
+    State(state): State<Arc<AppState>>,
+    _admin: AdminUser,
+    Form(form): Form<CreateAdminForm>,
+) -> Response {
+    if let Ok(hash) = crate::auth::hash_password(&form.password) {
+        let _ = crate::db::create_admin(&state.db, &form.username, &hash).await;
+    }
+    Redirect::to("/admin?tab=admins").into_response()
+}
+
+#[derive(Deserialize)]
+pub struct CreateMatchForm {
+    pub game_id: String,
+    #[serde(default)]
+    pub instructions: String,
+    #[serde(default)]
+    pub match_teams: Vec<String>,
+}
+
+pub async fn admin_create_match_form(
+    State(state): State<Arc<AppState>>,
+    _admin: AdminUser,
+    Form(form): Form<CreateMatchForm>,
+) -> Response {
+    if let Ok(game_oid) = ObjectId::parse_str(&form.game_id) {
+        if let Ok(game) = crate::db::find_game_by_id(&state.db, game_oid).await {
+            let teams_oids: Vec<ObjectId> = form
+                .match_teams
+                .iter()
+                .filter_map(|t| ObjectId::parse_str(t).ok())
+                .collect();
+            let _ = crate::db::create_match(
+                &state.db,
+                &game.name,
+                game_oid,
+                &game.name,
+                teams_oids,
+                &form.instructions,
+                true,
+            )
+            .await;
+            let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
+        }
+    }
+    Redirect::to("/admin?tab=matches").into_response()
+}
+
+#[derive(Deserialize)]
+pub struct UpdateInstructionsForm {
+    pub instructions: String,
+}
+
+pub async fn admin_update_instructions_form(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+    Form(form): Form<UpdateInstructionsForm>,
+) -> Response {
+    let _ = crate::db::update_match_instructions(&state.db, id, &form.instructions).await;
+    let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
+    Redirect::to("/admin?tab=matches").into_response()
+}
+
+#[derive(Deserialize)]
+pub struct ResetTournamentForm {
+    pub scope: String,
+}
+
+pub async fn admin_reset_tournament_form(
+    State(state): State<Arc<AppState>>,
+    _admin: AdminUser,
+    Form(form): Form<ResetTournamentForm>,
+) -> Response {
+    let scope = match form.scope.as_str() {
+        "ScoresOnly" => crate::models::ResetScope::ScoresOnly,
+        "UsersAndTeams" => crate::models::ResetScope::UsersAndTeams,
+        _ => crate::models::ResetScope::FullTournament,
+    };
+    let _ = crate::db::reset_tournament(&state.db, scope).await;
+    let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    Redirect::to("/admin?tab=danger").into_response()
 }

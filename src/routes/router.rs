@@ -11,6 +11,8 @@ use crate::routes::admin::list_matches;
 
 pub fn create_router() -> Router<Arc<AppState>> {
     Router::new()
+        .route("/", get(pages::serve_home_page))
+        .route("/index.html", get(pages::serve_home_page))
         .route("/leaderboard", get(pages::serve_leaderboard_page))
         .route("/leaderboard.html", get(pages::serve_leaderboard_page))
         .route(
@@ -28,6 +30,28 @@ pub fn create_router() -> Router<Arc<AppState>> {
         )
         .route("/admin", get(pages::serve_admin_page))
         .route("/admin.html", get(pages::serve_admin_page))
+        .route(
+            "/admin/submissions/{id}/approve",
+            post(pages::admin_approve_submission),
+        )
+        .route(
+            "/admin/submissions/{id}/reject",
+            post(pages::admin_reject_submission),
+        )
+        .route("/admin/games", post(pages::admin_create_game_form))
+        .route("/admin/games/{id}/delete", post(pages::admin_delete_game))
+        .route("/admin/teams", post(pages::admin_create_team_form))
+        .route("/admin/teams/{id}/delete", post(pages::admin_delete_team))
+        .route("/admin/teams/{id}/points", post(pages::admin_adjust_points))
+        .route("/admin/matches", post(pages::admin_create_match_form))
+        .route("/admin/matches/{id}/toggle", post(pages::admin_toggle_match))
+        .route(
+            "/admin/matches/{id}/instructions",
+            post(pages::admin_update_instructions_form),
+        )
+        .route("/admin/admins", post(pages::admin_create_admin_form))
+        .route("/admin/admins/{id}/delete", post(pages::admin_delete_admin))
+        .route("/admin/reset", post(pages::admin_reset_tournament_form))
         .route("/captain", get(pages::serve_captain_page))
         .route("/captain.html", get(pages::serve_captain_page))
         .route("/captain/submissions", post(pages::submit_captain_score))

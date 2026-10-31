@@ -6,10 +6,8 @@
  */
 
 import { wsClient } from './ws.js';
-import { checkAuth } from './auth-guard.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuth(null);
     initFullscreen();
     initWebSocket();
 });

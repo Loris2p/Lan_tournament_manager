@@ -35,9 +35,9 @@
                     <span class="status-label" id="admin-user-badge">ADMIN : {{ admin_username.to_uppercase() }}</span>
                 </div>
 
-                <button type="button" class="btn-text" id="logout-btn">
+                <a href="/logout" class="btn-text" id="logout-btn">
                     Déconnexion
-                </button>
+                </a>
             </div>
         </div>
     </header>
@@ -105,12 +105,16 @@
                                     {% endif %}
                                 </div>
                                 <div class="sub-actions">
-                                    <button type="button" class="btn-primary btn-approve" data-id="{{ sub.id }}">
-                                        ✓ Valider & Créditer
-                                    </button>
-                                    <button type="button" class="btn-outline btn-reject" data-id="{{ sub.id }}">
-                                        ✕ Rejeter
-                                    </button>
+                                    <form method="POST" action="/admin/submissions/{{ sub.id }}/approve" style="display:inline;">
+                                        <button type="submit" class="btn-primary">
+                                            ✓ Valider & Créditer
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="/admin/submissions/{{ sub.id }}/reject" style="display:inline;">
+                                        <button type="submit" class="btn-outline">
+                                            ✕ Rejeter
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -129,61 +133,61 @@
                     <h3>AJOUTER UNE ÉPREUVE AU CATALOGUE</h3>
                     <p class="panel-desc">Définissez le barème dynamique et les limites anti-triche du jeu.</p>
 
-                    <form id="create-game-form" class="admin-form">
+                    <form id="create-game-form" class="admin-form" method="POST" action="/admin/games">
                         <div class="form-group">
                             <label for="game-name">NOM DU JEU</label>
-                            <input type="text" id="game-name" required placeholder="Ex: Rocket League, Apex Legends...">
+                            <input type="text" id="game-name" name="name" required placeholder="Ex: Rocket League, Apex Legends...">
                         </div>
 
                         <div class="form-row-grid">
                             <div class="form-group">
                                 <label for="game-format">FORMAT</label>
-                                <select id="game-format" required>
+                                <select id="game-format" name="format" required>
                                     <option value="duel">Duel (1v1 équipes)</option>
                                     <option value="brawl">Brawl (Multi-équipes en lobby)</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="game-cover">URL DE L'ILLUSTRATION</label>
-                                <input type="text" id="game-cover" placeholder="Ex: /img/rl.jpg ou URL">
+                                <input type="text" id="game-cover" name="cover_image" placeholder="Ex: /img/rl.jpg ou URL">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="game-placement-points">BARÈME PAR CLASSEMENT (POINTS SÉPARÉS PAR DES VIRGULES)</label>
-                            <input type="text" id="game-placement-points" required placeholder="Ex Duel: 50, 0 | Ex Brawl: 12, 9, 7, 5, 4, 3">
+                            <input type="text" id="game-placement-points" name="placement_points" required placeholder="Ex Duel: 50, 0 | Ex Brawl: 12, 9, 7, 5, 4, 3">
                             <small class="field-hint">1er point = 1ère place, 2e point = 2ème place, etc.</small>
                         </div>
 
                         <div class="form-row-grid">
                             <div class="form-group">
                                 <label for="game-default-points">POINTS PAR DÉFAUT (HORS BARÈME)</label>
-                                <input type="number" id="game-default-points" value="0" min="0">
+                                <input type="number" id="game-default-points" name="default_placement_points" value="0" min="0">
                             </div>
                             <div class="form-group">
                                 <label for="game-max-placement">MAX PLACEMENT (ANTI-TRICHE)</label>
-                                <input type="number" id="game-max-placement" value="2" min="1" required>
+                                <input type="number" id="game-max-placement" name="max_placement" value="2" min="1" required>
                             </div>
                         </div>
 
                         <div class="form-row-grid">
                             <div class="form-group">
                                 <label for="game-sec-label">NOM STAT SECONDAIRE (OPTIONNEL)</label>
-                                <input type="text" id="game-sec-label" placeholder="Ex: Kills, Vies restantes (laisser vide si aucune)">
+                                <input type="text" id="game-sec-label" name="secondary_stat_label" placeholder="Ex: Kills, Vies restantes (laisser vide si aucune)">
                             </div>
                             <div class="form-group">
                                 <label for="game-sec-pts">POINTS PAR UNITÉ</label>
-                                <input type="number" id="game-sec-pts" value="0" min="0">
+                                <input type="number" id="game-sec-pts" name="points_per_secondary_stat" value="0" min="0">
                             </div>
                             <div class="form-group">
                                 <label for="game-max-sec">MAX STAT (ANTI-TRICHE)</label>
-                                <input type="number" id="game-max-sec" value="0" min="0">
+                                <input type="number" id="game-max-sec" name="max_secondary_stat" value="0" min="0">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="game-rules">CONSIGNES & RÈGLES DU JEU</label>
-                            <textarea id="game-rules" rows="3" placeholder="Maps autorisées, réglages de serveur, consignes de lobby..."></textarea>
+                            <textarea id="game-rules" name="rules" rows="3" placeholder="Maps autorisées, réglages de serveur, consignes de lobby..."></textarea>
                         </div>
 
                         <button type="submit" class="btn-primary btn-block">Enregistrer le Jeu</button>
@@ -206,16 +210,18 @@
                             <tbody id="admin-games-tbody">
                                 {% if games.is_empty() %}
                                     <tr><td colspan="4" class="cell-loading">Aucun jeu configuré. Ajoutez une épreuve ci-contre.</td></tr>
-                                {% else %}
+                                	{% else %}
                                     {% for game in games %}
                                         <tr>
                                             <td><strong>{{ game.name }}</strong></td>
                                             <td><span class="badge-format">{{ game.format }}</span></td>
                                             <td><code>{{ game.rules }}</code></td>
                                             <td>
-                                                <button type="button" class="btn-text btn-del-game" data-id="{{ game.id }}" style="color: var(--red);">
-                                                    Supprimer
-                                                </button>
+                                                <form method="POST" action="/admin/games/{{ game.id }}/delete" onsubmit="return confirm('Supprimer ce jeu du catalogue ?');" style="display:inline;">
+                                                    <button type="submit" class="btn-text" style="color: var(--red);">
+                                                        Supprimer
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -235,10 +241,10 @@
                 <!-- Création de match -->
                 <div class="admin-panel">
                     <h3>CRÉER UN NOUVEAU MATCH</h3>
-                    <form id="create-match-form" class="admin-form">
+                    <form id="create-match-form" class="admin-form" method="POST" action="/admin/matches">
                         <div class="form-group">
                             <label for="match-game-select">DISCIPLINE DU JEU</label>
-                            <select id="match-game-select" required>
+                            <select id="match-game-select" name="game_id" required>
                                 <option value="">Sélectionnez un jeu...</option>
                                 {% for g in games %}
                                     <option value="{{ g.id }}">{{ g.name }} ({{ g.format }})</option>
@@ -254,7 +260,7 @@
                                 {% else %}
                                     {% for t in teams %}
                                         <label class="team-checkbox-label">
-                                            <input type="checkbox" name="match-teams" value="{{ t.id }}">
+                                            <input type="checkbox" name="match_teams" value="{{ t.id }}">
                                             <span>{{ t.name }}</span>
                                         </label>
                                     {% endfor %}
@@ -264,7 +270,7 @@
 
                         <div class="form-group">
                             <label for="match-instructions">INSTRUCTIONS / CODES DE LOBBY</label>
-                            <input type="text" id="match-instructions" placeholder="Ex: Code Lobby #4192 / Serveur EU-West / MDP: lan2026">
+                            <input type="text" id="match-instructions" name="instructions" placeholder="Ex: Code Lobby #4192 / Serveur EU-West / MDP: lan2026">
                         </div>
 
                         <button type="submit" class="btn-primary btn-block">Créer le Match</button>
@@ -296,9 +302,11 @@
                                     </div>
 
                                     <div class="match-admin-actions">
-                                        <button type="button" class="btn-outline btn-toggle-match" data-id="{{ m.id }}">
-                                            {% if m.is_open %}Fermer le Match{% else %}Ouvrir aux Joueurs{% endif %}
-                                        </button>
+                                        <form method="POST" action="/admin/matches/{{ m.id }}/toggle" style="display:inline;">
+                                            <button type="submit" class="btn-outline">
+                                                {% if m.is_open %}Fermer le Match{% else %}Ouvrir aux Joueurs{% endif %}
+                                            </button>
+                                        </form>
                                         <button type="button" class="btn-text btn-edit-instructions" data-id="{{ m.id }}" data-instructions="{{ m.instructions }}">
                                             Modifier Consignes
                                         </button>
@@ -324,20 +332,20 @@
                     <h3>INSCRIRE UNE NOUVELLE ÉQUIPE</h3>
                     <p class="panel-desc">Génère le compte de connexion pour le capitaine de l'équipe.</p>
 
-                    <form id="create-team-form" class="admin-form">
+                    <form id="create-team-form" class="admin-form" method="POST" action="/admin/teams">
                         <div class="form-group">
                             <label for="team-name">NOM DE L'ÉQUIPE</label>
-                            <input type="text" id="team-name" required placeholder="Ex: Les Faucons, Team Vitality...">
+                            <input type="text" id="team-name" name="name" required placeholder="Ex: Les Faucons, Team Vitality...">
                         </div>
 
                         <div class="form-group">
                             <label for="team-captain-username">PSEUDO DU CAPITAINE</label>
-                            <input type="text" id="team-captain-username" required placeholder="Ex: Apex, Faker...">
+                            <input type="text" id="team-captain-username" name="captain_username" required placeholder="Ex: Apex, Faker...">
                         </div>
 
                         <div class="form-group">
                             <label for="team-password">MOT DE PASSE DU CAPITAINE</label>
-                            <input type="password" id="team-password" required placeholder="••••••••••••">
+                            <input type="password" id="team-password" name="captain_password" required placeholder="••••••••••••">
                         </div>
 
                         <button type="submit" class="btn-primary btn-block">Créer l'Équipe</button>
@@ -376,9 +384,11 @@
                                                 </button>
                                             </td>
                                             <td>
-                                                <button type="button" class="btn-text btn-del-team" data-id="{{ t.id }}" style="color: var(--red);">
-                                                    Supprimer
-                                                </button>
+                                                <form method="POST" action="/admin/teams/{{ t.id }}/delete" onsubmit="return confirm('Supprimer définitivement cette équipe et son compte capitaine ?');" style="display:inline;">
+                                                    <button type="submit" class="btn-text" style="color: var(--red);">
+                                                        Supprimer
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -397,15 +407,15 @@
             <div class="admin-split">
                 <div class="admin-panel">
                     <h3>AJOUTER UN ORGANISATEUR / ARBITRE</h3>
-                    <form id="create-admin-form" class="admin-form">
+                    <form id="create-admin-form" class="admin-form" method="POST" action="/admin/admins">
                         <div class="form-group">
                             <label for="new-admin-username">PSEUDO ADMINISTRATEUR</label>
-                            <input type="text" id="new-admin-username" required placeholder="Ex: arbitre_2">
+                            <input type="text" id="new-admin-username" name="username" required placeholder="Ex: arbitre_2">
                         </div>
 
                         <div class="form-group">
                             <label for="new-admin-password">MOT DE PASSE</label>
-                            <input type="password" id="new-admin-password" required placeholder="••••••••••••">
+                            <input type="password" id="new-admin-password" name="password" required placeholder="••••••••••••">
                         </div>
 
                         <button type="submit" class="btn-primary btn-block">Créer le Compte Admin</button>
@@ -438,9 +448,11 @@
                                                 {% if a.username == admin_username %}
                                                     <span class="field-hint">Actif</span>
                                                 {% else %}
-                                                    <button type="button" class="btn-text btn-del-admin" data-id="{{ a.id }}" style="color: var(--red);">
-                                                        Révoquer
-                                                    </button>
+                                                    <form method="POST" action="/admin/admins/{{ a.id }}/delete" onsubmit="return confirm('Révoquer cet administrateur ?');" style="display:inline;">
+                                                        <button type="submit" class="btn-text" style="color: var(--red);">
+                                                            Révoquer
+                                                        </button>
+                                                    </form>
                                                 {% endif %}
                                             </td>
                                         </tr>
@@ -555,16 +567,17 @@
                 <h3 id="reset-scope-title">Confirmation Requise</h3>
                 <button type="button" class="btn-text" data-close-modal="modal-confirm-reset">Annuler</button>
             </div>
-            <div class="modal-body">
+            <form method="POST" action="/admin/reset" id="reset-confirm-form" class="modal-body">
+                <input type="hidden" name="scope" id="reset-scope-input">
                 <p id="reset-scope-desc" class="panel-desc" style="color: var(--red);"></p>
                 <div class="form-group" style="margin: 1.25rem 0;">
                     <label for="reset-confirm-input">Tapez le mot <strong>RESET</strong> pour confirmer :</label>
                     <input type="text" id="reset-confirm-input" placeholder="RESET" autocomplete="off">
                 </div>
-                <button type="button" class="btn-primary btn-block" id="confirm-reset-execute-btn" disabled>
+                <button type="submit" class="btn-primary btn-block" id="confirm-reset-execute-btn" disabled>
                     Exécuter la Réinitialisation
                 </button>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -590,7 +603,6 @@
  */
 
 import { api } from '/js/api.js';
-import { logout } from '/js/auth-guard.js';
 import { wsClient } from '/js/ws.js';
 import { showToast, openModal, closeModal, initModalListeners, escapeHtml } from '/js/ui.js';
 
@@ -612,9 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
     bindMatchesListeners(document.getElementById('matches-admin-list'));
     bindTeamsListeners(document.getElementById('admin-teams-tbody'));
     bindAdminsListeners(document.getElementById('admin-users-tbody'));
-
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
 });
 
 function initWebSocket() {
@@ -622,11 +631,14 @@ function initWebSocket() {
 
     wsClient.on('NEW_SUBMISSION', () => {
         showToast("Nouveau score en attente d'arbitrage !", "info");
-        loadSubmissions();
+        const badge = document.getElementById('pending-badge');
+        if (badge) {
+            badge.textContent = (parseInt(badge.textContent, 10) || 0) + 1;
+        }
     });
 
     wsClient.on('LEADERBOARD_UPDATE', () => {
-        loadTeams();
+        showToast("Le classement a été mis à jour !", "info");
     });
 }
 
@@ -634,16 +646,29 @@ function initTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabPanes = document.querySelectorAll('.tab-pane');
 
+    const activateTab = (targetTab) => {
+        const btn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+        const pane = document.getElementById(`tab-${targetTab}`);
+        if (btn && pane) {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            pane.classList.add('active');
+        }
+    };
+
+    const currentTab = new URLSearchParams(window.location.search).get('tab');
+    if (currentTab) {
+        activateTab(currentTab);
+    }
+
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetTab = btn.getAttribute('data-tab');
-
-            tabButtons.forEach(b => b.classList.remove('active'));
-            tabPanes.forEach(p => p.classList.remove('active'));
-
-            btn.classList.add('active');
-            const targetPane = document.getElementById(`tab-${targetTab}`);
-            if (targetPane) targetPane.classList.add('active');
+            activateTab(targetTab);
+            const url = new URL(window.location);
+            url.searchParams.set('tab', targetTab);
+            window.history.replaceState({}, '', url);
         });
     });
 }
@@ -718,40 +743,11 @@ function bindSubmissionsListeners(listEl) {
             }
         });
     });
-
-    listEl.querySelectorAll('.btn-approve').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id');
-            btn.disabled = true;
-            try {
-                await api.post(`/api/admin/submissions/${id}/approve`);
-                showToast("Score approuvé ! Points crédités au classement.", "success");
-                loadSubmissions();
-                loadTeams();
-            } catch (err) {
-                showToast(err.message, "error");
-                btn.disabled = false;
-            }
-        });
-    });
-
-    listEl.querySelectorAll('.btn-reject').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id');
-            btn.disabled = true;
-            try {
-                await api.post(`/api/admin/submissions/${id}/reject`);
-                showToast("Soumission rejetée.", "info");
-                loadSubmissions();
-            } catch (err) {
-                showToast(err.message, "error");
-                btn.disabled = false;
-            }
-        });
-    });
 }
 
-document.getElementById('refresh-submissions-btn')?.addEventListener('click', loadSubmissions);
+document.getElementById('refresh-submissions-btn')?.addEventListener('click', () => {
+    window.location.reload();
+});
 
 /* ==========================================================================
    ONGLET 2 : CATALOGUE DES JEUX
@@ -870,32 +866,22 @@ async function loadMatches() {
 function bindMatchesListeners(container) {
     if (!container) return;
 
-    container.querySelectorAll('.btn-toggle-match').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id');
-            try {
-                await api.post(`/api/admin/matches/${id}/toggle`);
-                showToast("Statut du match mis à jour.", "info");
-                loadMatches();
-            } catch (err) {
-                showToast(err.message, "error");
-            }
-        });
-    });
-
     container.querySelectorAll('.btn-edit-instructions').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
             const oldInstructions = btn.getAttribute('data-instructions');
             const newInstructions = prompt("Nouvelles consignes / instructions de lobby :", oldInstructions);
             if (newInstructions !== null) {
-                try {
-                    await api.patch(`/api/admin/matches/${id}/instructions`, { instructions: newInstructions });
-                    showToast("Consignes mises à jour en direct.", "success");
-                    loadMatches();
-                } catch (err) {
-                    showToast(err.message, "error");
-                }
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/matches/${id}/instructions`;
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'instructions';
+                input.value = newInstructions;
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
             }
         });
     });
@@ -1000,35 +986,23 @@ async function loadTeams() {
 function bindTeamsListeners(tbody) {
     if (!tbody) return;
     tbody.querySelectorAll('.btn-adjust-pts').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
             const name = btn.getAttribute('data-name');
             const val = prompt(`Ajuster les points pour "${name}" (ex: 10 pour bonus, -5 pour pénalité) :`);
             if (val !== null) {
                 const adjustment = parseInt(val, 10);
                 if (!isNaN(adjustment)) {
-                    try {
-                        await api.patch(`/api/admin/teams/${id}/points`, { adjustment });
-                        showToast("Points mis à jour !", "success");
-                        loadTeams();
-                    } catch (err) {
-                        showToast(err.message, "error");
-                    }
-                }
-            }
-        });
-    });
-
-    tbody.querySelectorAll('.btn-del-team').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id');
-            if (confirm("Supprimer définitivement cette équipe et son compte capitaine ?")) {
-                try {
-                    await api.delete(`/api/admin/teams/${id}`);
-                    showToast("Équipe supprimée.", "info");
-                    loadTeams();
-                } catch (err) {
-                    showToast(err.message, "error");
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/admin/teams/${id}/points`;
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'adjustment';
+                    input.value = adjustment;
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             }
         });
@@ -1070,21 +1044,7 @@ async function loadAdmins() {
 }
 
 function bindAdminsListeners(tbody) {
-    if (!tbody) return;
-    tbody.querySelectorAll('.btn-del-admin').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id');
-            if (confirm("Supprimer ce compte administrateur ?")) {
-                try {
-                    await api.delete(`/api/admin/admins/${id}`);
-                    showToast("Administrateur révoqué.", "info");
-                    loadAdmins();
-                } catch (err) {
-                    showToast(err.message, "error");
-                }
-            }
-        });
-    });
+    // Les révocations d'admins sont gérées nativement par formulaires POST SSR
 }
 
 /* ==========================================================================
@@ -1092,77 +1052,7 @@ function bindAdminsListeners(tbody) {
    ========================================================================== */
 
 function initForms() {
-    // 1. Création de Jeu
-    document.getElementById('create-game-form')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('game-name').value.trim();
-        const format = document.getElementById('game-format').value;
-        const cover_image = document.getElementById('game-cover').value.trim();
-        const placementStr = document.getElementById('game-placement-points').value;
-        const defaultPts = parseInt(document.getElementById('game-default-points').value, 10) || 0;
-        const maxPlacement = parseInt(document.getElementById('game-max-placement').value, 10) || 2;
-        const secLabel = document.getElementById('game-sec-label').value.trim();
-        const secPts = parseInt(document.getElementById('game-sec-pts').value, 10) || 0;
-        const maxSec = parseInt(document.getElementById('game-max-sec').value, 10) || 0;
-        const rules = document.getElementById('game-rules').value.trim();
-
-        const placement_points = placementStr.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-
-        try {
-            await api.post('/api/admin/games', {
-                name,
-                format,
-                cover_image: cover_image || "",
-                placement_points,
-                default_placement_points: defaultPts,
-                secondary_stat_label: secLabel.length > 0 ? secLabel : undefined,
-                points_per_secondary_stat: secPts,
-                max_placement: maxPlacement,
-                max_secondary_stat: maxSec,
-                rules
-            });
-            showToast("Jeu ajouté avec succès au catalogue !", "success");
-            e.target.reset();
-            loadGames();
-        } catch (err) {
-            showToast(err.message, "error");
-        }
-    });
-
-    // 2. Création de Match
-    document.getElementById('create-match-form')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const game_id = document.getElementById('match-game-select').value;
-        const instructions = document.getElementById('match-instructions').value.trim();
-
-        const checkedTeams = Array.from(document.querySelectorAll('input[name="match-teams"]:checked'))
-            .map(cb => cb.value);
-
-        if (!game_id) {
-            showToast("Veuillez sélectionner un jeu.", "error");
-            return;
-        }
-
-        const selectedGame = allGames.find(g => g.id === game_id);
-        const title = selectedGame ? `Match ${selectedGame.name}` : "Match";
-
-        try {
-            await api.post('/api/admin/matches', {
-                title,
-                game_id,
-                assigned_teams: checkedTeams,
-                instructions,
-                is_open: true
-            });
-            showToast("Match créé avec succès !", "success");
-            e.target.reset();
-            loadMatches();
-        } catch (err) {
-            showToast(err.message, "error");
-        }
-    });
-
-    // 3. Soumission Saisie Groupée
+    // 1. Soumission Saisie Groupée
     document.getElementById('bulk-scores-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const matchId = document.getElementById('bulk-match-id').value;
@@ -1188,72 +1078,41 @@ function initForms() {
             });
             showToast("Scores groupés enregistrés et points validés !", "success");
             closeModal('modal-bulk-scores');
-            loadMatches();
-            loadTeams();
+            window.location.reload();
         } catch (err) {
             showToast(err.message, "error");
         }
     });
 
-    // 4. Création d'Équipe
-    document.getElementById('create-team-form')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('team-name').value.trim();
-        const captain_username = document.getElementById('team-captain-username').value.trim();
-        const captain_password = document.getElementById('team-password').value;
-
-        try {
-            await api.post('/api/admin/teams', { name, captain_username, captain_password });
-            showToast(`Équipe "${name}" créée avec succès !`, "success");
-            e.target.reset();
-            loadTeams();
-        } catch (err) {
-            showToast(err.message, "error");
-        }
-    });
-
-    // 5. Création d'Admin
-    document.getElementById('create-admin-form')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('new-admin-username').value.trim();
-        const password = document.getElementById('new-admin-password').value;
-
-        try {
-            await api.post('/api/admin/admins', { username, password });
-            showToast(`Compte admin "${username}" créé !`, "success");
-            e.target.reset();
-            loadAdmins();
-        } catch (err) {
-            showToast(err.message, "error");
-        }
-    });
-
-    // 6. Zone de Danger (Reset)
+    // 2. Zone de Danger (Reset)
     document.querySelectorAll('[data-reset-scope]').forEach(btn => {
         btn.addEventListener('click', () => {
             const rawScope = btn.getAttribute('data-reset-scope');
             const titleEl = document.getElementById('reset-scope-title');
             const descEl = document.getElementById('reset-scope-desc');
             const inputEl = document.getElementById('reset-confirm-input');
+            const scopeInput = document.getElementById('reset-scope-input');
             const confirmBtn = document.getElementById('confirm-reset-execute-btn');
 
             inputEl.value = '';
             confirmBtn.disabled = true;
 
+            let scopeVal = 'scores_only';
             if (rawScope === 'ScoresOnly') {
-                activeResetScope = 'scores_only';
+                scopeVal = 'scores_only';
                 titleEl.textContent = "Remise à zéro des Scores";
                 descEl.textContent = "Attention : tous les scores et soumissions actuels seront supprimés. Les compteurs de points repartiront à zéro.";
             } else if (rawScope === 'UsersAndTeams') {
-                activeResetScope = 'users_and_teams';
+                scopeVal = 'users_and_teams';
                 titleEl.textContent = "Purge des Équipes & Joueurs";
                 descEl.textContent = "Attention : toutes les équipes et leurs capitaines seront définitivement effacés.";
             } else {
-                activeResetScope = 'full_tournament';
+                scopeVal = 'full_tournament';
                 titleEl.textContent = "Reset Total du Tournoi";
                 descEl.textContent = "DANGER EXTRÊME : purge intégrale de la base de données. Seul votre compte administrateur sera préservé.";
             }
 
+            if (scopeInput) scopeInput.value = scopeVal;
             openModal('modal-confirm-reset');
         });
     });
@@ -1263,26 +1122,6 @@ function initForms() {
 
     resetInput?.addEventListener('input', () => {
         executeResetBtn.disabled = resetInput.value.trim().toUpperCase() !== 'RESET';
-    });
-
-    executeResetBtn?.addEventListener('click', async () => {
-        if (!activeResetScope) return;
-        executeResetBtn.disabled = true;
-        executeResetBtn.textContent = "Réinitialisation en cours...";
-
-        try {
-            await api.post('/api/admin/reset', { scope: activeResetScope });
-            showToast("Réinitialisation effectuée avec succès.", "success");
-            closeModal('modal-confirm-reset');
-
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
-        } catch (err) {
-            showToast(err.message, "error");
-            executeResetBtn.disabled = false;
-            executeResetBtn.textContent = "Exécuter la Réinitialisation";
-        }
     });
 }
 

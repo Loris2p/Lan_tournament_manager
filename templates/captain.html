@@ -30,9 +30,9 @@
                     <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
                 </div>
 
-                <button type="button" class="btn-text" id="logout-btn">
+                <a href="/logout" class="btn-text" id="logout-btn">
                     Déconnexion
-                </button>
+                </a>
             </div>
         </div>
     </header>
@@ -201,19 +201,13 @@
  * - Soumission HTML native vers /captain/submissions
  */
 
-import { checkAuth, logout } from '/js/auth-guard.js';
 import { wsClient } from '/js/ws.js';
 import { showToast, escapeHtml } from '/js/ui.js';
 
-let currentUser = null;
-let openMatches = [];
 let selectedMatch = null;
 let compressedBase64 = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    currentUser = await checkAuth('captain');
-    if (!currentUser) return;
-
+document.addEventListener('DOMContentLoaded', () => {
     initCaptainHeader();
     initMatches();
     initDropzoneAndPaste();
@@ -223,9 +217,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     wsClient.on('LEADERBOARD_UPDATE', () => {
         window.location.reload();
     });
-
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
 
     const newSubBtn = document.getElementById('new-submission-btn');
     if (newSubBtn) {
