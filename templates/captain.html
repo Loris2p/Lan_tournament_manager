@@ -27,7 +27,7 @@
 
             <div class="topbar-right">
                 <div class="status-indicator">
-                    <span class="status-label" id="captain-team-badge">ÉQUIPE : CHARGEMENT...</span>
+                    <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
                 </div>
 
                 <button type="button" class="btn-text" id="logout-btn">
@@ -43,12 +43,12 @@
         <div class="captain-banner">
             <div>
                 <span class="meta-tag">SESSION ACTIVE</span>
-                <h1 class="captain-team-title" id="captain-team-name">Chargement de votre équipe...</h1>
+                <h1 class="captain-team-title" id="captain-team-name">{{ team_name }}</h1>
                 <p class="captain-team-desc">Déclarez vos résultats de match avec capture d'écran faisant foi pour validation par les arbitres.</p>
             </div>
             <div class="captain-points-box">
                 <span class="captain-points-label">TOTAL DES POINTS</span>
-                <span class="captain-points-value" id="captain-team-points">--</span>
+                <span class="captain-points-value" id="captain-team-points">{{ total_points }} PTS</span>
             </div>
         </div>
 
@@ -58,11 +58,27 @@
             <section class="section-box">
                 <div class="box-header">
                     <h3>MATCHS OUVERTS ASSIGNÉS</h3>
-                    <span class="box-badge" id="open-matches-count">0 ACTIF</span>
+                    <span class="box-badge" id="open-matches-count">{{ matches.len() }} ACTIF{% if matches.len() > 1 %}S{% endif %}</span>
                 </div>
 
                 <div id="matches-list" class="matches-select-list">
-                    <div class="empty-state">Recherche des matchs ouverts pour votre équipe...</div>
+                    {% if matches.is_empty() %}
+                        <div class="empty-state">Aucun match ouvert assigné à votre équipe pour le moment. Attendez l'ouverture d'un round par les arbitres.</div>
+                    {% else %}
+                        {% for m in matches %}
+                            <div class="match-item{% if loop.first %} selected{% endif %}"
+                                 data-match-id="{{ m.id }}"
+                                 data-title="{{ m.title }}"
+                                 data-game="{{ m.game_name }}"
+                                 data-instructions="{{ m.instructions }}">
+                                <div class="match-item-header">
+                                    <span class="badge-format">{{ m.title }}</span>
+                                    <strong>{{ m.game_name }}</strong>
+                                </div>
+                                <p class="match-item-sub">{{ m.instructions }}</p>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
 
                 <!-- Détails du match sélectionné -->
@@ -91,25 +107,43 @@
                     <span class="box-badge">SAISIE CAPITAINE</span>
                 </div>
 
-                <div id="no-match-alert" class="empty-state">
+                {% if is_success() %}
+                <div id="submission-success" class="submission-success-box" style="display: block; margin-bottom: 1.5rem;">
+                    <div class="success-icon">✓</div>
+                    <h4>SCORE TRANSMIS AUX ARBITRES</h4>
+                    <p>Votre résultat et votre capture d'écran ont bien été enregistrés. Le statut passera à <strong>Validé</strong> dès vérification par l'arbitre.</p>
+                    <a href="/captain" class="btn-outline btn-block" style="margin-top: 1rem; text-align: center; display: block; text-decoration: none;">
+                        Transmettre un autre match
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if let Some(err) = error_message() %}
+                <div class="empty-state" style="color: var(--red); border-color: var(--red); margin-bottom: 1.5rem; background: rgba(239, 68, 68, 0.1);">
+                    <strong>Erreur :</strong> {{ err }}
+                </div>
+                {% endif %}
+
+                <div id="no-match-alert" class="empty-state" {% if is_success() %}style="display: none;"{% endif %}>
                     Sélectionnez un match ouvert ci-contre pour transmettre votre score.
                 </div>
 
-                <form id="submission-form" class="submission-form" style="display: none;">
-                    <input type="hidden" id="sub-match-id">
+                <form id="submission-form" class="submission-form" method="POST" action="/captain/submissions" style="display: none;">
+                    <input type="hidden" name="match_id" id="sub-match-id">
+                    <input type="hidden" name="proof_base64" id="sub-proof-base64">
 
                     <!-- Ligne des scores -->
                     <div class="form-row-grid">
                         <div class="form-group">
                             <label for="sub-placement">CLASSEMENT FINAL (PLACE)</label>
-                            <input type="number" id="sub-placement" min="1" max="64" required placeholder="Ex: 1 (Victoire / Top 1), 2...">
+                            <input type="number" name="placement" id="sub-placement" min="1" max="64" required placeholder="Ex: 1 (Victoire / Top 1), 2...">
                             <small class="field-hint" id="placement-hint">1 = Vainqueur</small>
                         </div>
 
                         <!-- Statistique secondaire conditionnelle -->
                         <div class="form-group" id="secondary-stat-group" style="display: none;">
                             <label for="sub-secondary" id="secondary-stat-label">STATISTIQUE SECONDAIRE</label>
-                            <input type="number" id="sub-secondary" min="0" value="0">
+                            <input type="number" name="secondary_stat" id="sub-secondary" min="0" value="0">
                             <small class="field-hint" id="secondary-stat-hint">Optionnel</small>
                         </div>
                     </div>
@@ -143,16 +177,6 @@
                         Envoyer le Score pour Arbitrage
                     </button>
                 </form>
-
-                <!-- Statut de confirmation post-envoi -->
-                <div id="submission-success" class="submission-success-box" style="display: none;">
-                    <div class="success-icon">✓</div>
-                    <h4>SCORE TRANSMIS AUX ARBITRES</h4>
-                    <p>Votre résultat et votre capture d'écran ont bien été enregistrés. Le statut passera à <strong>Validé</strong> dès vérification par l'arbitre.</p>
-                    <button type="button" class="btn-outline btn-block" id="new-submission-btn" style="margin-top: 1rem;">
-                        Transmettre un autre match
-                    </button>
-                </div>
             </section>
 
         </div>
@@ -170,15 +194,13 @@
 
     <script type="module">
 /**
- * Logique de l'Espace Capitaine (captain.js)
- * - Récupération des matchs ouverts assignés (/api/captain/matches)
- * - Formulaire dynamique selon les règles du jeu
+ * Logique de l'Espace Capitaine
+ * - Rendu SSR côté serveur (Askama)
  * - Support complet du collage presse-papier (Ctrl + V)
  * - Compression Canvas d'image en 1080p JPEG côté client
- * - Envoi JSON du score et de l'image base64 (/api/captain/submissions)
+ * - Soumission HTML native vers /captain/submissions
  */
 
-import { api } from '/js/api.js';
 import { checkAuth, logout } from '/js/auth-guard.js';
 import { wsClient } from '/js/ws.js';
 import { showToast, escapeHtml } from '/js/ui.js';
@@ -199,8 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     wsClient.connect();
     wsClient.on('LEADERBOARD_UPDATE', () => {
-        initCaptainHeader();
-        initMatches();
+        window.location.reload();
     });
 
     const logoutBtn = document.getElementById('logout-btn');
@@ -217,68 +238,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function initCaptainHeader() {
-    const badge = document.getElementById('captain-team-badge');
-    const title = document.getElementById('captain-team-name');
-    const pointsEl = document.getElementById('captain-team-points');
-
-    if (badge) badge.textContent = `ÉQUIPE : ${currentUser.username.toUpperCase()}`;
-    if (title) title.textContent = currentUser.username;
-
-    api.get('/api/leaderboard').then(teams => {
-        const team = teams.find(t => 
-            (t.captain_username && t.captain_username.toLowerCase() === currentUser.username.toLowerCase()) ||
-            (t.name && t.name.toLowerCase() === currentUser.username.toLowerCase())
-        );
-        if (team) {
-            if (badge) badge.textContent = `ÉQUIPE : ${team.name.toUpperCase()}`;
-            if (title) title.textContent = team.name;
-            if (pointsEl) pointsEl.textContent = `${team.total_points ?? team.points ?? 0} PTS`;
-        }
-    }).catch(() => {});
+    // Les informations d'équipe et points sont rendues côté serveur par Askama
 }
 
-async function initMatches() {
-    const listEl = document.getElementById('matches-list');
-    const countBadge = document.getElementById('open-matches-count');
-
-    try {
-        openMatches = await api.get('/api/captain/matches');
-
-        if (countBadge) {
-            countBadge.textContent = `${openMatches.length} ACTIF${openMatches.length > 1 ? 'S' : ''}`;
-        }
-
-        if (!openMatches || openMatches.length === 0) {
-            listEl.innerHTML = `<div class="empty-state">Aucun match ouvert assigné à votre équipe pour le moment. Attendez l'ouverture d'un round par les arbitres.</div>`;
-            return;
-        }
-
-        listEl.innerHTML = openMatches.map((m, idx) => `
-            <div class="match-item ${idx === 0 ? 'selected' : ''}" data-match-id="${m.id}">
-                <div class="match-item-header">
-                    <span class="badge-format">${m.title || (m.format === 'duel' ? 'DUEL' : 'BRAWL')}</span>
-                    <strong>${escapeHtml(m.game_name || 'Match')}</strong>
-                </div>
-                <p class="match-item-sub">${escapeHtml(m.instructions || 'Aucune consigne spécifique')}</p>
-            </div>
-        `).join('');
-
-        const items = listEl.querySelectorAll('.match-item');
-        items.forEach(item => {
-            item.addEventListener('click', () => {
-                items.forEach(i => i.classList.remove('selected'));
-                item.classList.add('selected');
-                const matchId = item.getAttribute('data-match-id');
-                selectMatch(matchId);
-            });
+function initMatches() {
+    const items = document.querySelectorAll('#matches-list .match-item');
+    items.forEach(item => {
+        item.addEventListener('click', () => {
+            items.forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            selectMatchElement(item);
         });
+    });
 
-        if (openMatches.length > 0) {
-            selectMatch(openMatches[0].id);
-        }
-    } catch (err) {
-        listEl.innerHTML = `<div class="empty-state" style="color: var(--red);">Erreur : ${escapeHtml(err.message)}</div>`;
+    if (items.length > 0) {
+        selectMatchElement(items[0]);
     }
+}
+
+function selectMatchElement(el) {
+    const matchId = el.getAttribute('data-match-id');
+    const title = el.getAttribute('data-title') || 'FORMAT STANDARD';
+    const game = el.getAttribute('data-game') || 'Match';
+    const instructions = el.getAttribute('data-instructions') || 'Aucune consigne spécifique.';
+
+    selectedMatch = { id: matchId, title, game_name: game, instructions };
+
+    const detailsPanel = document.getElementById('selected-match-details');
+    const noMatchAlert = document.getElementById('no-match-alert');
+    const form = document.getElementById('submission-form');
+    const subMatchId = document.getElementById('sub-match-id');
+
+    if (detailsPanel) detailsPanel.style.display = 'block';
+    if (noMatchAlert) noMatchAlert.style.display = 'none';
+    if (form) form.style.display = 'block';
+    if (subMatchId) subMatchId.value = matchId;
+
+    const gameEl = document.getElementById('selected-match-game');
+    if (gameEl) gameEl.textContent = game;
+    const formatEl = document.getElementById('selected-match-format');
+    if (formatEl) formatEl.textContent = title;
+    const instEl = document.getElementById('selected-match-instructions');
+    if (instEl) instEl.textContent = instructions;
+    const rulesEl = document.getElementById('selected-match-rules');
+    if (rulesEl) rulesEl.textContent = 'Règles standards du catalogue.';
 }
 
 function selectMatch(matchId) {
@@ -373,6 +376,8 @@ function initDropzoneAndPaste() {
 
 function resetImage() {
     compressedBase64 = null;
+    const proofInput = document.getElementById('sub-proof-base64');
+    if (proofInput) proofInput.value = '';
     document.getElementById('file-input').value = '';
     document.getElementById('preview-wrapper').style.display = 'none';
     document.getElementById('dropzone-prompt').style.display = 'block';
@@ -416,6 +421,9 @@ function processAndCompressImage(file) {
             const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
             compressedBase64 = dataUrl;
 
+            const proofInput = document.getElementById('sub-proof-base64');
+            if (proofInput) proofInput.value = dataUrl;
+
             const sizeKb = Math.round((dataUrl.length * 3 / 4) / 1024);
 
             const previewImg = document.getElementById('preview-img');
@@ -435,15 +443,16 @@ function initFormSubmit() {
     const form = document.getElementById('submission-form');
     const submitBtn = document.getElementById('submit-score-btn');
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
+    form.addEventListener('submit', (e) => {
         if (!selectedMatch) {
+            e.preventDefault();
             showToast("Veuillez sélectionner un match.", "error");
             return;
         }
 
-        if (!compressedBase64) {
+        const proofInput = document.getElementById('sub-proof-base64');
+        if (!proofInput || !proofInput.value) {
+            e.preventDefault();
             showToast("Veuillez joindre une capture d'écran faisant foi (Ctrl + V).", "error");
             return;
         }
@@ -452,37 +461,18 @@ function initFormSubmit() {
         const secondary = parseInt(document.getElementById('sub-secondary').value, 10) || 0;
 
         if (selectedMatch.max_placement && placement > selectedMatch.max_placement) {
+            e.preventDefault();
             showToast(`Le classement ne peut pas dépasser ${selectedMatch.max_placement} pour ce jeu.`, "error");
             return;
         }
         if (selectedMatch.max_secondary_stat && secondary > selectedMatch.max_secondary_stat) {
+            e.preventDefault();
             showToast(`La statistique secondaire ne peut pas dépasser ${selectedMatch.max_secondary_stat}.`, "error");
             return;
         }
 
         submitBtn.disabled = true;
         submitBtn.textContent = "Transmission en cours...";
-
-        try {
-            await api.post('/api/captain/submissions', {
-                match_id: selectedMatch.id,
-                score: {
-                    placement,
-                    secondary_stat: secondary
-                },
-                proof_base64: compressedBase64
-            });
-
-            showToast("Score transmis avec succès aux arbitres !", "success");
-
-            form.style.display = 'none';
-            document.getElementById('submission-success').style.display = 'block';
-        } catch (err) {
-            showToast(err.message, "error");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Envoyer le Score pour Arbitrage";
-        }
     });
 }
 

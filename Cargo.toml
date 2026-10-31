@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+askama = "0.16.1"
 aws-config = "1.13.0"
 aws-sdk-s3 = "1.156.0"
 axum = { version = "0.8.9", features = ["ws",] }

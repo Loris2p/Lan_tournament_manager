@@ -15,6 +15,7 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .route("/admin.html", get(pages::serve_admin_page))
         .route("/captain", get(pages::serve_captain_page))
         .route("/captain.html", get(pages::serve_captain_page))
+        .route("/captain/submissions", post(pages::submit_captain_score))
         .nest("/api/admin", create_admin_nest_router())
         .nest("/api/captain", create_captain_nest_routes())
         .nest("/api/auth", create_auth_nest_routes())
