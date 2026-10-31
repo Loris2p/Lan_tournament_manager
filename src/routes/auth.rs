@@ -62,7 +62,7 @@ pub async fn setup_first_admin(
     Ok((jar, Json(json!({ "redirect": "/admin.html" }))))
 }
 
-fn extract_client_ip(headers: &HeaderMap) -> String {
+pub(crate) fn extract_client_ip(headers: &HeaderMap) -> String {
     headers
         .get("x-forwarded-for")
         .and_then(|v| v.to_str().ok())

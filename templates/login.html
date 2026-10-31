@@ -47,12 +47,17 @@
         <div class="auth-card">
 
             <!-- Bandeau de notification / alerte -->
-            <div id="auth-alert" class="auth-alert" style="display: none;"></div>
+            {% if let Some(err) = error_message() %}
+            <div id="auth-alert" class="auth-alert" style="display: block; margin-bottom: 1.5rem;">
+                {{ err }}
+            </div>
+            {% endif %}
 
+            {% if is_first_setup %}
             <!-- ========================================== -->
             <!-- VUE 1 : ASSISTANT DE PREMIER LANCEMENT     -->
             <!-- ========================================== -->
-            <div id="setup-form-wrapper" style="display: none;">
+            <div id="setup-form-wrapper">
                 <div class="auth-header">
                     <span class="badge-format">INITIALISATION SYSTÈME</span>
                     <h2>PREMIER DÉMARRAGE</h2>
@@ -61,20 +66,20 @@
                     </p>
                 </div>
 
-                <form id="setup-form" class="auth-form" autocomplete="off">
+                <form id="setup-form" class="auth-form" method="POST" action="/setup" autocomplete="off">
                     <div class="form-group">
                         <label for="setup-username">PSEUDO ADMINISTRATEUR</label>
-                        <input type="text" id="setup-username" required placeholder="Ex: admin_lan" autofocus>
+                        <input type="text" name="username" id="setup-username" required placeholder="Ex: admin_lan" autofocus>
                     </div>
 
                     <div class="form-group">
                         <label for="setup-password">MOT DE PASSE</label>
-                        <input type="password" id="setup-password" required placeholder="••••••••••••">
+                        <input type="password" name="password" id="setup-password" required placeholder="••••••••••••">
                     </div>
 
                     <div class="form-group">
                         <label for="setup-password-confirm">CONFIRMER LE MOT DE PASSE</label>
-                        <input type="password" id="setup-password-confirm" required placeholder="••••••••••••">
+                        <input type="password" name="password_confirm" id="setup-password-confirm" required placeholder="••••••••••••">
                     </div>
 
                     <button type="submit" class="btn-primary btn-block" id="setup-submit-btn">
@@ -82,11 +87,11 @@
                     </button>
                 </form>
             </div>
-
+            {% else %}
             <!-- ========================================== -->
             <!-- VUE 2 : CONNEXION CLASSIQUE                -->
             <!-- ========================================== -->
-            <div id="login-form-wrapper" style="display: none;">
+            <div id="login-form-wrapper">
                 <div class="auth-header">
                     <span class="brand-tag">ACCÈS PRIVÉ</span>
                     <h2>ESPACE CONNEXION</h2>
@@ -95,15 +100,15 @@
                     </p>
                 </div>
 
-                <form id="login-form" class="auth-form" autocomplete="off">
+                <form id="login-form" class="auth-form" method="POST" action="/login" autocomplete="off">
                     <div class="form-group">
                         <label for="login-username">IDENTIFIANT / PSEUDO</label>
-                        <input type="text" id="login-username" required placeholder="Nom d'équipe ou admin" autofocus>
+                        <input type="text" name="username" id="login-username" required placeholder="Nom d'équipe ou admin" autofocus>
                     </div>
 
                     <div class="form-group">
                         <label for="login-password">MOT DE PASSE</label>
-                        <input type="password" id="login-password" required placeholder="••••••••••••">
+                        <input type="password" name="password" id="login-password" required placeholder="••••••••••••">
                     </div>
 
                     <button type="submit" class="btn-primary btn-block" id="login-submit-btn">
@@ -111,11 +116,7 @@
                     </button>
                 </form>
             </div>
-
-            <!-- Chargement initial -->
-            <div id="auth-loading" class="empty-state">
-                Vérification du statut du serveur...
-            </div>
+            {% endif %}
 
         </div>
 
@@ -131,7 +132,6 @@
         </div>
     </footer>
 
-    <script type="module" src="/js/login.js"></script>
     <script type="module" src="/js/cookie-banner.js"></script>
 
 </body>

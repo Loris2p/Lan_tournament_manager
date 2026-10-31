@@ -57,7 +57,7 @@
                     <p class="section-subtitle">Scores cumulés sur l'ensemble des matchs validés par l'arbitrage</p>
                 </div>
                 <div class="standings-meta">
-                    <span id="standings-count">-- ÉQUIPES ENREGISTRÉES</span>
+                    <span id="standings-count">{{ teams.len() }} ÉQUIPE{% if teams.len() > 1 %}S{% endif %} ENREGISTRÉE{% if teams.len() > 1 %}S{% endif %}</span>
                 </div>
             </div>
 
@@ -68,9 +68,9 @@
                     <div class="podium-index">02</div>
                     <div class="podium-meta">
                         <span class="team-label">DAUPHIN</span>
-                        <h3 class="team-name" id="podium-2-name">--</h3>
+                        <h3 class="team-name" id="podium-2-name">{% if let Some(t) = second() %}{{ t.name }}{% else %}--{% endif %}</h3>
                     </div>
-                    <div class="team-score" id="podium-2-points">--</div>
+                    <div class="team-score" id="podium-2-points">{% if let Some(t) = second() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
                 </div>
 
                 <!-- Rang 1 (Leader) -->
@@ -78,9 +78,9 @@
                     <div class="podium-index">01</div>
                     <div class="podium-meta">
                         <span class="team-label">LEADER DU TOURNOI</span>
-                        <h3 class="team-name" id="podium-1-name">--</h3>
+                        <h3 class="team-name" id="podium-1-name">{% if let Some(t) = first() %}{{ t.name }}{% else %}--{% endif %}</h3>
                     </div>
-                    <div class="team-score" id="podium-1-points">--</div>
+                    <div class="team-score" id="podium-1-points">{% if let Some(t) = first() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
                 </div>
 
                 <!-- Rang 3 (Troisième) -->
@@ -88,9 +88,9 @@
                     <div class="podium-index">03</div>
                     <div class="podium-meta">
                         <span class="team-label">TROISIÈME</span>
-                        <h3 class="team-name" id="podium-3-name">--</h3>
+                        <h3 class="team-name" id="podium-3-name">{% if let Some(t) = third() %}{{ t.name }}{% else %}--{% endif %}</h3>
                     </div>
-                    <div class="team-score" id="podium-3-points">--</div>
+                    <div class="team-score" id="podium-3-points">{% if let Some(t) = third() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
                 </div>
             </div>
 
@@ -105,9 +105,21 @@
                         </tr>
                     </thead>
                     <tbody id="leaderboard-tbody">
-                        <tr>
-                            <td colspan="3" class="cell-loading">Récupération du classement...</td>
-                        </tr>
+                        {% if remaining_teams().is_empty() %}
+                            {% if teams.is_empty() %}
+                                <tr>
+                                    <td colspan="3" class="cell-loading">Aucune équipe inscrite pour le moment.</td>
+                                </tr>
+                            {% endif %}
+                        {% else %}
+                            {% for t in remaining_teams() %}
+                                <tr>
+                                    <td class="col-rank">{% if loop.index + 3 < 10 %}0{{ loop.index + 3 }}{% else %}{{ loop.index + 3 }}{% endif %}</td>
+                                    <td class="col-team">{{ t.name }}</td>
+                                    <td class="col-points">{{ t.total_points }} PTS</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -119,7 +131,26 @@
                     <span class="pulse-indicator">EN LIGNE</span>
                 </div>
                 <div class="lobbies-list" id="live-matches-list">
-                    <div class="empty-state">Aucun match ouvert aux soumissions pour le moment.</div>
+                    {% if live_matches.is_empty() %}
+                        <div class="empty-state">Aucun match ouvert aux soumissions pour le moment.</div>
+                    {% else %}
+                        {% for m in live_matches %}
+                            <div class="match-live-card">
+                                <div class="match-live-header">
+                                    <span class="match-game-title">{{ m.game_name }}</span>
+                                    <span class="match-live-status">EN COURS</span>
+                                </div>
+                                <div class="match-instructions-box">
+                                    <strong>LOBBY / CONSIGNES :</strong>
+                                    {% if m.instructions.trim().is_empty() %}
+                                        En attente des consignes d'arbitrage
+                                    {% else %}
+                                        {{ m.instructions }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </section>
