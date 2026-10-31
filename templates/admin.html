@@ -32,7 +32,7 @@
                 </div>
 
                 <div class="status-indicator">
-                    <span class="status-label" id="admin-user-badge">ADMIN : CHARGEMENT...</span>
+                    <span class="status-label" id="admin-user-badge">ADMIN : {{ admin_username.to_uppercase() }}</span>
                 </div>
 
                 <button type="button" class="btn-text" id="logout-btn">
@@ -48,7 +48,7 @@
         <nav class="admin-tabs" id="admin-tabs-nav">
             <button type="button" class="tab-btn active" data-tab="arbitrage">
                 Arbitrage Captures
-                <span class="tab-badge" id="pending-badge">0</span>
+                <span class="tab-badge" id="pending-badge">{{ submissions.len() }}</span>
             </button>
             <button type="button" class="tab-btn" data-tab="games">
                 Catalogue Jeux
@@ -80,7 +80,42 @@
             </div>
 
             <div id="submissions-list" class="submissions-grid">
-                <div class="empty-state">Chargement des soumissions en attente...</div>
+                {% if submissions.is_empty() %}
+                    <div class="empty-state">Aucune soumission en attente. Toutes les captures ont été arbitrées !</div>
+                {% else %}
+                    {% for sub in submissions %}
+                        <div class="submission-card" data-sub-id="{{ sub.id }}">
+                            <div class="sub-media" data-zoom-url="{{ sub.proof_url }}" title="Cliquer pour agrandir la capture">
+                                {% if !sub.proof_url.is_empty() %}
+                                    <img src="{{ sub.proof_url }}" alt="Preuve de score" loading="lazy">
+                                {% else %}
+                                    <div class="slide-image-placeholder">SANS PHOTO</div>
+                                {% endif %}
+                                <span class="sub-zoom-hint">ZOOM [CLIQUEZ]</span>
+                            </div>
+                            <div class="sub-content">
+                                <div class="sub-header">
+                                    <span class="sub-team-title">{{ sub.team_name }}</span>
+                                    <span class="badge-code">{{ sub.calculated_points }} PTS ATTENDUS</span>
+                                </div>
+                                <div class="sub-scores-declared">
+                                    <span class="sub-placement-pill">PLACE : #{{ sub.placement }}</span>
+                                    {% if sub.secondary_stat > 0 %}
+                                        <span class="sub-secondary-pill">+ {{ sub.secondary_stat }} bonus</span>
+                                    {% endif %}
+                                </div>
+                                <div class="sub-actions">
+                                    <button type="button" class="btn-primary btn-approve" data-id="{{ sub.id }}">
+                                        ✓ Valider & Créditer
+                                    </button>
+                                    <button type="button" class="btn-outline btn-reject" data-id="{{ sub.id }}">
+                                        ✕ Rejeter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
 
@@ -169,7 +204,22 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-games-tbody">
-                                <tr><td colspan="4" class="cell-loading">Chargement des jeux...</td></tr>
+                                {% if games.is_empty() %}
+                                    <tr><td colspan="4" class="cell-loading">Aucun jeu configuré. Ajoutez une épreuve ci-contre.</td></tr>
+                                {% else %}
+                                    {% for game in games %}
+                                        <tr>
+                                            <td><strong>{{ game.name }}</strong></td>
+                                            <td><span class="badge-format">{{ game.format }}</span></td>
+                                            <td><code>{{ game.rules }}</code></td>
+                                            <td>
+                                                <button type="button" class="btn-text btn-del-game" data-id="{{ game.id }}" style="color: var(--red);">
+                                                    Supprimer
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -190,13 +240,25 @@
                             <label for="match-game-select">DISCIPLINE DU JEU</label>
                             <select id="match-game-select" required>
                                 <option value="">Sélectionnez un jeu...</option>
+                                {% for g in games %}
+                                    <option value="{{ g.id }}">{{ g.name }} ({{ g.format }})</option>
+                                {% endfor %}
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label>ÉQUIPES CONVOQUÉES</label>
                             <div id="match-teams-selector" class="teams-checkbox-grid">
-                                <span class="field-hint">Chargement des équipes...</span>
+                                {% if teams.is_empty() %}
+                                    <span class="field-hint">Créez d'abord des équipes dans l'onglet Équipes.</span>
+                                {% else %}
+                                    {% for t in teams %}
+                                        <label class="team-checkbox-label">
+                                            <input type="checkbox" name="match-teams" value="{{ t.id }}">
+                                            <span>{{ t.name }}</span>
+                                        </label>
+                                    {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
 
@@ -213,7 +275,40 @@
                 <div class="admin-panel">
                     <h3>MATCHS DU TOURNOI</h3>
                     <div id="matches-admin-list" class="matches-admin-container">
-                        <div class="empty-state">Chargement des matchs...</div>
+                        {% if matches.is_empty() %}
+                            <div class="empty-state">Aucun match créé. Utilisez le formulaire ci-contre pour programmer une épreuve.</div>
+                        {% else %}
+                            {% for m in matches %}
+                                <div class="match-admin-card {% if m.is_open %}is-open{% else %}is-closed{% endif %}">
+                                    <div class="match-admin-header">
+                                        <div>
+                                            <span class="badge-format">{{ m.title }}</span>
+                                            <h4 style="display: inline-block; margin-left: 0.5rem;">{{ m.game_name }}</h4>
+                                        </div>
+                                        <span class="pulse-indicator" style="{% if !m.is_open %}background: rgba(113, 113, 122, 0.2); color: var(--text-muted);{% endif %}">
+                                            {% if m.is_open %}OUVERT AUX SOUMISSIONS{% else %}FERMÉ{% endif %}
+                                        </span>
+                                    </div>
+
+                                    <div class="match-admin-body">
+                                        <p><strong>Instructions :</strong> {% if m.instructions.trim().is_empty() %}Aucune consigne{% else %}{{ m.instructions }}{% endif %}</p>
+                                        <p><small>{{ m.assigned_teams_count }} équipe(s) convoquée(s)</small></p>
+                                    </div>
+
+                                    <div class="match-admin-actions">
+                                        <button type="button" class="btn-outline btn-toggle-match" data-id="{{ m.id }}">
+                                            {% if m.is_open %}Fermer le Match{% else %}Ouvrir aux Joueurs{% endif %}
+                                        </button>
+                                        <button type="button" class="btn-text btn-edit-instructions" data-id="{{ m.id }}" data-instructions="{{ m.instructions }}">
+                                            Modifier Consignes
+                                        </button>
+                                        <button type="button" class="btn-primary btn-bulk-scores" data-id="{{ m.id }}">
+                                            Saisie Groupée des Scores
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -263,7 +358,31 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-teams-tbody">
-                                <tr><td colspan="4" class="cell-loading">Chargement des équipes...</td></tr>
+                                {% if teams.is_empty() %}
+                                    <tr><td colspan="4" class="cell-loading">Aucune équipe inscrite.</td></tr>
+                                {% else %}
+                                    {% for t in teams %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ t.name }}</strong>
+                                                {% if !t.captain_username.is_empty() %}
+                                                    <br><small style="color: var(--text-muted);">Capitaine : {{ t.captain_username }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td class="col-points">{{ t.total_points }} PTS</td>
+                                            <td>
+                                                <button type="button" class="btn-text btn-adjust-pts" data-id="{{ t.id }}" data-name="{{ t.name }}">
+                                                    +/- Ajuster
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn-text btn-del-team" data-id="{{ t.id }}" style="color: var(--red);">
+                                                    Supprimer
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -304,7 +423,29 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-users-tbody">
-                                <tr><td colspan="2" class="cell-loading">Chargement des administrateurs...</td></tr>
+                                {% if admins.is_empty() %}
+                                    <tr><td colspan="2" class="cell-loading">Aucun administrateur trouvé.</td></tr>
+                                {% else %}
+                                    {% for a in admins %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ a.username }}</strong>
+                                                {% if a.username == admin_username %}
+                                                    <span class="badge-code">[VOUS]</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if a.username == admin_username %}
+                                                    <span class="field-hint">Actif</span>
+                                                {% else %}
+                                                    <button type="button" class="btn-text btn-del-admin" data-id="{{ a.id }}" style="color: var(--red);">
+                                                        Révoquer
+                                                    </button>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -449,45 +590,32 @@
  */
 
 import { api } from '/js/api.js';
-import { checkAuth, logout } from '/js/auth-guard.js';
+import { logout } from '/js/auth-guard.js';
 import { wsClient } from '/js/ws.js';
 import { showToast, openModal, closeModal, initModalListeners, escapeHtml } from '/js/ui.js';
 
-let currentUser = null;
 let allGames = [];
 let allTeams = [];
 let allMatches = [];
 let pendingSubmissions = [];
 let activeResetScope = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    currentUser = await checkAuth('admin');
-    if (!currentUser) return;
-
+document.addEventListener('DOMContentLoaded', () => {
     initModalListeners();
-    initAdminHeader();
     initTabs();
     initWebSocket();
-
-    // Chargement initial des données
-    await Promise.all([
-        loadSubmissions(),
-        loadGames(),
-        loadTeams(),
-        loadMatches(),
-        loadAdmins()
-    ]);
-
     initForms();
+
+    // Attachement immédiat sur le rendu initial Askama SSR (0 requête GET dans F12)
+    bindSubmissionsListeners(document.getElementById('submissions-list'));
+    bindGamesListeners(document.getElementById('admin-games-tbody'));
+    bindMatchesListeners(document.getElementById('matches-admin-list'));
+    bindTeamsListeners(document.getElementById('admin-teams-tbody'));
+    bindAdminsListeners(document.getElementById('admin-users-tbody'));
 
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
 });
-
-function initAdminHeader() {
-    const badge = document.getElementById('admin-user-badge');
-    if (badge) badge.textContent = `ADMIN : ${currentUser.username.toUpperCase()}`;
-}
 
 function initWebSocket() {
     wsClient.connect();
@@ -571,51 +699,56 @@ async function loadSubmissions() {
             `;
         }).join('');
 
-        listEl.querySelectorAll('.sub-media').forEach(media => {
-            media.addEventListener('click', () => {
-                const url = media.getAttribute('data-zoom-url');
-                const zoomImg = document.getElementById('zoom-image-src');
-                if (zoomImg && url) {
-                    zoomImg.src = url;
-                    openModal('modal-image-zoom');
-                }
-            });
-        });
-
-        listEl.querySelectorAll('.btn-approve').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                btn.disabled = true;
-                try {
-                    await api.post(`/api/admin/submissions/${id}/approve`);
-                    showToast("Score approuvé ! Points crédités au classement.", "success");
-                    loadSubmissions();
-                    loadTeams();
-                } catch (err) {
-                    showToast(err.message, "error");
-                    btn.disabled = false;
-                }
-            });
-        });
-
-        listEl.querySelectorAll('.btn-reject').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                btn.disabled = true;
-                try {
-                    await api.post(`/api/admin/submissions/${id}/reject`);
-                    showToast("Soumission rejetée.", "info");
-                    loadSubmissions();
-                } catch (err) {
-                    showToast(err.message, "error");
-                    btn.disabled = false;
-                }
-            });
-        });
-
+        bindSubmissionsListeners(listEl);
     } catch (err) {
         listEl.innerHTML = `<div class="empty-state" style="color: var(--red);">Erreur lors du chargement des soumissions : ${err.message}</div>`;
     }
+}
+
+function bindSubmissionsListeners(listEl) {
+    if (!listEl) return;
+
+    listEl.querySelectorAll('.sub-media').forEach(media => {
+        media.addEventListener('click', () => {
+            const url = media.getAttribute('data-zoom-url');
+            const zoomImg = document.getElementById('zoom-image-src');
+            if (zoomImg && url) {
+                zoomImg.src = url;
+                openModal('modal-image-zoom');
+            }
+        });
+    });
+
+    listEl.querySelectorAll('.btn-approve').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            btn.disabled = true;
+            try {
+                await api.post(`/api/admin/submissions/${id}/approve`);
+                showToast("Score approuvé ! Points crédités au classement.", "success");
+                loadSubmissions();
+                loadTeams();
+            } catch (err) {
+                showToast(err.message, "error");
+                btn.disabled = false;
+            }
+        });
+    });
+
+    listEl.querySelectorAll('.btn-reject').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            btn.disabled = true;
+            try {
+                await api.post(`/api/admin/submissions/${id}/reject`);
+                showToast("Soumission rejetée.", "info");
+                loadSubmissions();
+            } catch (err) {
+                showToast(err.message, "error");
+                btn.disabled = false;
+            }
+        });
+    });
 }
 
 document.getElementById('refresh-submissions-btn')?.addEventListener('click', loadSubmissions);
@@ -647,20 +780,7 @@ async function loadGames() {
                 </tr>
             `).join('');
 
-            tbody.querySelectorAll('.btn-del-game').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const id = btn.getAttribute('data-id');
-                    if (confirm("Supprimer ce jeu du catalogue ?")) {
-                        try {
-                            await api.delete(`/api/admin/games/${id}`);
-                            showToast("Jeu supprimé.", "info");
-                            loadGames();
-                        } catch (err) {
-                            showToast(err.message, "error");
-                        }
-                    }
-                });
-            });
+            bindGamesListeners(tbody);
         }
 
         if (selectEl) {
@@ -670,6 +790,24 @@ async function loadGames() {
     } catch (err) {
         tbody.innerHTML = `<tr><td colspan="4" class="cell-loading" style="color: var(--red);">Erreur : ${err.message}</td></tr>`;
     }
+}
+
+function bindGamesListeners(tbody) {
+    if (!tbody) return;
+    tbody.querySelectorAll('.btn-del-game').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            if (confirm("Supprimer ce jeu du catalogue ?")) {
+                try {
+                    await api.delete(`/api/admin/games/${id}`);
+                    showToast("Jeu supprimé.", "info");
+                    loadGames();
+                } catch (err) {
+                    showToast(err.message, "error");
+                }
+            }
+        });
+    });
 }
 
 /* ==========================================================================
@@ -723,46 +861,51 @@ async function loadMatches() {
             `;
         }).join('');
 
-        container.querySelectorAll('.btn-toggle-match').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
+        bindMatchesListeners(container);
+    } catch (err) {
+        container.innerHTML = `<div class="empty-state" style="color: var(--red);">Erreur : ${err.message}</div>`;
+    }
+}
+
+function bindMatchesListeners(container) {
+    if (!container) return;
+
+    container.querySelectorAll('.btn-toggle-match').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            try {
+                await api.post(`/api/admin/matches/${id}/toggle`);
+                showToast("Statut du match mis à jour.", "info");
+                loadMatches();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        });
+    });
+
+    container.querySelectorAll('.btn-edit-instructions').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const oldInstructions = btn.getAttribute('data-instructions');
+            const newInstructions = prompt("Nouvelles consignes / instructions de lobby :", oldInstructions);
+            if (newInstructions !== null) {
                 try {
-                    await api.post(`/api/admin/matches/${id}/toggle`);
-                    showToast("Statut du match mis à jour.", "info");
+                    await api.patch(`/api/admin/matches/${id}/instructions`, { instructions: newInstructions });
+                    showToast("Consignes mises à jour en direct.", "success");
                     loadMatches();
                 } catch (err) {
                     showToast(err.message, "error");
                 }
-            });
+            }
         });
+    });
 
-        container.querySelectorAll('.btn-edit-instructions').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                const oldInstructions = btn.getAttribute('data-instructions');
-                const newInstructions = prompt("Nouvelles consignes / instructions de lobby :", oldInstructions);
-                if (newInstructions !== null) {
-                    try {
-                        await api.patch(`/api/admin/matches/${id}/instructions`, { instructions: newInstructions });
-                        showToast("Consignes mises à jour en direct.", "success");
-                        loadMatches();
-                    } catch (err) {
-                        showToast(err.message, "error");
-                    }
-                }
-            });
+    container.querySelectorAll('.btn-bulk-scores').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            openBulkScoresModal(id);
         });
-
-        container.querySelectorAll('.btn-bulk-scores').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = btn.getAttribute('data-id');
-                openBulkScoresModal(id);
-            });
-        });
-
-    } catch (err) {
-        container.innerHTML = `<div class="empty-state" style="color: var(--red);">Erreur : ${err.message}</div>`;
-    }
+    });
 }
 
 function openBulkScoresModal(matchId) {
@@ -834,40 +977,7 @@ async function loadTeams() {
                 </tr>
             `).join('');
 
-            tbody.querySelectorAll('.btn-adjust-pts').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const id = btn.getAttribute('data-id');
-                    const name = btn.getAttribute('data-name');
-                    const val = prompt(`Ajuster les points pour "${name}" (ex: 10 pour bonus, -5 pour pénalité) :`);
-                    if (val !== null) {
-                        const adjustment = parseInt(val, 10);
-                        if (!isNaN(adjustment)) {
-                            try {
-                                await api.patch(`/api/admin/teams/${id}/points`, { adjustment });
-                                showToast("Points mis à jour !", "success");
-                                loadTeams();
-                            } catch (err) {
-                                showToast(err.message, "error");
-                            }
-                        }
-                    }
-                });
-            });
-
-            tbody.querySelectorAll('.btn-del-team').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const id = btn.getAttribute('data-id');
-                    if (confirm("Supprimer définitivement cette équipe et son compte capitaine ?")) {
-                        try {
-                            await api.delete(`/api/admin/teams/${id}`);
-                            showToast("Équipe supprimée.", "info");
-                            loadTeams();
-                        } catch (err) {
-                            showToast(err.message, "error");
-                        }
-                    }
-                });
-            });
+            bindTeamsListeners(tbody);
         }
 
         if (selectorContainer) {
@@ -887,6 +997,44 @@ async function loadTeams() {
     }
 }
 
+function bindTeamsListeners(tbody) {
+    if (!tbody) return;
+    tbody.querySelectorAll('.btn-adjust-pts').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const val = prompt(`Ajuster les points pour "${name}" (ex: 10 pour bonus, -5 pour pénalité) :`);
+            if (val !== null) {
+                const adjustment = parseInt(val, 10);
+                if (!isNaN(adjustment)) {
+                    try {
+                        await api.patch(`/api/admin/teams/${id}/points`, { adjustment });
+                        showToast("Points mis à jour !", "success");
+                        loadTeams();
+                    } catch (err) {
+                        showToast(err.message, "error");
+                    }
+                }
+            }
+        });
+    });
+
+    tbody.querySelectorAll('.btn-del-team').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            if (confirm("Supprimer définitivement cette équipe et son compte capitaine ?")) {
+                try {
+                    await api.delete(`/api/admin/teams/${id}`);
+                    showToast("Équipe supprimée.", "info");
+                    loadTeams();
+                } catch (err) {
+                    showToast(err.message, "error");
+                }
+            }
+        });
+    });
+}
+
 /* ==========================================================================
    ONGLET 5 : COMPTES ADMINISTRATEURS
    ========================================================================== */
@@ -903,38 +1051,40 @@ async function loadAdmins() {
         }
 
         tbody.innerHTML = admins.map(adm => {
-            const isSelf = adm.username.toLowerCase() === currentUser.username.toLowerCase();
             return `
                 <tr>
-                    <td><strong>${escapeHtml(adm.username)}</strong> ${isSelf ? '<span class="badge-code">[VOUS]</span>' : ''}</td>
+                    <td><strong>${escapeHtml(adm.username)}</strong></td>
                     <td>
-                        ${isSelf ? '<span class="field-hint">Actif</span>' : `
-                            <button type="button" class="btn-text btn-del-admin" data-id="${adm.id}" style="color: var(--red);">
-                                Révoquer
-                            </button>
-                        `}
+                        <button type="button" class="btn-text btn-del-admin" data-id="${adm.id}" style="color: var(--red);">
+                            Révoquer
+                        </button>
                     </td>
                 </tr>
             `;
         }).join('');
 
-        tbody.querySelectorAll('.btn-del-admin').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                if (confirm("Supprimer ce compte administrateur ?")) {
-                    try {
-                        await api.delete(`/api/admin/admins/${id}`);
-                        showToast("Administrateur révoqué.", "info");
-                        loadAdmins();
-                    } catch (err) {
-                        showToast(err.message, "error");
-                    }
-                }
-            });
-        });
+        bindAdminsListeners(tbody);
     } catch (err) {
         tbody.innerHTML = `<tr><td colspan="2" class="cell-loading" style="color: var(--red);">Erreur : ${err.message}</td></tr>`;
     }
+}
+
+function bindAdminsListeners(tbody) {
+    if (!tbody) return;
+    tbody.querySelectorAll('.btn-del-admin').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            if (confirm("Supprimer ce compte administrateur ?")) {
+                try {
+                    await api.delete(`/api/admin/admins/${id}`);
+                    showToast("Administrateur révoqué.", "info");
+                    loadAdmins();
+                } catch (err) {
+                    showToast(err.message, "error");
+                }
+            }
+        });
+    });
 }
 
 /* ==========================================================================

@@ -308,30 +308,141 @@ pub async fn handle_logout(
     (new_jar, Redirect::to("/login")).into_response()
 }
 
+pub struct AdminSubmissionView {
+    pub id: String,
+    pub team_name: String,
+    pub placement: u8,
+    pub secondary_stat: u32,
+    pub calculated_points: u32,
+    pub proof_url: String,
+}
+
+#[allow(dead_code)]
+pub struct AdminGameView {
+    pub id: String,
+    pub name: String,
+    pub format: String,
+    pub rules: String,
+    pub points_per_secondary_stat: u32,
+}
+
+pub struct AdminMatchView {
+    pub id: String,
+    pub title: String,
+    pub game_name: String,
+    pub is_open: bool,
+    pub instructions: String,
+    pub assigned_teams_count: usize,
+}
+
+pub struct AdminUserView {
+    pub id: String,
+    pub username: String,
+}
+
+#[derive(Template)]
+#[template(path = "admin.html")]
+pub struct AdminTemplate {
+    pub admin_username: String,
+    pub submissions: Vec<AdminSubmissionView>,
+    pub games: Vec<AdminGameView>,
+    pub matches: Vec<AdminMatchView>,
+    pub teams: Vec<crate::models::PublicTeam>,
+    pub admins: Vec<AdminUserView>,
+}
+
 pub async fn serve_admin_page(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
 ) -> Response {
-    let is_admin = match jar.get("lan_session") {
+    let (admin_oid, admin_username) = match jar.get("lan_session") {
         Some(c) => match verify_jwt(c.value(), &state.jwt_secret) {
             Ok(claims) if matches!(claims.role, UserRole::Admin) => {
                 match ObjectId::parse_str(&claims.sub) {
-                    Ok(oid) => crate::db::verify_admin_session(&state.db, oid, claims.token_version)
-                        .await
-                        .unwrap_or(false),
-                    Err(_) => false,
+                    Ok(oid) => {
+                        let valid = crate::db::verify_admin_session(&state.db, oid, claims.token_version)
+                            .await
+                            .unwrap_or(false);
+                        if valid {
+                            (Some(oid), claims.username)
+                        } else {
+                            (None, String::new())
+                        }
+                    }
+                    Err(_) => (None, String::new()),
                 }
             }
-            _ => false,
+            _ => (None, String::new()),
         },
-        None => false,
+        None => (None, String::new()),
     };
 
-    if is_admin {
-        Html(include_str!("../../templates/admin.html")).into_response()
-    } else {
-        Redirect::to("/login.html").into_response()
+    if admin_oid.is_none() {
+        return Redirect::to("/login").into_response();
     }
+
+    let submissions_db = crate::db::get_pending(&state.db).await.unwrap_or_default();
+    let games_db = crate::db::list_games(&state.db).await.unwrap_or_default();
+    let matches_db = crate::db::get_all_matches(&state.db).await.unwrap_or_default();
+    let teams_db = crate::db::get_leaderboard(&state.db).await.unwrap_or_default();
+    let admins_db = crate::db::list_admins(&state.db).await.unwrap_or_default();
+
+    let submissions_view: Vec<AdminSubmissionView> = submissions_db
+        .into_iter()
+        .map(|s| AdminSubmissionView {
+            id: s.id.map(|id| id.to_hex()).unwrap_or_default(),
+            team_name: s.team_name,
+            placement: s.score.placement,
+            secondary_stat: s.score.secondary_stat,
+            calculated_points: s.calculated_points,
+            proof_url: s.proof_base64.unwrap_or_default(),
+        })
+        .collect();
+
+    let games_view: Vec<AdminGameView> = games_db
+        .into_iter()
+        .map(|g| AdminGameView {
+            id: g.id.map(|id| id.to_hex()).unwrap_or_default(),
+            name: g.name,
+            format: match g.format {
+                crate::models::GameFormat::Duel => "DUEL".to_string(),
+                crate::models::GameFormat::Brawl => "BRAWL".to_string(),
+            },
+            rules: g.rules,
+            points_per_secondary_stat: g.points_per_secondary_stat,
+        })
+        .collect();
+
+    let matches_view: Vec<AdminMatchView> = matches_db
+        .into_iter()
+        .map(|m| AdminMatchView {
+            id: m.id.map(|id| id.to_hex()).unwrap_or_default(),
+            title: m.title,
+            game_name: m.game_name,
+            is_open: m.is_open,
+            instructions: m.instructions,
+            assigned_teams_count: m.assigned_teams.len(),
+        })
+        .collect();
+
+    let admins_view: Vec<AdminUserView> = admins_db
+        .into_iter()
+        .map(|a| AdminUserView {
+            id: a.id.map(|id| id.to_hex()).unwrap_or_default(),
+            username: a.username,
+        })
+        .collect();
+
+    let template = AdminTemplate {
+        admin_username,
+        submissions: submissions_view,
+        games: games_view,
+        matches: matches_view,
+        teams: teams_db,
+        admins: admins_view,
+    };
+
+    HtmlTemplate(template).into_response()
 }
 
 pub async fn serve_captain_page(
