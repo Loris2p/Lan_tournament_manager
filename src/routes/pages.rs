@@ -203,11 +203,7 @@ impl LeaderboardTemplate {
         self.teams.get(2)
     }
     pub fn remaining_teams(&self) -> &[crate::models::PublicTeam] {
-        if self.teams.len() > 3 {
-            &self.teams[3..]
-        } else {
-            &[]
-        }
+        self.teams.get(3..).unwrap_or(&[])
     }
 }
 

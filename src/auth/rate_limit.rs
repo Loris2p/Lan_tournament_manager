@@ -21,15 +21,12 @@ impl RateLimiter {
     /// Vérifie si l'adresse IP a dépassé la limite autorisée.
     /// Renvoie `true` si la requête est acceptée et enregistrée, `false` si le quota est dépassé.
     pub fn check(&self, ip: &str) -> bool {
-        let mut map = match self.attempts.lock() {
-            Ok(guard) => guard,
-            Err(poisoned) => poisoned.into_inner(),
-        };
+        let mut map = self.attempts.lock(). unwrap_or_else(|poisoned| poisoned.into_inner());
         let now = Instant::now();
         let list = map.entry(ip.to_string()).or_default();
 
         // Conserve uniquement les tentatives dans la fenêtre temporelle
-        list.retain(|&t| now.duration_since(t) < self.window);
+        list.retain(|&t| now.saturating_duration_since(t) < self.window);
 
         if list.len() >= self.max_attempts {
             false
