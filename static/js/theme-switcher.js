@@ -6,16 +6,16 @@
  */
 
 const THEMES = [
-    { id: 'modern-esport', label: 'Pro Esport Glass' },
-    { id: 'cyber-crimson', label: 'Cyber Crimson' },
-    { id: 'tactical-hud',  label: 'Tactical HUD' }
+    { id: 'modern-esport', label: 'Glass' },
+    { id: 'cyber-crimson', label: 'Crimson' },
+    { id: 'tactical-hud',  label: 'Tactical' }
 ];
 
 const LAYOUTS = [
-    { id: 'split-screen',  label: 'Split Broadcast' },
-    { id: 'bento-grid',    label: 'Bento Grid' },
-    { id: 'sidebar-hud',   label: 'Sidebar Cockpit' },
-    { id: 'classic-stack', label: 'Stack Classique' }
+    { id: 'split-screen',  label: 'Split' },
+    { id: 'bento-grid',    label: 'Grid' },
+    { id: 'sidebar-hud',   label: 'Sidebar' },
+    { id: 'classic-stack', label: 'Stack' }
 ];
 
 const THEME_KEY = 'ltm_theme';
