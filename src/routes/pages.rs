@@ -1,4 +1,5 @@
-use std::sync::Arc;
+use crate::auth::{AdminUser, CaptainUser, UserRole, verify_jwt};
+use crate::models::AppState;
 use askama::Template;
 use axum::extract::{Form, Path, Query, State};
 use axum::http::StatusCode;
@@ -6,8 +7,7 @@ use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::CookieJar;
 use mongodb::bson::oid::ObjectId;
 use serde::Deserialize;
-use crate::auth::{verify_jwt, AdminUser, CaptainUser, UserRole};
-use crate::models::AppState;
+use std::sync::Arc;
 
 pub struct HtmlTemplate<T>(pub T);
 
@@ -68,8 +68,12 @@ impl CaptainTemplate {
             Some("match_closed") => Some("Ce match a déjà été clôturé par les arbitres."),
             Some("not_assigned") => Some("Votre équipe n'est pas inscrite à ce match."),
             Some("invalid_image") => Some("La preuve fournie doit être une image valide."),
-            Some("invalid_score") => Some("Le score de placement ou la statistique secondaire est invalide."),
-            Some("upload_failed") => Some("Échec de l'envoi de la capture d'écran sur le stockage."),
+            Some("invalid_score") => {
+                Some("Le score de placement ou la statistique secondaire est invalide.")
+            }
+            Some("upload_failed") => {
+                Some("Échec de l'envoi de la capture d'écran sur le stockage.")
+            }
             Some("db_error") => Some("Erreur lors de l'enregistrement en base de données."),
             _ => None,
         }
@@ -126,10 +130,7 @@ pub struct IndexTemplate {
     pub auth: NavAuth,
 }
 
-pub async fn serve_home_page(
-    State(state): State<Arc<AppState>>,
-    jar: CookieJar,
-) -> Response {
+pub async fn serve_home_page(State(state): State<Arc<AppState>>, jar: CookieJar) -> Response {
     let games_db = crate::db::list_games(&state.db).await.unwrap_or_default();
     let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
 
@@ -211,8 +212,12 @@ pub async fn serve_leaderboard_page(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
 ) -> Response {
-    let teams = crate::db::get_leaderboard(&state.db).await.unwrap_or_default();
-    let live_matches = crate::db::get_open_matches(&state.db).await.unwrap_or_default();
+    let teams = crate::db::get_leaderboard(&state.db)
+        .await
+        .unwrap_or_default();
+    let live_matches = crate::db::get_open_matches(&state.db)
+        .await
+        .unwrap_or_default();
     let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
 
     HtmlTemplate(LeaderboardTemplate {
@@ -239,7 +244,9 @@ impl LoginTemplate {
     pub fn error_message(&self) -> Option<&'static str> {
         match self.error.as_deref() {
             Some("invalid_credentials") => Some("Identifiant ou mot de passe incorrect."),
-            Some("rate_limited") => Some("Trop de tentatives de connexion. Veuillez patienter une minute."),
+            Some("rate_limited") => {
+                Some("Trop de tentatives de connexion. Veuillez patienter une minute.")
+            }
             Some("passwords_dont_match") => Some("Les mots de passe saisis ne correspondent pas."),
             Some("username_taken") => Some("Ce pseudo d'administrateur est déjà utilisé."),
             Some("setup_forbidden") => Some("L'initialisation a déjà été effectuée."),
@@ -357,7 +364,10 @@ pub async fn handle_setup_form(
     }
 
     let username = form.username.trim();
-    if crate::db::find_team_by_captain_username(db, username).await.is_ok() {
+    if crate::db::find_team_by_captain_username(db, username)
+        .await
+        .is_ok()
+    {
         return Redirect::to("/login?error=username_taken").into_response();
     }
 
@@ -393,10 +403,7 @@ pub async fn handle_setup_form(
     (new_jar, Redirect::to("/admin")).into_response()
 }
 
-pub async fn handle_logout(
-    State(state): State<Arc<AppState>>,
-    jar: CookieJar,
-) -> Response {
+pub async fn handle_logout(State(state): State<Arc<AppState>>, jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get("lan_session") {
         if let Ok(claims) = verify_jwt(cookie.value(), &state.jwt_secret) {
             if let Ok(oid) = ObjectId::parse_str(&claims.sub) {
@@ -411,7 +418,9 @@ pub async fn handle_logout(
             }
         }
     }
-    let cookie = axum_extra::extract::cookie::Cookie::build("lan_session").path("/").build();
+    let cookie = axum_extra::extract::cookie::Cookie::build("lan_session")
+        .path("/")
+        .build();
     let new_jar = jar.remove(cookie);
     (new_jar, Redirect::to("/login")).into_response()
 }
@@ -459,18 +468,16 @@ pub struct AdminTemplate {
     pub admins: Vec<AdminUserView>,
 }
 
-pub async fn serve_admin_page(
-    State(state): State<Arc<AppState>>,
-    jar: CookieJar,
-) -> Response {
+pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar) -> Response {
     let (admin_oid, admin_username) = match jar.get("lan_session") {
         Some(c) => match verify_jwt(c.value(), &state.jwt_secret) {
             Ok(claims) if matches!(claims.role, UserRole::Admin) => {
                 match ObjectId::parse_str(&claims.sub) {
                     Ok(oid) => {
-                        let valid = crate::db::verify_admin_session(&state.db, oid, claims.token_version)
-                            .await
-                            .unwrap_or(false);
+                        let valid =
+                            crate::db::verify_admin_session(&state.db, oid, claims.token_version)
+                                .await
+                                .unwrap_or(false);
                         if valid {
                             (Some(oid), claims.username)
                         } else {
@@ -486,13 +493,21 @@ pub async fn serve_admin_page(
     };
 
     if admin_oid.is_none() {
-        return Redirect::to("/login").into_response();
+        let cookie = axum_extra::extract::cookie::Cookie::build("lan_session")
+            .path("/")
+            .build();
+        let new_jar = jar.remove(cookie);
+        return (new_jar, Redirect::to("/login")).into_response();
     }
 
     let submissions_db = crate::db::get_pending(&state.db).await.unwrap_or_default();
     let games_db = crate::db::list_games(&state.db).await.unwrap_or_default();
-    let matches_db = crate::db::get_all_matches(&state.db).await.unwrap_or_default();
-    let teams_db = crate::db::get_leaderboard(&state.db).await.unwrap_or_default();
+    let matches_db = crate::db::get_all_matches(&state.db)
+        .await
+        .unwrap_or_default();
+    let teams_db = crate::db::get_leaderboard(&state.db)
+        .await
+        .unwrap_or_default();
     let admins_db = crate::db::list_admins(&state.db).await.unwrap_or_default();
 
     let submissions_view: Vec<AdminSubmissionView> = submissions_db
@@ -563,14 +578,11 @@ pub async fn serve_captain_page(
             Ok(claims) if matches!(claims.role, UserRole::Captain { .. }) => {
                 match ObjectId::parse_str(&claims.sub) {
                     Ok(oid) => {
-                        let valid = crate::db::verify_team_session(&state.db, oid, claims.token_version)
-                            .await
-                            .unwrap_or(false);
-                        if valid {
-                            Some(oid)
-                        } else {
-                            None
-                        }
+                        let valid =
+                            crate::db::verify_team_session(&state.db, oid, claims.token_version)
+                                .await
+                                .unwrap_or(false);
+                        if valid { Some(oid) } else { None }
                     }
                     Err(_) => None,
                 }
@@ -582,9 +594,14 @@ pub async fn serve_captain_page(
 
     let team_oid = match team_oid_opt {
         Some(oid) => oid,
-        None => return Redirect::to("/login.html").into_response(),
+        None => {
+            let cookie = axum_extra::extract::cookie::Cookie::build("lan_session")
+                .path("/")
+                .build();
+            let new_jar = jar.remove(cookie);
+            return (new_jar, Redirect::to("/login.html")).into_response();
+        }
     };
-
     let team = match crate::db::find_team_by_id(&state.db, team_oid).await {
         Ok(t) => t,
         Err(_) => return Redirect::to("/login.html").into_response(),
@@ -660,7 +677,11 @@ pub async fn submit_captain_score(
         return Redirect::to("/captain?status=invalid_score").into_response();
     }
 
-    let proof_url = match state.s3.upload_base_image(&form.proof_base64, "submissions").await {
+    let proof_url = match state
+        .s3
+        .upload_base_image(&form.proof_base64, "submissions")
+        .await
+    {
         Ok(url) => url,
         Err(_) => return Redirect::to("/captain?status=upload_failed").into_response(),
     };
@@ -811,9 +832,7 @@ pub async fn admin_create_game_form(
         .split(',')
         .filter_map(|s| s.trim().parse::<u32>().ok())
         .collect();
-    let sec_label = form
-        .secondary_stat_label
-        .filter(|s| !s.trim().is_empty());
+    let sec_label = form.secondary_stat_label.filter(|s| !s.trim().is_empty());
 
     let _ = crate::db::create_game(
         &state.db,
@@ -846,13 +865,7 @@ pub async fn admin_create_team_form(
     Form(form): Form<CreateTeamForm>,
 ) -> Response {
     if let Ok(hash) = crate::auth::hash_password(&form.captain_password) {
-        let _ = crate::db::create_team(
-            &state.db,
-            &form.name,
-            &form.captain_username,
-            &hash,
-        )
-        .await;
+        let _ = crate::db::create_team(&state.db, &form.name, &form.captain_username, &hash).await;
         let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     }
     Redirect::to("/admin?tab=teams").into_response()

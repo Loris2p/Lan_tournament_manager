@@ -142,7 +142,7 @@ pub async fn increment_team_token_version(db: &Database, team_id: ObjectId) -> R
 pub async fn verify_team_session(db: &Database, team_id: ObjectId, token_version: u32) -> Result<bool, Errors> {
     let count = db
         .collection::<Team>("teams")
-        .count_documents(doc! {"_id": team_id, "token_version": token_version})
+        .count_documents(doc! {"_id": team_id, "token_version": token_version as i64})
         .await?;
     Ok(count > 0)
 }
