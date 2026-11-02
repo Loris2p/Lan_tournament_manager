@@ -683,7 +683,10 @@ pub async fn submit_captain_score(
         .await
     {
         Ok(url) => url,
-        Err(_) => return Redirect::to("/captain?status=upload_failed").into_response(),
+        Err(err) => {
+            eprintln!("problème avec l'envoi de la preuve : {err}");
+            return Redirect::to("/captain?status=upload_failed").into_response();
+        }
     };
 
     let calculated_points = game.calculate_points(&score);
