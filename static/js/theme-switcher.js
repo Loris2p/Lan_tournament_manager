@@ -1,8 +1,7 @@
 /**
  * Gestionnaire d'ambiances visuelles et de dispositions de page (theme-switcher.js)
- * Permet d'alterner dynamiquement entre :
- * - Thèmes de couleurs : Pro Esport Glass, Cyber Crimson, Tactical HUD
- * - Dispositions / Layouts : Split-Screen Broadcast, Bento Grid, Sidebar HUD, Stack Classique
+ * - Thèmes : Pro Esport Glass, Cyber Crimson
+ * - Dispositions : Sidebar HUD, Stack Classique
  */
 
 const THEMES = [
@@ -11,7 +10,6 @@ const THEMES = [
 ];
 
 const LAYOUTS = [
-    { id: 'split-screen',  label: 'Split' },
     { id: 'sidebar-hud',   label: 'Sidebar' },
     { id: 'classic-stack', label: 'Stack' }
 ];
@@ -24,7 +22,7 @@ export function getActiveTheme() {
 }
 
 export function getActiveLayout() {
-    return localStorage.getItem(LAYOUT_KEY) || 'split-screen';
+    return localStorage.getItem(LAYOUT_KEY) || 'classic-stack';
 }
 
 export function setTheme(themeId) {
@@ -42,7 +40,7 @@ export function setTheme(themeId) {
 
 export function setLayout(layoutId) {
     if (!LAYOUTS.some(l => l.id === layoutId)) {
-        layoutId = 'split-screen';
+        layoutId = 'classic-stack';
     }
     document.documentElement.setAttribute('data-layout', layoutId);
     localStorage.setItem(LAYOUT_KEY, layoutId);
@@ -156,6 +154,35 @@ export function initSwitcher() {
     layoutGroup.appendChild(layoutLabel);
     layoutGroup.appendChild(layoutSelect);
     body.appendChild(layoutGroup);
+
+    // Groupe 3 : Mode Plein Écran [F11]
+    const fsGroup = document.createElement('div');
+    fsGroup.className = 'settings-group';
+
+    const fsBtn = document.createElement('button');
+    fsBtn.type = 'button';
+    fsBtn.id = 'settings-fullscreen-btn';
+    fsBtn.className = 'btn btn-outline btn-block btn-sm';
+    fsBtn.style.width = '100%';
+    fsBtn.style.marginTop = '0.5rem';
+    fsBtn.textContent = document.fullscreenElement ? 'Quitter Plein Écran' : 'Mode Plein Écran [F11]';
+
+    fsBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen().catch(() => {});
+        }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        const isFs = Boolean(document.fullscreenElement);
+        fsBtn.textContent = isFs ? 'Quitter Plein Écran' : 'Mode Plein Écran [F11]';
+        document.body.classList.toggle('fullscreen-mode', isFs);
+    });
+
+    fsGroup.appendChild(fsBtn);
+    body.appendChild(fsGroup);
 
     dropdown.appendChild(body);
 

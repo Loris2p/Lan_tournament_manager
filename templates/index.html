@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LAN Tournament Manager — Accueil</title>
     <link rel="stylesheet" href="/css/custom.css">
-    <script>try{const t=localStorage.getItem('ltm_theme')||'modern-esport';const l=localStorage.getItem('ltm_layout')||'split-screen';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-layout',l);}catch(e){}</script>
+    <script>try{const t=localStorage.getItem('ltm_theme')||'modern-esport';const l=localStorage.getItem('ltm_layout')||'classic-stack';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-layout',l);}catch(e){}</script>
 </head>
 <body>
 
@@ -33,10 +33,6 @@
                     <span class="status-dot"></span>
                     <span class="status-label" id="ws-status-text">WS: EN DIRECT</span>
                 </div>
-
-                <button type="button" class="btn-text" id="fullscreen-btn" title="Basculer en plein écran [F11]">
-                    Plein écran [F11]
-                </button>
 
                 <a href="{{ auth.target_url }}" class="btn-primary" id="auth-btn">
                     {{ auth.label }}
@@ -258,6 +254,7 @@
 
     <!-- Script du carrousel et des données dynamiques -->
     <script type="module" src="/js/home.js"></script>
+    <script type="module" src="/js/theme-switcher.js"></script>
     <script type="module" src="/js/cookie-banner.js"></script>
 
 </body>

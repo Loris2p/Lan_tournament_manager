@@ -8,7 +8,6 @@
 import { wsClient } from './ws.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    initFullscreen();
     initWebSocket();
 });
 
@@ -16,28 +15,5 @@ function initWebSocket() {
     wsClient.connect();
     wsClient.on('LEADERBOARD_UPDATE', () => {
         window.location.reload();
-    });
-}
-
-function initFullscreen() {
-    const fsBtn = document.getElementById('fullscreen-btn');
-    if (!fsBtn) return;
-
-    fsBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-            document.exitFullscreen().catch(() => {});
-        }
-    });
-
-    document.addEventListener('fullscreenchange', () => {
-        if (document.fullscreenElement) {
-            fsBtn.textContent = 'Quitter Plein Écran [Échap]';
-            document.body.classList.add('fullscreen-mode');
-        } else {
-            fsBtn.textContent = 'Mode Écran Géant [F11]';
-            document.body.classList.remove('fullscreen-mode');
-        }
     });
 }

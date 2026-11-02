@@ -3,8 +3,6 @@
  * Conforme RGPD / ePrivacy : Information claire sur l'utilisation du cookie technique de session.
  */
 
-import './theme-switcher.js';
-
 const STORAGE_KEY = 'ltm_cookie_ack';
 
 export function initCookieBanner() {

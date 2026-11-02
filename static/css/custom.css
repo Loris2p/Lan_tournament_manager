@@ -2248,54 +2248,6 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 10px var(--red-subtle);
 }
 
-/* ==========================================================================
-   DISPOSITION 1 : SPLIT-SCREEN BROADCAST (PAR DÉFAUT)
-   Présentation et épreuves côte-à-côte dès l'ouverture sans scroll
-   ========================================================================== */
-
-@media (min-width: 1024px) {
-    [data-layout="split-screen"] .page-container {
-        display: grid;
-        grid-template-columns: minmax(380px, 1fr) minmax(480px, 1.25fr);
-        grid-template-areas:
-            "hero carousel"
-            "specs specs"
-            "rules rules";
-        column-gap: 2rem;
-        row-gap: 2.75rem;
-        align-items: stretch;
-    }
-
-    [data-layout="split-screen"] #presentation {
-        grid-area: hero;
-        margin-bottom: 0;
-        display: flex;
-    }
-
-    [data-layout="split-screen"] #presentation .overview-header {
-        height: 100%;
-        margin-bottom: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 2.25rem 2rem;
-    }
-
-    [data-layout="split-screen"] #carousel-section {
-        grid-area: carousel;
-        margin-bottom: 0;
-    }
-
-    [data-layout="split-screen"] #specs-section {
-        grid-area: specs;
-        margin-bottom: 0;
-    }
-
-    [data-layout="split-screen"] #rules {
-        grid-area: rules;
-        margin-bottom: 0;
-    }
-}
 
 
 /* ==========================================================================

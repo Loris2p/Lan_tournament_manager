@@ -10,7 +10,6 @@ import { openModal, initModalListeners } from './ui.js';
 document.addEventListener('DOMContentLoaded', () => {
     wsClient.connect();
     initGamesCarousel();
-    initFullscreenButton();
     initLegalModals();
 });
 
@@ -70,20 +69,6 @@ function initLegalModals() {
     }
 }
 
-function initFullscreenButton() {
-    const fsBtn = document.getElementById('fullscreen-btn');
-    if (!fsBtn) return;
-    fsBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch((err) => {
-                console.warn('Mode plein écran refusé :', err);
-            });
-        } else {
-            document.exitFullscreen().catch(() => {});
-        }
-    });
-}
-
 function initGamesCarousel() {
     const track = document.getElementById('carousel-track');
     const dotsContainer = document.getElementById('carousel-dots');
@@ -138,12 +123,4 @@ function initGamesCarousel() {
     updateCarousel();
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
+
