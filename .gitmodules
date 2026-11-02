@@ -1,0 +1,3 @@
+[submodule "static/vendor/papicons"]
+	path = static/vendor/papicons
+	url = https://github.com/PapillonApp/papicons

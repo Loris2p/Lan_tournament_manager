@@ -77,41 +77,6 @@
     --card-backdrop: none;
 }
 
-/* --------------------------------------------------------------------------
-   THÈME 3 : TACTICAL HUD
-   Carbone furtif militaire, bordeaux sang, encadrés précis et télémétrie
-   -------------------------------------------------------------------------- */
-[data-theme="tactical-hud"] {
-    --bg-root: #0d0e13;
-    --bg-surface: #13151f;
-    --bg-elevated: #1a1e2c;
-    --bg-hover: #23283a;
-    --body-bg-gradient: 
-        radial-gradient(circle at 80% 15%, rgba(185, 28, 28, 0.12) 0%, transparent 45%),
-        radial-gradient(circle at 20% 85%, rgba(185, 28, 28, 0.08) 0%, transparent 45%),
-        #0d0e13;
-
-    --line-subtle: #242938;
-    --line-strong: #991b1b;
-
-    --red: #b91c1c;
-    --red-hover: #991b1b;
-    --red-subtle: rgba(185, 28, 28, 0.18);
-    --red-glow: 0 0 12px rgba(185, 28, 28, 0.4);
-    --red-gradient: linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%);
-
-    --green-status: #22c55e;
-    --green-subtle: rgba(34, 197, 94, 0.15);
-
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-
-    --card-radius: 4px;
-    --btn-radius: 3px;
-    --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 20px rgba(0, 0, 0, 0.6);
-    --card-backdrop: blur(6px);
-}
 
 /* ==========================================================================
    BASE & RESET
@@ -2115,50 +2080,52 @@ input:focus, select:focus, textarea:focus {
     text-shadow: 0 0 20px rgba(255, 0, 60, 0.4), 0 0 40px rgba(255, 0, 60, 0.2);
 }
 
-/* --------------------------------------------------------------------------
-   STYLE 3 : TACTICAL HUD (STEALTH CARBONE / MILITARY TOURNAMENT)
-   - Télémétrie sombre
-   - Rouge bordeaux mat
-   - Encadrements précis
-   -------------------------------------------------------------------------- */
-[data-theme="tactical-hud"] .overview-header {
-    border-left: 4px solid var(--red);
-    background: linear-gradient(90deg, rgba(185, 28, 28, 0.2) 0%, rgba(13, 14, 19, 0.8) 100%);
+
+/* ==========================================================================
+   ICÔNES VECTORIELLES PAPICONS (VIA MASQUE CSS)
+   ========================================================================== */
+
+.papicon {
+    display: inline-block;
+    width: 0.95rem;
+    height: 0.95rem;
+    vertical-align: -0.15em;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    flex-shrink: 0;
 }
 
-[data-theme="tactical-hud"] .meta-tag {
-    font-family: var(--font-mono);
-    border-left: 2px solid var(--red);
-    background: rgba(185, 28, 28, 0.15);
-    border-radius: 2px;
+.icon-gears {
+    -webkit-mask-image: url('/vendor/papicons/icons/gears.svg');
+    mask-image: url('/vendor/papicons/icons/gears.svg');
 }
 
-[data-theme="tactical-hud"] .spec-cell {
-    border-left: 3px solid var(--red);
-    background: #14161f;
+.icon-palette {
+    -webkit-mask-image: url('/vendor/papicons/icons/palette.svg');
+    mask-image: url('/vendor/papicons/icons/palette.svg');
 }
 
-[data-theme="tactical-hud"] .rule-box {
-    border-left: 3px solid var(--red);
-    background: #14161f;
-}
-
-[data-theme="tactical-hud"] .topbar {
-    border-bottom: 1px solid var(--line-strong);
-    background: #11131a;
+.icon-grid {
+    -webkit-mask-image: url('/vendor/papicons/icons/grid.svg');
+    mask-image: url('/vendor/papicons/icons/grid.svg');
 }
 
 /* ==========================================================================
-   SÉLECTEURS D'INTERFACE (DISPOSITIONS & PALETTES)
+   MENU PARAMÈTRES & SÉLECTEURS D'INTERFACE
    ========================================================================== */
 
-.switchers-wrapper {
-    display: flex;
+.settings-menu-wrapper {
+    position: relative;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
 }
 
-.switcher-select-input {
+.settings-trigger-btn {
     background: var(--bg-elevated);
     border: 1px solid var(--line-subtle);
     border-radius: var(--btn-radius);
@@ -2169,6 +2136,110 @@ input:focus, select:focus, textarea:focus {
     padding: 0.35rem 0.65rem;
     cursor: pointer;
     outline: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.settings-trigger-btn:hover,
+.settings-trigger-btn:focus,
+.settings-trigger-btn[aria-expanded="true"] {
+    border-color: var(--red);
+    box-shadow: 0 0 10px var(--red-subtle);
+}
+
+.settings-trigger-btn[aria-expanded="true"] {
+    background: var(--bg-card);
+}
+
+.settings-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    min-width: 230px;
+    background: rgba(24, 24, 27, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--line-subtle);
+    border-radius: var(--card-radius);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    padding: 0.85rem;
+    z-index: 100;
+    animation: settings-fade-in 0.15s ease-out;
+}
+
+.settings-dropdown[hidden] {
+    display: none !important;
+}
+
+@keyframes settings-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.settings-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line-subtle);
+}
+
+.settings-dropdown-title {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.settings-dropdown-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.settings-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.switcher-select-input {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-subtle);
+    border-radius: var(--btn-radius);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.4rem 0.65rem;
+    cursor: pointer;
+    outline: none;
+    width: 100%;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -2226,78 +2297,6 @@ input:focus, select:focus, textarea:focus {
     }
 }
 
-/* ==========================================================================
-   DISPOSITION 2 : BENTO GRID (COMMAND CENTER)
-   Carrousel grand format à gauche, hero et télémétrie modulaire à droite
-   ========================================================================== */
-
-@media (min-width: 1024px) {
-    [data-layout="bento-grid"] .page-container {
-        display: grid;
-        grid-template-columns: 1.2fr 0.85fr;
-        grid-template-areas:
-            "carousel hero"
-            "carousel specs"
-            "rules rules";
-        gap: 1.75rem;
-        align-items: start;
-    }
-
-    [data-layout="bento-grid"] #carousel-section {
-        grid-area: carousel;
-        margin-bottom: 0;
-        height: 100%;
-    }
-
-    [data-layout="bento-grid"] #carousel-section .carousel-wrapper {
-        height: calc(100% - 50px);
-    }
-
-    [data-layout="bento-grid"] #carousel-section .slide-grid {
-        grid-template-columns: 1fr;
-        min-height: auto;
-    }
-
-    [data-layout="bento-grid"] #carousel-section .slide-media {
-        height: 240px;
-        border-right: none;
-        border-bottom: 1px solid var(--line-subtle);
-    }
-
-    [data-layout="bento-grid"] #presentation {
-        grid-area: hero;
-        margin-bottom: 0;
-    }
-
-    [data-layout="bento-grid"] #presentation .overview-header {
-        margin-bottom: 0;
-        padding: 1.75rem;
-    }
-
-    [data-layout="bento-grid"] #presentation .main-title {
-        font-size: 1.85rem;
-    }
-
-    [data-layout="bento-grid"] #specs-section {
-        grid-area: specs;
-        margin-bottom: 0;
-    }
-
-    [data-layout="bento-grid"] #specs-section .specs-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-        margin-bottom: 0;
-    }
-
-    [data-layout="bento-grid"] #specs-section .spec-cell {
-        padding: 1.25rem;
-    }
-
-    [data-layout="bento-grid"] #rules {
-        grid-area: rules;
-        margin-bottom: 0;
-    }
-}
 
 /* ==========================================================================
    DISPOSITION 3 : COCKPIT HUD (SIDEBAR LATÉRALE)
@@ -2366,10 +2365,21 @@ input:focus, select:focus, textarea:focus {
         gap: 1rem;
     }
 
-    [data-layout="sidebar-hud"] .switchers-wrapper {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
+    [data-layout="sidebar-hud"] .settings-menu-wrapper {
+        width: 100%;
+    }
+
+    [data-layout="sidebar-hud"] .settings-trigger-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    [data-layout="sidebar-hud"] .settings-dropdown {
+        bottom: calc(100% + 0.5rem);
+        top: auto;
+        left: 0;
+        right: auto;
+        width: 100%;
     }
 
     [data-layout="sidebar-hud"] .page-container {
