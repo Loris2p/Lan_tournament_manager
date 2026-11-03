@@ -1,3 +1,4 @@
+use std::ptr::null;
 use crate::errors::Errors;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
@@ -134,6 +135,27 @@ impl From<SubmissionStatus> for mongodb::bson::Bson {
             SubmissionStatus::Pending => mongodb::bson::Bson::String("Pending".to_string()),
             SubmissionStatus::Approved => mongodb::bson::Bson::String("Approved".to_string()),
             SubmissionStatus::Rejected => mongodb::bson::Bson::String("Rejected".to_string()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TournamentSettings {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    pub global_placement_points: Vec<u32>,
+}
+impl TournamentSettings {
+    pub fn points_for_rank(&self, rank :usize) -> u32{
+        self.global_placement_points.get(rank.saturating_sub(1)).copied().unwrap_or(0)
+    }
+}
+
+impl Default for TournamentSettings{
+    fn default() -> Self {
+        TournamentSettings{
+            id:None,
+            global_placement_points:vec![25,18,15,12,10,8,6,4,2,1]
         }
     }
 }

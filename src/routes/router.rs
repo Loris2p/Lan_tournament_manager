@@ -1,4 +1,5 @@
 use crate::models::AppState;
+use crate::routes::admin::list_matches;
 use crate::routes::captain;
 use crate::routes::pages;
 use crate::routes::public;
@@ -7,7 +8,6 @@ use crate::ws;
 use axum::Router;
 use axum::routing::{delete, get, patch, post};
 use std::sync::Arc;
-use crate::routes::admin::list_matches;
 
 pub fn create_router() -> Router<Arc<AppState>> {
     Router::new()
@@ -44,7 +44,10 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .route("/admin/teams/{id}/delete", post(pages::admin_delete_team))
         .route("/admin/teams/{id}/points", post(pages::admin_adjust_points))
         .route("/admin/matches", post(pages::admin_create_match_form))
-        .route("/admin/matches/{id}/toggle", post(pages::admin_toggle_match))
+        .route(
+            "/admin/matches/{id}/toggle",
+            post(pages::admin_toggle_match),
+        )
         .route(
             "/admin/matches/{id}/instructions",
             post(pages::admin_update_instructions_form),
@@ -82,6 +85,10 @@ fn create_admin_nest_router() -> Router<Arc<AppState>> {
         .route("/submissions/{id}/approve", post(admin::approve_submission))
         .route("/submissions/{id}/reject", post(admin::reject_submission))
         .route("/reset", post(admin::reset_tournament))
+        .route(
+            "/settings",
+            get(admin::get_settings).post(admin::set_settings),
+        )
 }
 fn create_captain_nest_routes() -> Router<Arc<AppState>> {
     Router::new()

@@ -133,6 +133,19 @@
                     <h3>AJOUTER UNE ÉPREUVE AU CATALOGUE</h3>
                     <p class="panel-desc">Définissez le barème dynamique et les limites anti-triche du jeu.</p>
 
+                    <!-- Boutons de pré-remplissage rapide des 6 épreuves officielles -->
+                    <div class="game-presets-bar" style="margin-bottom: 1.25rem; padding: 0.75rem; background: var(--bg-surface-2, rgba(255,255,255,0.03)); border: 1px solid var(--border-color); border-radius: 6px;">
+                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">PRÉRÉGLAGES OFFICIELS (1 CLIC) :</span>
+                        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="apex">Apex Legends</button>
+                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="lol">League of Legends</button>
+                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="fallguys">Fall Guys</button>
+                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="geoguessr">GeoGuessr</button>
+                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="ssbu">Smash Bros</button>
+                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="mk8">Mario Kart 8</button>
+                        </div>
+                    </div>
+
                     <form id="create-game-form" class="admin-form" method="POST" action="/admin/games">
                         <div class="form-group">
                             <label for="game-name">NOM DU JEU</label>
@@ -397,6 +410,24 @@
                         </table>
                     </div>
                 </div>
+            </div>
+
+            <!-- Barème du tournoi général -->
+            <div class="admin-panel" style="margin-top: 1.5rem;">
+                <h3>BARÈME DU TOURNOI GÉNÉRAL</h3>
+                <p class="panel-desc">Points généraux attribués aux équipes selon leur classement final à chaque épreuve.</p>
+                <form id="settings-points-form" class="admin-form" style="max-width: 650px;">
+                    <div class="form-group">
+                        <label for="tournament-placement-points">POINTS PAR RANG (SÉPARÉS PAR DES VIRGULES)</label>
+                        <input type="text" id="tournament-placement-points" name="global_placement_points" required placeholder="Ex: 25, 18, 15, 12, 10, 8, 6, 4, 2, 1">
+                        <small class="field-hint">Rang 1 = 1er point (ex: 25), Rang 2 = 2e point (ex: 18), etc.</small>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <button type="submit" class="btn-primary" id="save-settings-btn">Enregistrer le Barème</button>
+                        <button type="button" id="btn-default-points" class="btn-outline">Barème Officiel (10 équipes)</button>
+                        <span id="settings-status-msg" style="font-size: 0.88rem; font-weight: 500;"></span>
+                    </div>
+                </form>
             </div>
         </div>
 
