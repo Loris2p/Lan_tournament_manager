@@ -20,6 +20,7 @@ pub async fn set_settings(
     Json(req): Json<UpdateTournamentSettingsRequest>,
 ) -> Result<Json<Value>, Errors> {
     db::update_tournament_settings(&state.db, req.global_placement_points).await?;
+    db::recalculate_tournament_scores(&state.db).await?;
     let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }

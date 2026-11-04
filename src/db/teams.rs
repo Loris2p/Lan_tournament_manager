@@ -1,10 +1,15 @@
+use std::collections::HashMap;
+
+use crate::db;
+use crate::db::get_tournament_settings;
 use crate::errors::Errors;
-use crate::models::{ PublicTeam, Team};
+use crate::models::{PublicTeam, Submission, Team};
 use futures::TryStreamExt;
 use mongodb::{
     Database,
     bson::{doc, oid::ObjectId},
 };
+
 pub async fn find_team_by_captain_username(
     db: &Database,
     captain_username: &str,
@@ -139,10 +144,64 @@ pub async fn increment_team_token_version(db: &Database, team_id: ObjectId) -> R
     Ok(())
 }
 
-pub async fn verify_team_session(db: &Database, team_id: ObjectId, token_version: u32) -> Result<bool, Errors> {
+pub async fn verify_team_session(
+    db: &Database,
+    team_id: ObjectId,
+    token_version: u32,
+) -> Result<bool, Errors> {
     let count = db
         .collection::<Team>("teams")
         .count_documents(doc! {"_id": team_id, "token_version": token_version as i64})
         .await?;
     Ok(count > 0)
+}
+pub async fn recalculate_tournament_scores(db: &Database) -> Result<(), Errors> {
+    // 1. Récupération des paramètres, équipes, matchs et soumissions approuvées
+    let settings = get_tournament_settings(db).await?;
+    let teams = db
+        .collection::<Team>("teams")
+        .find(doc! {})
+        .await?
+        .try_collect::<Vec<Team>>()
+        .await?;
+    let matches = db::get_all_matches(db).await?;
+    let submissions = db
+        .collection::<Submission>("submissions")
+        .find(doc! { "status": "Approved" })
+        .await?
+        .try_collect::<Vec<Submission>>()
+        .await?;
+    let mut match_to_game: HashMap<ObjectId, ObjectId> = HashMap::new();
+    for m in matches {
+        if let Some(match_id) = m.id {
+            match_to_game.insert(match_id, m.game_id);
+        }
+    }
+    let mut game_team_scores: HashMap<ObjectId, HashMap<ObjectId, u32>> = HashMap::new();
+    for sub in submissions {
+        if let Some(&game_id) = match_to_game.get(&sub.match_id) {
+            let team_scores = game_team_scores.entry(game_id).or_default();
+            let current = team_scores.entry(sub.team_id).or_insert(0);
+            *current = current.saturating_add(sub.calculated_points);
+        }
+    }
+    let mut tournament_points_per_team: HashMap<ObjectId, u32> = HashMap::new();
+    for (_game_id, team_scores) in game_team_scores {
+        let mut ranked_teams: Vec<(ObjectId, u32)> = team_scores.into_iter().collect();
+        ranked_teams.sort_by(|a, b| b.1.cmp(&a.1));
+
+        for (index, (team_id, _score)) in ranked_teams.into_iter().enumerate() {
+            let rank = index + 1;
+            let pts = settings.points_for_rank(rank);
+            let total = tournament_points_per_team.entry(team_id).or_insert(0);
+            *total = total.saturating_add(pts);
+        }
+    }
+    for team in teams {
+        if let Some(team_id) = team.id {
+            let final_points = tournament_points_per_team.get(&team_id).copied().unwrap_or(0);
+            set_points_to_team(db, team_id, final_points).await?;
+        }
+    }
+    Ok(())
 }
