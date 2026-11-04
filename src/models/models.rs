@@ -1,4 +1,3 @@
-use std::ptr::null;
 use crate::errors::Errors;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
