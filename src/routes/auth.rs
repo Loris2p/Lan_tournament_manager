@@ -4,6 +4,7 @@ use crate::auth::{
 };
 use crate::db::{
     count_admins, create_admin, find_admin_by_username, find_team_by_captain_username,
+    increment_admin_token_version, increment_team_token_version,
 };
 use crate::errors::Errors;
 use crate::models::{AppState, CreateAdminRequest, LoginRequest};
@@ -154,10 +155,10 @@ pub async fn logout(
             if let Ok(oid) = ObjectId::parse_str(&claims.sub) {
                 match claims.role {
                     UserRole::Admin => {
-                        let _ = crate::db::increment_admin_token_version(&state.db, oid).await;
+                        let _ = increment_admin_token_version(&state.db, oid).await;
                     }
                     UserRole::Captain { .. } => {
-                        let _ = crate::db::increment_team_token_version(&state.db, oid).await;
+                        let _ = increment_team_token_version(&state.db, oid).await;
                     }
                 }
             }

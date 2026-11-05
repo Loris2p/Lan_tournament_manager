@@ -1,5 +1,7 @@
 use std::fmt::Formatter;
+use crate::auth::RateLimiter;
 use crate::errors::Errors;
+use crate::services::S3Service;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
@@ -7,8 +9,8 @@ pub struct AppState {
     pub db: mongodb::Database,
     pub jwt_secret: String,
     pub ws_tx: tokio::sync::broadcast::Sender<String>,
-    pub s3: crate::services::S3Service,
-    pub rate_limiter: crate::auth::RateLimiter,
+    pub s3: S3Service,
+    pub rate_limiter: RateLimiter,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -166,4 +168,21 @@ impl Default for TournamentSettings{
             global_placement_points:vec![25,18,15,12,10,8,6,4,2,1]
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GameLeaderboardEntry {
+    pub rank: usize,
+    pub team_id: String,
+    pub team_name: String,
+    pub raw_score: u32,
+    pub tournament_points: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GameLeaderboardView {
+    pub game_id: String,
+    pub game_name: String,
+    pub format: String,
+    pub entries: Vec<GameLeaderboardEntry>,
 }

@@ -24,3 +24,4 @@ pub async fn set_settings(
     let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }
+
