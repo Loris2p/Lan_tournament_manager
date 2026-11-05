@@ -1,3 +1,4 @@
+use std::fmt::Formatter;
 use crate::errors::Errors;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
@@ -14,6 +15,14 @@ pub struct AppState {
 pub enum GameFormat {
     Duel,
     Brawl,
+}
+impl std::fmt::Display for GameFormat{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GameFormat::Duel=> write!(f, "Duel"),
+            GameFormat::Brawl=> write!(f, "Brawl"),
+        }
+    }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubmissionScore {

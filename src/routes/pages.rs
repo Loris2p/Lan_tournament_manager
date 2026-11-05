@@ -1,5 +1,6 @@
 use crate::auth::{AdminUser, CaptainUser, UserRole, verify_jwt};
-use crate::models::AppState;
+use crate::db;
+use crate::models::{AppState, Game, Match};
 use askama::Template;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
@@ -7,6 +8,7 @@ use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::{CookieJar, Form};
 use mongodb::bson::oid::ObjectId;
 use serde::Deserialize;
+
 use std::sync::Arc;
 
 pub struct HtmlTemplate<T>(pub T);
@@ -29,11 +31,18 @@ where
 
 pub struct CaptainMatchView {
     pub id: String,
-    pub title: String,
-    pub game_name: String,
-    pub instructions: String,
+    pub match_data: Match,
+    pub game: Game,
 }
-
+impl CaptainMatchView {
+    pub fn new(m: crate::models::Match, game: crate::models::Game) -> Self {
+        Self {
+            id: m.id.map(|id| id.to_hex()).unwrap_or_default(),
+            match_data: m,
+            game,
+        }
+    }
+}
 #[derive(Deserialize, Default)]
 pub struct CaptainQuery {
     pub status: Option<String>,
@@ -131,7 +140,7 @@ pub struct IndexTemplate {
 }
 
 pub async fn serve_home_page(State(state): State<Arc<AppState>>, jar: CookieJar) -> Response {
-    let games_db = crate::db::list_games(&state.db).await.unwrap_or_default();
+    let games_db = db::list_games(&state.db).await.unwrap_or_default();
     let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
 
     let games_view: Vec<HomeGameView> = games_db
@@ -212,12 +221,8 @@ pub async fn serve_leaderboard_page(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
 ) -> Response {
-    let teams = crate::db::get_leaderboard(&state.db)
-        .await
-        .unwrap_or_default();
-    let live_matches = crate::db::get_open_matches(&state.db)
-        .await
-        .unwrap_or_default();
+    let teams = db::get_leaderboard(&state.db).await.unwrap_or_default();
+    let live_matches = db::get_open_matches(&state.db).await.unwrap_or_default();
     let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
 
     HtmlTemplate(LeaderboardTemplate {
@@ -283,7 +288,7 @@ pub async fn serve_login_page(
         }
     }
 
-    let is_first_setup = crate::db::count_admins(&state.db).await.unwrap_or(1) == 0;
+    let is_first_setup = db::count_admins(&state.db).await.unwrap_or(1) == 0;
 
     HtmlTemplate(LoginTemplate {
         is_first_setup,
@@ -308,7 +313,7 @@ pub async fn handle_login_form(
     let password = &form.password;
     let exp = (chrono::Utc::now().timestamp() + 24 * 3600) as usize;
 
-    if let Ok(admin) = crate::db::find_admin_by_username(db, username).await {
+    if let Ok(admin) = db::find_admin_by_username(db, username).await {
         if crate::auth::verify_password(password, &admin.password_hash).unwrap_or(false) {
             if let Some(admin_id) = admin.id {
                 if let Ok(token) = crate::auth::create_jwt(
@@ -324,7 +329,7 @@ pub async fn handle_login_form(
                 }
             }
         }
-    } else if let Ok(team) = crate::db::find_team_by_captain_username(db, username).await {
+    } else if let Ok(team) = db::find_team_by_captain_username(db, username).await {
         if crate::auth::verify_password(password, &team.captain_password_hash).unwrap_or(false) {
             if let Some(team_id) = team.id {
                 if let Ok(token) = crate::auth::create_jwt(
@@ -354,7 +359,7 @@ pub async fn handle_setup_form(
     Form(form): Form<SetupForm>,
 ) -> Response {
     let db = &state.db;
-    let nb_admins = crate::db::count_admins(db).await.unwrap_or(1);
+    let nb_admins = db::count_admins(db).await.unwrap_or(1);
     if nb_admins != 0 {
         return Redirect::to("/login?error=setup_forbidden").into_response();
     }
@@ -364,7 +369,7 @@ pub async fn handle_setup_form(
     }
 
     let username = form.username.trim();
-    if crate::db::find_team_by_captain_username(db, username)
+    if db::find_team_by_captain_username(db, username)
         .await
         .is_ok()
     {
@@ -376,7 +381,7 @@ pub async fn handle_setup_form(
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
 
-    let admin = match crate::db::create_admin(db, username, &h_pswd).await {
+    let admin = match db::create_admin(db, username, &h_pswd).await {
         Ok(a) => a,
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
@@ -409,10 +414,10 @@ pub async fn handle_logout(State(state): State<Arc<AppState>>, jar: CookieJar) -
             if let Ok(oid) = ObjectId::parse_str(&claims.sub) {
                 match claims.role {
                     UserRole::Admin => {
-                        let _ = crate::db::increment_admin_token_version(&state.db, oid).await;
+                        let _ = db::increment_admin_token_version(&state.db, oid).await;
                     }
                     UserRole::Captain { .. } => {
-                        let _ = crate::db::increment_team_token_version(&state.db, oid).await;
+                        let _ = db::increment_team_token_version(&state.db, oid).await;
                     }
                 }
             }
@@ -474,10 +479,9 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
             Ok(claims) if matches!(claims.role, UserRole::Admin) => {
                 match ObjectId::parse_str(&claims.sub) {
                     Ok(oid) => {
-                        let valid =
-                            crate::db::verify_admin_session(&state.db, oid, claims.token_version)
-                                .await
-                                .unwrap_or(false);
+                        let valid = db::verify_admin_session(&state.db, oid, claims.token_version)
+                            .await
+                            .unwrap_or(false);
                         if valid {
                             (Some(oid), claims.username)
                         } else {
@@ -500,15 +504,11 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
         return (new_jar, Redirect::to("/login")).into_response();
     }
 
-    let submissions_db = crate::db::get_pending(&state.db).await.unwrap_or_default();
-    let games_db = crate::db::list_games(&state.db).await.unwrap_or_default();
-    let matches_db = crate::db::get_all_matches(&state.db)
-        .await
-        .unwrap_or_default();
-    let teams_db = crate::db::get_leaderboard(&state.db)
-        .await
-        .unwrap_or_default();
-    let admins_db = crate::db::list_admins(&state.db).await.unwrap_or_default();
+    let submissions_db = db::get_pending(&state.db).await.unwrap_or_default();
+    let games_db = db::list_games(&state.db).await.unwrap_or_default();
+    let matches_db = db::get_all_matches(&state.db).await.unwrap_or_default();
+    let teams_db = db::get_leaderboard(&state.db).await.unwrap_or_default();
+    let admins_db = db::list_admins(&state.db).await.unwrap_or_default();
 
     let submissions_view: Vec<AdminSubmissionView> = submissions_db
         .into_iter()
@@ -578,10 +578,9 @@ pub async fn serve_captain_page(
             Ok(claims) if matches!(claims.role, UserRole::Captain { .. }) => {
                 match ObjectId::parse_str(&claims.sub) {
                     Ok(oid) => {
-                        let valid =
-                            crate::db::verify_team_session(&state.db, oid, claims.token_version)
-                                .await
-                                .unwrap_or(false);
+                        let valid = db::verify_team_session(&state.db, oid, claims.token_version)
+                            .await
+                            .unwrap_or(false);
                         if valid { Some(oid) } else { None }
                     }
                     Err(_) => None,
@@ -602,22 +601,25 @@ pub async fn serve_captain_page(
             return (new_jar, Redirect::to("/login.html")).into_response();
         }
     };
-    let team = match crate::db::find_team_by_id(&state.db, team_oid).await {
+    let team = match db::find_team_by_id(&state.db, team_oid).await {
         Ok(t) => t,
         Err(_) => return Redirect::to("/login.html").into_response(),
     };
 
-    let matches_db = crate::db::get_open_matches_for_team(&state.db, team_oid)
+    let matches_db = db::get_open_matches_for_team(&state.db, team_oid)
         .await
         .unwrap_or_default();
+    let games = db::list_games(&state.db).await.unwrap_or_default();
+    let games_map: std::collections::HashMap<ObjectId, Game> = games
+        .into_iter()
+        .filter_map(|g| g.id.map(|id| (id, g)))
+        .collect();
 
     let matches_view: Vec<CaptainMatchView> = matches_db
         .into_iter()
-        .map(|m| CaptainMatchView {
-            id: m.id.map(|id| id.to_hex()).unwrap_or_default(),
-            title: m.title,
-            game_name: m.game_name,
-            instructions: m.instructions,
+        .filter_map(|m| {
+            let game = games_map.get(&m.game_id)?.clone();
+            Some(CaptainMatchView::new(m, game))
         })
         .collect();
 
@@ -627,7 +629,6 @@ pub async fn serve_captain_page(
         matches: matches_view,
         status: query.status,
     };
-
     HtmlTemplate(template).into_response()
 }
 
@@ -641,17 +642,17 @@ pub async fn submit_captain_score(
         Err(_) => return Redirect::to("/captain?status=invalid_match").into_response(),
     };
 
-    let team = match crate::db::find_team_by_id(&state.db, captain.team_id).await {
+    let team = match db::find_team_by_id(&state.db, captain.team_id).await {
         Ok(t) => t,
         Err(_) => return Redirect::to("/login.html").into_response(),
     };
 
-    let m = match crate::db::find_match_by_id(&state.db, match_oid).await {
+    let m = match db::find_match_by_id(&state.db, match_oid).await {
         Ok(m) => m,
         Err(_) => return Redirect::to("/captain?status=invalid_match").into_response(),
     };
 
-    let game = match crate::db::find_game_by_id(&state.db, m.game_id).await {
+    let game = match db::find_game_by_id(&state.db, m.game_id).await {
         Ok(g) => g,
         Err(_) => return Redirect::to("/captain?status=invalid_match").into_response(),
     };
@@ -691,7 +692,7 @@ pub async fn submit_captain_score(
 
     let calculated_points = game.calculate_points(&score);
 
-    if crate::db::insert_submission(
+    if db::insert_submission(
         &state.db,
         match_oid,
         captain.team_id,
@@ -717,13 +718,9 @@ pub async fn admin_approve_submission(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    if crate::db::approve_or_reject_submission(
-        &state.db,
-        id,
-        crate::models::SubmissionStatus::Approved,
-    )
-    .await
-    .is_ok()
+    if db::approve_or_reject_submission(&state.db, id, crate::models::SubmissionStatus::Approved)
+        .await
+        .is_ok()
     {
         let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     }
@@ -735,12 +732,9 @@ pub async fn admin_reject_submission(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ = crate::db::approve_or_reject_submission(
-        &state.db,
-        id,
-        crate::models::SubmissionStatus::Rejected,
-    )
-    .await;
+    let _ =
+        db::approve_or_reject_submission(&state.db, id, crate::models::SubmissionStatus::Rejected)
+            .await;
     Redirect::to("/admin?tab=arbitrage").into_response()
 }
 
@@ -749,7 +743,7 @@ pub async fn admin_toggle_match(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ = crate::db::toggle_match_status(&state.db, id).await;
+    let _ = db::toggle_match_status(&state.db, id).await;
     Redirect::to("/admin?tab=matches").into_response()
 }
 
@@ -758,7 +752,7 @@ pub async fn admin_delete_game(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ = crate::db::delete_game(&state.db, id).await;
+    let _ = db::delete_game(&state.db, id).await;
     Redirect::to("/admin?tab=games").into_response()
 }
 
@@ -767,7 +761,7 @@ pub async fn admin_delete_team(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ = crate::db::delete_team(&state.db, id).await;
+    let _ = db::delete_team(&state.db, id).await;
     let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Redirect::to("/admin?tab=teams").into_response()
 }
@@ -777,7 +771,7 @@ pub async fn admin_delete_admin(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ = crate::db::delete_admin(&state.db, id).await;
+    let _ = db::delete_admin(&state.db, id).await;
     Redirect::to("/admin?tab=admins").into_response()
 }
 
@@ -792,7 +786,7 @@ pub async fn admin_adjust_points(
     _admin: AdminUser,
     Form(form): Form<AdjustPointsForm>,
 ) -> Response {
-    let _ = crate::db::adjust_team_points(&state.db, id, form.adjustment).await;
+    let _ = db::adjust_team_points(&state.db, id, form.adjustment).await;
     let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Redirect::to("/admin?tab=teams").into_response()
 }
@@ -837,7 +831,7 @@ pub async fn admin_create_game_form(
         .collect();
     let sec_label = form.secondary_stat_label.filter(|s| !s.trim().is_empty());
 
-    let _ = crate::db::create_game(
+    let _ = db::create_game(
         &state.db,
         &form.name,
         &form.cover_image,
@@ -868,7 +862,7 @@ pub async fn admin_create_team_form(
     Form(form): Form<CreateTeamForm>,
 ) -> Response {
     if let Ok(hash) = crate::auth::hash_password(&form.captain_password) {
-        let _ = crate::db::create_team(&state.db, &form.name, &form.captain_username, &hash).await;
+        let _ = db::create_team(&state.db, &form.name, &form.captain_username, &hash).await;
         let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     }
     Redirect::to("/admin?tab=teams").into_response()
@@ -886,7 +880,7 @@ pub async fn admin_create_admin_form(
     Form(form): Form<CreateAdminForm>,
 ) -> Response {
     if let Ok(hash) = crate::auth::hash_password(&form.password) {
-        let _ = crate::db::create_admin(&state.db, &form.username, &hash).await;
+        let _ = db::create_admin(&state.db, &form.username, &hash).await;
     }
     Redirect::to("/admin?tab=admins").into_response()
 }
@@ -906,13 +900,13 @@ pub async fn admin_create_match_form(
     Form(form): Form<CreateMatchForm>,
 ) -> Response {
     if let Ok(game_oid) = ObjectId::parse_str(&form.game_id) {
-        if let Ok(game) = crate::db::find_game_by_id(&state.db, game_oid).await {
+        if let Ok(game) = db::find_game_by_id(&state.db, game_oid).await {
             let teams_oids: Vec<ObjectId> = form
                 .match_teams
                 .iter()
                 .filter_map(|t| ObjectId::parse_str(t).ok())
                 .collect();
-            let _ = crate::db::create_match(
+            let _ = db::create_match(
                 &state.db,
                 &game.name,
                 game_oid,
@@ -939,7 +933,7 @@ pub async fn admin_update_instructions_form(
     _admin: AdminUser,
     Form(form): Form<UpdateInstructionsForm>,
 ) -> Response {
-    let _ = crate::db::update_match_instructions(&state.db, id, &form.instructions).await;
+    let _ = db::update_match_instructions(&state.db, id, &form.instructions).await;
     let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
     Redirect::to("/admin?tab=matches").into_response()
 }
@@ -959,7 +953,7 @@ pub async fn admin_reset_tournament_form(
         "UsersAndTeams" => crate::models::ResetScope::UsersAndTeams,
         _ => crate::models::ResetScope::FullTournament,
     };
-    let _ = crate::db::reset_tournament(&state.db, scope).await;
+    let _ = db::reset_tournament(&state.db, scope).await;
     let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Redirect::to("/admin?tab=danger").into_response()
 }
