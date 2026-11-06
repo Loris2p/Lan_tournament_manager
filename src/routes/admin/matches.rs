@@ -1,7 +1,9 @@
 use crate::auth::AdminUser;
 use crate::db;
 use crate::errors::Errors;
-use crate::models::{AppState, CreateMatchRequest, Match, UpdateMatchInstructionsRequest};
+use crate::models::{
+    AppState, CreateMatchRequest, MatchResponse, UpdateMatchInstructionsRequest,
+};
 use axum::Json;
 use axum::extract::{Path, State};
 use mongodb::bson::oid::ObjectId;
@@ -47,7 +49,8 @@ pub async fn toggle_match(
 pub async fn list_matches(
     State(state): State<Arc<AppState>>,
     _admin: AdminUser,
-) -> Result<Json<Vec<Match>>, Errors> {
+) -> Result<Json<Vec<MatchResponse>>, Errors> {
     let matches = db::get_all_matches(&state.db).await?;
-    Ok(Json(matches))
+    let response: Vec<MatchResponse> = matches.into_iter().map(MatchResponse::from).collect();
+    Ok(Json(response))
 }

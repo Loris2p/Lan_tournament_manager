@@ -5,7 +5,9 @@ use crate::db::{
 };
 use crate::errors::Errors;
 use crate::errors::Errors::{Error400BadRequest, Error403Forbidden};
-use crate::models::{AppState, CreateSubmissionRequest, Match, Submission, SubmissionStatus};
+use crate::models::{
+    AppState, CreateSubmissionRequest, MatchResponse, Submission, SubmissionStatus,
+};
 use axum::Json;
 use axum::extract::State;
 
@@ -14,10 +16,11 @@ use std::sync::Arc;
 pub async fn list_open_matches(
     State(state): State<Arc<AppState>>,
     user: CaptainUser,
-) -> Result<Json<Vec<Match>>, Errors> {
+) -> Result<Json<Vec<MatchResponse>>, Errors> {
     let db = &state.db;
     let res = get_open_matches_for_team(db, user.team_id).await?;
-    Ok(Json(res))
+    let response: Vec<MatchResponse> = res.into_iter().map(MatchResponse::from).collect();
+    Ok(Json(response))
 }
 
 pub async fn create_submission(
