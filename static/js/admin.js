@@ -12,8 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initWebSocket();
     initSubmissions();
     initGames();
+    initGamePresets();
     initMatches();
     initTeams();
+    initTournamentSettings();
     initBulkScoresForm();
     initResetZone();
 });
@@ -292,5 +294,166 @@ function initResetZone() {
         if (executeResetBtn) {
             executeResetBtn.disabled = resetInput.value.trim().toUpperCase() !== 'RESET';
         }
+    });
+}
+
+function initTournamentSettings() {
+    const form = document.getElementById('settings-points-form');
+    const input = document.getElementById('tournament-placement-points');
+    const defaultBtn = document.getElementById('btn-default-points');
+    const statusMsg = document.getElementById('settings-status-msg');
+
+    if (!form || !input) return;
+
+    // Charger les paramètres actuels
+    api.get('/api/admin/settings')
+        .then(settings => {
+            if (settings && Array.isArray(settings.global_placement_points)) {
+                input.value = settings.global_placement_points.join(', ');
+            }
+        })
+        .catch(err => {
+            console.warn("Impossible de charger les paramètres de tournoi:", err);
+        });
+
+    // Bouton de réinitialisation vers le barème par défaut (10 équipes)
+    defaultBtn?.addEventListener('click', () => {
+        input.value = '25, 18, 15, 12, 10, 8, 6, 4, 2, 1';
+        showToast("Barème officiel par défaut (10 équipes) chargé.", "info");
+    });
+
+    // Envoi du formulaire de barème
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const rawValues = input.value
+            .split(',')
+            .map(s => parseInt(s.trim(), 10))
+            .filter(n => !isNaN(n));
+
+        if (rawValues.length === 0) {
+            showToast("Veuillez saisir au moins une valeur de point.", "error");
+            return;
+        }
+
+        try {
+            await api.post('/api/admin/settings', { global_placement_points: rawValues });
+            showToast("Barème général du tournoi enregistré avec succès !", "success");
+            if (statusMsg) {
+                statusMsg.textContent = "✓ Enregistré";
+                statusMsg.style.color = "var(--green, #22c55e)";
+                setTimeout(() => { statusMsg.textContent = ""; }, 3000);
+            }
+        } catch (err) {
+            showToast(err.message, "error");
+        }
+    });
+}
+
+function initGamePresets() {
+    const presets = {
+        apex: {
+            name: "Apex Legends",
+            format: "brawl",
+            cover: "",
+            placement: "12, 9, 7, 5, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0",
+            defPoints: 0,
+            maxPlacement: 20,
+            secLabel: "Frags (Éliminations)",
+            secPts: 1,
+            maxSec: 60,
+            rules: "Salon personnalisé Trios. Barème ALGS (Placement + 1 pt/frag). Cumul sur toute la session de 4 heures."
+        },
+        lol: {
+            name: "League of Legends",
+            format: "duel",
+            cover: "",
+            placement: "3, 1",
+            defPoints: 0,
+            maxPlacement: 2,
+            secLabel: "",
+            secPts: 0,
+            maxSec: 0,
+            rules: "ARAM du chaos. Duels en 1 manche gagnante (Victoire: 3 pts, Défaite: 1 pt, Forfait: 0 pt). Championnat puis finale pour les 2 meilleures équipes."
+        },
+        fallguys: {
+            name: "Fall Guys",
+            format: "brawl",
+            cover: "",
+            placement: "3, 0",
+            defPoints: 0,
+            maxPlacement: 2,
+            secLabel: "Manches franchies (cumul 3 joueurs)",
+            secPts: 1,
+            maxSec: 15,
+            rules: "Salon personnalisé Solo (3 joueurs/équipe). +1 pt par manche franchie par joueur. Prime de victoire de 3 pts en cas de victoire du show (place 1)."
+        },
+        geoguessr: {
+            name: "GeoGuessr",
+            format: "brawl",
+            cover: "",
+            placement: "0",
+            defPoints: 0,
+            maxPlacement: 1,
+            secLabel: "Score total en points",
+            secPts: 1,
+            maxSec: 75000,
+            rules: "Challenge d'équipe coopératif (3 joueurs). 15 rounds sur chaque carte (World, A Community World, France, F1, etc.). Mode No Move 1m15/round. Cumul des points bruts."
+        },
+        ssbu: {
+            name: "Super Smash Bros Ultimate",
+            format: "duel",
+            cover: "",
+            placement: "3, 1",
+            defPoints: 0,
+            maxPlacement: 2,
+            secLabel: "",
+            secPts: 0,
+            maxSec: 0,
+            rules: "Smash en bande 3v3 (3 vies, sans objets/smash final, maps CB autorisées). Bans de 3 persos/équipe. Victoire: 3 pts, Défaite: 1 pt. Finale BO3 pour le top 2."
+        },
+        mk8: {
+            name: "Mario Kart 8 Deluxe",
+            format: "brawl",
+            cover: "",
+            placement: "0",
+            defPoints: 0,
+            maxPlacement: 1,
+            secLabel: "Points de course cumulés (3 joueurs)",
+            secPts: 1,
+            maxSec: 200,
+            rules: "Lobbies LAN 12 joueurs (pseudo-solo, 3 joueurs/équipe). Sessions de 4 courses 150cc sans IA. Cumul des points de course in-game des 3 joueurs."
+        }
+    };
+
+    document.querySelectorAll('.btn-game-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const presetKey = btn.getAttribute('data-preset');
+            const data = presets[presetKey];
+            if (!data) return;
+
+            const nameEl = document.getElementById('game-name');
+            const formatEl = document.getElementById('game-format');
+            const coverEl = document.getElementById('game-cover');
+            const placementEl = document.getElementById('game-placement-points');
+            const defPointsEl = document.getElementById('game-default-points');
+            const maxPlacementEl = document.getElementById('game-max-placement');
+            const secLabelEl = document.getElementById('game-sec-label');
+            const secPtsEl = document.getElementById('game-sec-pts');
+            const maxSecEl = document.getElementById('game-max-sec');
+            const rulesEl = document.getElementById('game-rules');
+
+            if (nameEl) nameEl.value = data.name;
+            if (formatEl) formatEl.value = data.format;
+            if (coverEl) coverEl.value = data.cover;
+            if (placementEl) placementEl.value = data.placement;
+            if (defPointsEl) defPointsEl.value = data.defPoints;
+            if (maxPlacementEl) maxPlacementEl.value = data.maxPlacement;
+            if (secLabelEl) secLabelEl.value = data.secLabel;
+            if (secPtsEl) secPtsEl.value = data.secPts;
+            if (maxSecEl) maxSecEl.value = data.maxSec;
+            if (rulesEl) rulesEl.value = data.rules;
+
+            showToast(`Préréglage "${data.name}" chargé dans le formulaire !`, "info");
+        });
     });
 }

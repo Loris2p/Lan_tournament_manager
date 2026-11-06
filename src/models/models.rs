@@ -1,4 +1,7 @@
+use std::fmt::Formatter;
+use crate::auth::RateLimiter;
 use crate::errors::Errors;
+use crate::services::S3Service;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
@@ -6,14 +9,22 @@ pub struct AppState {
     pub db: mongodb::Database,
     pub jwt_secret: String,
     pub ws_tx: tokio::sync::broadcast::Sender<String>,
-    pub s3: crate::services::S3Service,
-    pub rate_limiter: crate::auth::RateLimiter,
+    pub s3: S3Service,
+    pub rate_limiter: RateLimiter,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GameFormat {
     Duel,
     Brawl,
+}
+impl std::fmt::Display for GameFormat{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GameFormat::Duel=> write!(f, "Duel"),
+            GameFormat::Brawl=> write!(f, "Brawl"),
+        }
+    }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubmissionScore {
@@ -136,4 +147,42 @@ impl From<SubmissionStatus> for mongodb::bson::Bson {
             SubmissionStatus::Rejected => mongodb::bson::Bson::String("Rejected".to_string()),
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TournamentSettings {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    pub global_placement_points: Vec<u32>,
+}
+impl TournamentSettings {
+    pub fn points_for_rank(&self, rank :usize) -> u32{
+        self.global_placement_points.get(rank.saturating_sub(1)).copied().unwrap_or(0)
+    }
+}
+
+impl Default for TournamentSettings{
+    fn default() -> Self {
+        TournamentSettings{
+            id:None,
+            global_placement_points:vec![25,18,15,12,10,8,6,4,2,1]
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GameLeaderboardEntry {
+    pub rank: usize,
+    pub team_id: String,
+    pub team_name: String,
+    pub raw_score: u32,
+    pub tournament_points: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GameLeaderboardView {
+    pub game_id: String,
+    pub game_name: String,
+    pub format: String,
+    pub entries: Vec<GameLeaderboardEntry>,
 }

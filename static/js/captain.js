@@ -45,6 +45,12 @@ function selectMatchElement(el) {
     const title = el.getAttribute('data-title') || 'FORMAT STANDARD';
     const game = el.getAttribute('data-game') || 'Match';
     const instructions = el.getAttribute('data-instructions') || 'Aucune consigne spécifique.';
+    const rules = el.getAttribute('data-rules') || 'Règles standards du catalogue.';
+    const format = el.getAttribute('data-format') || 'Brawl';
+    const secondaryLabel = el.getAttribute('data-secondary-label') || '';
+    const secondaryPoints = parseInt(el.getAttribute('data-secondary-points') || '0', 10);
+    const maxPlacement = parseInt(el.getAttribute('data-max-placement') || '64', 10);
+    const maxSecondary = parseInt(el.getAttribute('data-max-secondary') || '100', 10);
 
     selectedMatch = { id: matchId, title, game_name: game, instructions };
 
@@ -61,11 +67,47 @@ function selectMatchElement(el) {
     const gameEl = document.getElementById('selected-match-game');
     if (gameEl) gameEl.textContent = game;
     const formatEl = document.getElementById('selected-match-format');
-    if (formatEl) formatEl.textContent = title;
+    if (formatEl) formatEl.textContent = `${title} [${format.toUpperCase()}]`;
     const instEl = document.getElementById('selected-match-instructions');
     if (instEl) instEl.textContent = instructions;
     const rulesEl = document.getElementById('selected-match-rules');
-    if (rulesEl) rulesEl.textContent = 'Règles standards du catalogue.';
+    if (rulesEl) rulesEl.textContent = rules;
+
+    // Adaptation du placement
+    const placementInput = document.getElementById('sub-placement');
+    const placementHint = document.getElementById('placement-hint');
+    if (placementInput) {
+        placementInput.max = maxPlacement;
+        if (format.toLowerCase() === 'duel') {
+            placementInput.placeholder = "1 (Victoire) ou 2 (Défaite)";
+            if (placementHint) placementHint.textContent = "1 = Victoire (+3 pts), 2 = Défaite (+1 pt)";
+        } else {
+            placementInput.placeholder = `Ex: 1 (Top 1), 2... (max ${maxPlacement})`;
+            if (placementHint) placementHint.textContent = `Place finale obtenue dans le salon (1 à ${maxPlacement})`;
+        }
+    }
+
+    // Adaptation de la statistique secondaire conditionnelle
+    const secGroup = document.getElementById('secondary-stat-group');
+    const secLabel = document.getElementById('secondary-stat-label');
+    const secInput = document.getElementById('sub-secondary');
+    const secHint = document.getElementById('secondary-stat-hint');
+
+    if (secondaryLabel && secondaryLabel.trim().length > 0) {
+        if (secGroup) secGroup.style.display = 'block';
+        if (secLabel) secLabel.textContent = secondaryLabel.toUpperCase();
+        if (secInput) {
+            secInput.max = maxSecondary;
+        }
+        if (secHint) {
+            secHint.textContent = secondaryPoints > 0 
+                ? `+${secondaryPoints} pt(s) par unité (Max ${maxSecondary})`
+                : `Max autorisé : ${maxSecondary}`;
+        }
+    } else {
+        if (secGroup) secGroup.style.display = 'none';
+        if (secInput) secInput.value = '0';
+    }
 }
 
 function initDropzoneAndPaste() {

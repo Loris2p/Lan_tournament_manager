@@ -29,7 +29,7 @@ pub async fn approve_submission(
         ));
     }
     db::approve_or_reject_submission(&state.db, submission_id, SubmissionStatus::Approved).await?;
-    db::add_points_to_team(&state.db, submission.team_id, submission.calculated_points).await?;
+    db::recalculate_tournament_scores(&state.db).await?;
     let _ = &state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }
@@ -68,8 +68,8 @@ pub async fn submit_match_scores(
             SubmissionStatus::Approved,
         )
         .await?;
-        db::add_points_to_team(&state.db, e.team_id, pts).await?;
     }
+    db::recalculate_tournament_scores(&state.db).await?;
     if req.close_match && m.is_open {
         db::toggle_match_status(&state.db, match_id).await?;
     }

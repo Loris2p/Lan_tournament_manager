@@ -68,14 +68,20 @@
                         {% for m in matches %}
                             <div class="match-item{% if loop.first %} selected{% endif %}"
                                  data-match-id="{{ m.id }}"
-                                 data-title="{{ m.title }}"
-                                 data-game="{{ m.game_name }}"
-                                 data-instructions="{{ m.instructions }}">
+                                 data-title="{{ m.match_data.title }}"
+                                 data-game="{{ m.match_data.game_name }}"
+                                 data-instructions="{{ m.match_data.instructions }}"
+                                 data-rules="{{ m.game.rules }}"
+                                 data-format="{{ m.game.format }}"
+                                 data-secondary-label="{% if let Some(lbl) = m.game.secondary_stat_label %}{{ lbl }}{% endif %}"
+                                 data-secondary-points="{{ m.game.points_per_secondary_stat }}"
+                                 data-max-placement="{{ m.game.max_placement }}"
+                                 data-max-secondary="{{ m.game.max_secondary_stat }}">
                                 <div class="match-item-header">
-                                    <span class="badge-format">{{ m.title }}</span>
-                                    <strong>{{ m.game_name }}</strong>
+                                    <span class="badge-format">{{ m.match_data.title }}</span>
+                                    <strong>{{ m.match_data.game_name }}</strong>
                                 </div>
-                                <p class="match-item-sub">{{ m.instructions }}</p>
+                                <p class="match-item-sub">{{ m.match_data.instructions }}</p>
                             </div>
                         {% endfor %}
                     {% endif %}

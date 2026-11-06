@@ -43,113 +43,180 @@
 
     <main class="page-container">
 
+        <!-- Barre de navigation des onglets de classement -->
+        <nav class="admin-tabs" id="leaderboard-tabs-nav" style="margin-top: 1.5rem;">
+            <button type="button" class="tab-btn active" data-tab="general">
+                🏆 Classement Général
+            </button>
+            {% for g in game_leaderboards %}
+            <button type="button" class="tab-btn" data-tab="game-{{ g.game_id }}">
+                {{ g.game_name }}
+            </button>
+            {% endfor %}
+        </nav>
+
         <!-- ========================================== -->
-        <!-- EN-TÊTE DU CLASSEMENT                      -->
+        <!-- ONGLET 1 : CLASSEMENT GÉNÉRAL OFFICIEL     -->
         <!-- ========================================== -->
-        <section class="section" id="standings">
-            <div class="section-titlebar">
-                <div>
-                    <h2>CLASSEMENT GÉNÉRAL OFFICIEL</h2>
-                    <p class="section-subtitle">Scores cumulés sur l'ensemble des matchs validés par l'arbitrage</p>
-                </div>
-                <div class="standings-meta">
-                    <span id="standings-count">{{ teams.len() }} ÉQUIPE{% if teams.len() > 1 %}S{% endif %} ENREGISTRÉE{% if teams.len() > 1 %}S{% endif %}</span>
-                </div>
-            </div>
-
-            <!-- PODIUM TOP 3 -->
-            <div class="podium-row" id="podium-container">
-                <!-- Rang 2 (Dauphin) -->
-                <div class="podium-slot rank-second" id="podium-second">
-                    <div class="podium-index">02</div>
-                    <div class="podium-meta">
-                        <span class="team-label">DAUPHIN</span>
-                        <h3 class="team-name" id="podium-2-name">{% if let Some(t) = second() %}{{ t.name }}{% else %}--{% endif %}</h3>
+        <div class="tab-pane active" id="tab-general">
+            <section class="section" id="standings">
+                <div class="section-titlebar">
+                    <div>
+                        <h2>CLASSEMENT GÉNÉRAL OFFICIEL</h2>
+                        <p class="section-subtitle">Scores cumulés sur l'ensemble des matchs validés par l'arbitrage (barème 25, 18, 15...)</p>
                     </div>
-                    <div class="team-score" id="podium-2-points">{% if let Some(t) = second() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
-                </div>
-
-                <!-- Rang 1 (Leader) -->
-                <div class="podium-slot rank-first" id="podium-first">
-                    <div class="podium-index">01</div>
-                    <div class="podium-meta">
-                        <span class="team-label">LEADER DU TOURNOI</span>
-                        <h3 class="team-name" id="podium-1-name">{% if let Some(t) = first() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                    <div class="standings-meta">
+                        <span id="standings-count">{{ teams.len() }} ÉQUIPE{% if teams.len() > 1 %}S{% endif %} ENREGISTRÉE{% if teams.len() > 1 %}S{% endif %}</span>
                     </div>
-                    <div class="team-score" id="podium-1-points">{% if let Some(t) = first() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
                 </div>
 
-                <!-- Rang 3 (Troisième) -->
-                <div class="podium-slot rank-third" id="podium-third">
-                    <div class="podium-index">03</div>
-                    <div class="podium-meta">
-                        <span class="team-label">TROISIÈME</span>
-                        <h3 class="team-name" id="podium-3-name">{% if let Some(t) = third() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                <!-- PODIUM TOP 3 -->
+                <div class="podium-row" id="podium-container">
+                    <!-- Rang 2 (Dauphin) -->
+                    <div class="podium-slot rank-second" id="podium-second">
+                        <div class="podium-index">02</div>
+                        <div class="podium-meta">
+                            <span class="team-label">DAUPHIN</span>
+                            <h3 class="team-name" id="podium-2-name">{% if let Some(t) = second() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                        </div>
+                        <div class="team-score" id="podium-2-points">{% if let Some(t) = second() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
                     </div>
-                    <div class="team-score" id="podium-3-points">{% if let Some(t) = third() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
-                </div>
-            </div>
 
-            <!-- TABLEAU DES SCORES RANGS 4+ -->
-            <div class="table-frame">
-                <table class="standings-table" id="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th class="col-rank">POS</th>
-                            <th class="col-team">ÉQUIPE</th>
-                            <th class="col-points">POINTS CUMULÉS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-tbody">
-                        {% if remaining_teams().is_empty() %}
-                            {% if teams.is_empty() %}
-                                <tr>
-                                    <td colspan="3" class="cell-loading">Aucune équipe inscrite pour le moment.</td>
-                                </tr>
+                    <!-- Rang 1 (Leader) -->
+                    <div class="podium-slot rank-first" id="podium-first">
+                        <div class="podium-index">01</div>
+                        <div class="podium-meta">
+                            <span class="team-label">LEADER DU TOURNOI</span>
+                            <h3 class="team-name" id="podium-1-name">{% if let Some(t) = first() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                        </div>
+                        <div class="team-score" id="podium-1-points">{% if let Some(t) = first() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
+                    </div>
+
+                    <!-- Rang 3 (Troisième) -->
+                    <div class="podium-slot rank-third" id="podium-third">
+                        <div class="podium-index">03</div>
+                        <div class="podium-meta">
+                            <span class="team-label">TROISIÈME</span>
+                            <h3 class="team-name" id="podium-3-name">{% if let Some(t) = third() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                        </div>
+                        <div class="team-score" id="podium-3-points">{% if let Some(t) = third() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- TABLEAU DES SCORES RANGS 4+ -->
+                <div class="table-frame">
+                    <table class="standings-table" id="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th class="col-rank">POS</th>
+                                <th class="col-team">ÉQUIPE</th>
+                                <th class="col-points">POINTS CUMULÉS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody">
+                            {% if remaining_teams().is_empty() %}
+                                {% if teams.is_empty() %}
+                                    <tr>
+                                        <td colspan="3" class="cell-loading">Aucune équipe inscrite pour le moment.</td>
+                                    </tr>
+                                {% endif %}
+                            {% else %}
+                                {% for t in remaining_teams() %}
+                                    <tr>
+                                        <td class="col-rank">{% if loop.index + 3 < 10 %}0{{ loop.index + 3 }}{% else %}{{ loop.index + 3 }}{% endif %}</td>
+                                        <td class="col-team">{{ t.name }}</td>
+                                        <td class="col-points">{{ t.total_points }} PTS</td>
+                                    </tr>
+                                {% endfor %}
                             {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MATCHS & LOBBIES EN COURS -->
+                <div class="live-lobbies">
+                    <div class="lobbies-header">
+                        <h3>MATCHS & LOBBIES EN COURS</h3>
+                        <span class="pulse-indicator">EN LIGNE</span>
+                    </div>
+                    <div class="lobbies-list" id="live-matches-list">
+                        {% if live_matches.is_empty() %}
+                            <div class="empty-state">Aucun match ouvert aux soumissions pour le moment.</div>
                         {% else %}
-                            {% for t in remaining_teams() %}
-                                <tr>
-                                    <td class="col-rank">{% if loop.index + 3 < 10 %}0{{ loop.index + 3 }}{% else %}{{ loop.index + 3 }}{% endif %}</td>
-                                    <td class="col-team">{{ t.name }}</td>
-                                    <td class="col-points">{{ t.total_points }} PTS</td>
-                                </tr>
+                            {% for m in live_matches %}
+                                <div class="match-live-card">
+                                    <div class="match-live-header">
+                                        <span class="match-game-title">{{ m.game_name }}</span>
+                                        <span class="match-live-status">EN COURS</span>
+                                    </div>
+                                    <div class="match-instructions-box">
+                                        <strong>LOBBY / CONSIGNES :</strong>
+                                        {% if m.instructions.trim().is_empty() %}
+                                            En attente des consignes d'arbitrage
+                                        {% else %}
+                                            {{ m.instructions }}
+                                        {% endif %}
+                                    </div>
+                                </div>
                             {% endfor %}
                         {% endif %}
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+                </div>
+            </section>
+        </div>
 
-            <!-- MATCHS & LOBBIES EN COURS -->
-            <div class="live-lobbies">
-                <div class="lobbies-header">
-                    <h3>MATCHS & LOBBIES EN COURS</h3>
-                    <span class="pulse-indicator">EN LIGNE</span>
+        <!-- ========================================== -->
+        <!-- ONGLETS PAR ÉPREUVE                        -->
+        <!-- ========================================== -->
+        {% for g in game_leaderboards %}
+        <div class="tab-pane" id="tab-game-{{ g.game_id }}">
+            <section class="section">
+                <div class="section-titlebar">
+                    <div>
+                        <h2>CLASSEMENT — {{ g.game_name }}</h2>
+                        <p class="section-subtitle">Scores spécifiques au jeu et attribution des points au barème général</p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="badge-format">{{ g.format }}</span>
+                        <span class="section-badge">ÉPREUVE</span>
+                    </div>
                 </div>
-                <div class="lobbies-list" id="live-matches-list">
-                    {% if live_matches.is_empty() %}
-                        <div class="empty-state">Aucun match ouvert aux soumissions pour le moment.</div>
-                    {% else %}
-                        {% for m in live_matches %}
-                            <div class="match-live-card">
-                                <div class="match-live-header">
-                                    <span class="match-game-title">{{ m.game_name }}</span>
-                                    <span class="match-live-status">EN COURS</span>
-                                </div>
-                                <div class="match-instructions-box">
-                                    <strong>LOBBY / CONSIGNES :</strong>
-                                    {% if m.instructions.trim().is_empty() %}
-                                        En attente des consignes d'arbitrage
-                                    {% else %}
-                                        {{ m.instructions }}
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+
+                <div class="table-frame">
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th class="col-rank">RANG</th>
+                                <th class="col-team">ÉQUIPE</th>
+                                <th class="col-points">SCORE ÉPREUVE (BRUT)</th>
+                                <th class="col-points">POINTS TOURNOI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if g.entries.is_empty() %}
+                                <tr>
+                                    <td colspan="4" class="cell-loading">Aucun résultat validé pour {{ g.game_name }} pour le moment.</td>
+                                </tr>
+                            {% else %}
+                                {% for e in g.entries %}
+                                    <tr>
+                                        <td class="col-rank">{% if e.rank < 10 %}0{{ e.rank }}{% else %}{{ e.rank }}{% endif %}</td>
+                                        <td class="col-team"><strong>{{ e.team_name }}</strong></td>
+                                        <td class="col-points" style="font-family: var(--font-mono); color: var(--text-primary);">
+                                            {{ e.raw_score }} pts
+                                        </td>
+                                        <td class="col-points" style="font-weight: 700; color: var(--accent, #e53e3e);">
+                                            +{{ e.tournament_points }} PTS
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
+        {% endfor %}
 
     </main>
 

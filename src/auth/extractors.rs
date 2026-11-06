@@ -1,6 +1,7 @@
 use crate::auth::UserRole::Captain;
 use crate::auth::claims::Claims;
 use crate::auth::{UserRole, verify_jwt};
+use crate::db;
 use crate::errors::Errors;
 use crate::models::AppState;
 use axum::extract::FromRequestParts;
@@ -36,10 +37,10 @@ impl FromRequestParts<Arc<AppState>> for AuthenticatedUser {
 
         let is_valid = match claims.role {
             UserRole::Admin => {
-                crate::db::verify_admin_session(&state.db, oid, claims.token_version).await?
+                db::verify_admin_session(&state.db, oid, claims.token_version).await?
             }
             UserRole::Captain { .. } => {
-                crate::db::verify_team_session(&state.db, oid, claims.token_version).await?
+                db::verify_team_session(&state.db, oid, claims.token_version).await?
             }
         };
 

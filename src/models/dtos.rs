@@ -70,3 +70,7 @@ pub struct UpdateTeamPointsRequest {
     #[serde(alias = "points")]
     pub adjustment: i32,
 }
+#[derive(Deserialize)]
+pub struct UpdateTournamentSettingsRequest{
+     pub global_placement_points:Vec<u32>
+}
