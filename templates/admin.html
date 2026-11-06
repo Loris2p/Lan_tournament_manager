@@ -26,9 +26,9 @@
             </nav>
 
             <div class="topbar-right">
-                <div class="status-indicator" id="ws-indicator" title="Liaison WebSocket locale">
+                <div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
                     <span class="status-dot"></span>
-                    <span class="status-label" id="ws-status-text">WS: EN DIRECT</span>
+                    <span class="status-label" id="ws-status-text">EN DIRECT</span>
                 </div>
 
                 <div class="status-indicator">
@@ -133,9 +133,9 @@
                     <h3>AJOUTER UNE ÉPREUVE AU CATALOGUE</h3>
                     <p class="panel-desc">Définissez le barème dynamique et les limites anti-triche du jeu.</p>
 
-                    <!-- Boutons de pré-remplissage rapide des 6 épreuves officielles -->
+                    <!-- Boutons de pré-remplissage rapide des 6 épreuves préconfigurées -->
                     <div class="game-presets-bar" style="margin-bottom: 1.25rem; padding: 0.75rem; background: var(--bg-surface-2, rgba(255,255,255,0.03)); border: 1px solid var(--border-color); border-radius: 6px;">
-                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">PRÉRÉGLAGES OFFICIELS (1 CLIC) :</span>
+                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">MODÈLES DE JEUX PRÉCONFIGURÉS (1 CLIC) :</span>
                         <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
                             <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="apex">Apex Legends</button>
                             <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="lol">League of Legends</button>
@@ -424,7 +424,7 @@
                     </div>
                     <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
                         <button type="submit" class="btn-primary" id="save-settings-btn">Enregistrer le Barème</button>
-                        <button type="button" id="btn-default-points" class="btn-outline">Barème Officiel (10 équipes)</button>
+                        <button type="button" id="btn-default-points" class="btn-outline">Barème Standard (10 équipes)</button>
                         <span id="settings-status-msg" style="font-size: 0.88rem; font-weight: 500;"></span>
                     </div>
                 </form>

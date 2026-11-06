@@ -319,7 +319,7 @@ function initTournamentSettings() {
     // Bouton de réinitialisation vers le barème par défaut (10 équipes)
     defaultBtn?.addEventListener('click', () => {
         input.value = '25, 18, 15, 12, 10, 8, 6, 4, 2, 1';
-        showToast("Barème officiel par défaut (10 équipes) chargé.", "info");
+        showToast("Barème standard par défaut (10 équipes) chargé.", "info");
     });
 
     // Envoi du formulaire de barème

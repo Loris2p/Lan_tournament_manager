@@ -73,7 +73,7 @@ class WsClient {
             dot.style.background = connected ? 'var(--green-status)' : '#eab308';
         }
         if (text) {
-            text.textContent = connected ? 'WS: EN DIRECT' : 'WS: RECONNEXION...';
+            text.textContent = connected ? 'EN DIRECT' : 'RECONNEXION...';
             text.style.color = connected ? 'var(--text-secondary)' : '#eab308';
         }
     }
