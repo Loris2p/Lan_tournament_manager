@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMatches();
     initDropzoneAndPaste();
     initFormSubmit();
+    initTournamentCountdown();
 
     wsClient.connect();
     wsClient.on('LEADERBOARD_UPDATE', async () => {
@@ -16,6 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             window.location.reload();
         }
+    });
+
+    wsClient.on('TOURNAMENT_SCHEDULE_UPDATE', () => {
+        window.location.reload();
     });
 
     const newSubBtn = document.getElementById('new-submission-btn');
@@ -344,4 +349,67 @@ async function updateCaptainPointsSilently() {
     } catch (e) {
         console.warn('Erreur lors de la mise à jour silencieuse des points:', e);
     }
+}
+
+function initTournamentCountdown() {
+    const kicker = document.getElementById('tournament-kicker');
+    const textEl = document.getElementById('tournament-kicker-text');
+    const dotEl = document.getElementById('tournament-kicker-dot');
+    if (!kicker || !textEl) return;
+
+    const startStr = kicker.dataset.start;
+    const endStr = kicker.dataset.end;
+    const isPaused = kicker.dataset.paused === 'true';
+    const suffix = kicker.dataset.suffix || '';
+
+    const setDotStatus = (color, glow = true, pulse = true) => {
+        if (!dotEl) return;
+        dotEl.style.backgroundColor = color;
+        dotEl.style.boxShadow = glow ? `0 0 8px ${color}` : 'none';
+        dotEl.style.animation = pulse ? 'pulse 2s infinite' : 'none';
+    };
+
+    if (isPaused) {
+        textEl.textContent = `TOURNOI EN PAUSE${suffix}`;
+        setDotStatus('#f97316');
+        return;
+    }
+
+    const startDate = startStr ? new Date(startStr) : null;
+    const endDate = endStr ? new Date(endStr) : null;
+
+    if (!startDate && !endDate) return;
+
+    function formatDiff(ms) {
+        if (ms <= 0) return '00H 00M 00S';
+        const totalSec = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSec / 3600);
+        const minutes = Math.floor((totalSec % 3600) / 60);
+        const seconds = totalSec % 60;
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(hours)}H ${pad(minutes)}M ${pad(seconds)}S`;
+    }
+
+    function update() {
+        const now = new Date();
+
+        if (startDate && now < startDate) {
+            const diff = startDate.getTime() - now.getTime();
+            textEl.textContent = `LANCEMENT DANS ${formatDiff(diff)}${suffix}`;
+            setDotStatus('#eab308');
+        } else if (endDate && now <= endDate) {
+            const diff = endDate.getTime() - now.getTime();
+            textEl.textContent = `TOURNOI EN COURS · RESTE ${formatDiff(diff)}${suffix}`;
+            setDotStatus('var(--green-status, #10b981)');
+        } else if (endDate && now > endDate) {
+            textEl.textContent = `TOURNOI TERMINÉ · CLASSEMENT FINAL VALIDÉ`;
+            setDotStatus('#64748b', false, false);
+        } else {
+            textEl.textContent = `TOURNOI EN COURS${suffix}`;
+            setDotStatus('var(--green-status, #10b981)');
+        }
+    }
+
+    update();
+    setInterval(update, 1000);
 }

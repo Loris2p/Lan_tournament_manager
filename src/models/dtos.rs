@@ -129,6 +129,9 @@ pub struct UpdateTeamPointsRequest {
     pub adjustment: i32,
 }
 #[derive(Deserialize)]
-pub struct UpdateTournamentSettingsRequest{
-     pub global_placement_points:Vec<u32>
+pub struct UpdateTournamentSettingsRequest {
+    pub global_placement_points: Option<Vec<u32>>,
+    pub start_at: Option<String>,
+    pub end_at: Option<String>,
+    pub is_paused: Option<bool>,
 }

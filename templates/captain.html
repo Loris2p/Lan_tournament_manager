@@ -1,62 +1,71 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAN Tournament Manager — Espace Capitaine</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" href="/logo.png">
-    <link rel="stylesheet" href="/css/custom.css">
-    <script>try{const t=localStorage.getItem('ltm_theme')||'modern-esport';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
-</head>
-<body class="captain-page">
+{% extends "base.html" %}
 
-    <header class="topbar">
-        <div class="topbar-inner">
-            <div class="brand">
-                <a href="/">
-                    <img src="/logo.png" alt="Logo" class="brand-logo">
-                    <span class="brand-title">ESPACE CAPITAINE</span>
-                </a>
+{% block title %}Espace Capitaine{% endblock %}
+{% block body_class %}captain-page{% endblock %}
+{% block brand_title %}ESPACE CAPITAINE{% endblock %}
+{% block brand_url %}/captain{% endblock %}
+
+{% block nav %}
+            <a href="/" class="nav-link">Accueil</a>
+            <a href="/leaderboard.html" target="_blank" class="nav-link">Classement ↗</a>
+{% endblock %}
+
+{% block topbar_right %}
+            <div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
+                <span class="status-dot"></span>
+                <span class="status-label" id="ws-status-text">CONNECTÉ</span>
             </div>
 
-            <nav class="nav-menu">
-                <a href="/leaderboard.html" target="_blank" class="nav-link">Classement [Onglet]</a>
-            </nav>
+            <div class="status-indicator">
+                <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
+            </div>
 
-            <div class="topbar-right">
-                <div class="status-indicator">
-                    <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
+            <a href="/logout" class="btn-text" id="logout-btn">
+                Déconnexion
+            </a>
+{% endblock %}
+
+{% block content %}
+    <main class="ar-main ar-captain-main">
+
+        <section class="ar-hero ar-hero-team">
+            <div class="ar-hero-ghost" aria-hidden="true">TEAM</div>
+            <p class="ar-kicker" id="tournament-kicker"
+               data-start="{{ tournament_status.start_at.as_deref().unwrap_or("") }}"
+               data-end="{{ tournament_status.end_at.as_deref().unwrap_or("") }}"
+               data-paused="{{ tournament_status.is_paused }}"
+               data-games="{{ matches.len() }}"
+               data-suffix=" · ESPACE CAPITAINE">
+                <span class="status-dot" id="tournament-kicker-dot" style="background-color: {{ tournament_status.dot_color }}; box-shadow: 0 0 8px {{ tournament_status.dot_color }};"></span>
+                <span id="tournament-kicker-text">{{ tournament_status.label }} · ESPACE CAPITAINE</span>
+            </p>
+            <div class="ar-team-hero-grid">
+                <div>
+                    <h1 class="ar-title ar-title-sm">
+                        <span id="captain-team-name">{{ team_name }}</span>
+                    </h1>
+                    <p class="ar-lead">
+                        Déclarez vos scores avec capture d'écran pour validation immédiate par les arbitres.
+                    </p>
                 </div>
-
-                <a href="/logout" class="btn-text" id="logout-btn">
-                    Déconnexion
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <main class="page-container">
-
-        <div class="captain-banner">
-            <div>
-                <span class="meta-tag">SESSION ACTIVE</span>
-                <h1 class="captain-team-title" id="captain-team-name">{{ team_name }}</h1>
-                <p class="captain-team-desc">Déclarez vos résultats de match avec capture d'écran faisant foi pour validation par les arbitres.</p>
-            </div>
-            <div class="captain-points-box">
-                <span class="captain-points-label">TOTAL DES POINTS</span>
-                <span class="captain-points-value" id="captain-team-points">{{ total_points }} PTS</span>
-            </div>
-        </div>
-
-        <div class="captain-grid">
-
-            <section class="section-box">
-                <div class="box-header">
-                    <h3>MATCHS OUVERTS ASSIGNÉS</h3>
-                    <span class="box-badge" id="open-matches-count">{{ matches.len() }} ACTIF{% if matches.len() > 1 %}S{% endif %}</span>
+                <div class="ar-team-score-card">
+                    <span class="ar-score-label">POINTS AU CLASSEMENT</span>
+                    <span class="ar-score-val" id="captain-team-points">{{ total_points }} <small>PTS</small></span>
+                    <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct →</a>
                 </div>
+            </div>
+        </section>
+
+        <div class="ar-captain-layout">
+
+            <section class="ar-card-panel">
+                <header class="ar-sec-head">
+                    <div>
+                        <p class="ar-eyebrow">Épreuves en cours</p>
+                        <h2>Matchs Assignés</h2>
+                    </div>
+                    <span class="ar-badge-pill" id="open-matches-count">{{ matches.len() }} ACTIF{% if matches.len() > 1 %}S{% endif %}</span>
+                </header>
 
                 <div id="matches-list" class="matches-select-list">
                     {% if matches.is_empty() %}
@@ -102,18 +111,21 @@
                 </div>
             </section>
 
-            <section class="section-box">
-                <div class="box-header">
-                    <h3>TRANSMETTRE UN RÉSULTAT</h3>
-                    <span class="box-badge">SAISIE CAPITAINE</span>
-                </div>
+            <section class="ar-card-panel">
+                <header class="ar-sec-head">
+                    <div>
+                        <p class="ar-eyebrow">Dépôt de preuve</p>
+                        <h2>Transmettre un Résultat</h2>
+                    </div>
+                    <!--<span class="ar-badge-pill ar-badge-red">SAISIE CAPITAINE</span>-->
+                </header>
 
                 {% if is_success() %}
                 <div id="submission-success" class="submission-success-box" style="display: block; margin-bottom: 1.5rem;">
                     <div class="success-icon">✓</div>
                     <h4>SCORE TRANSMIS AUX ARBITRES</h4>
                     <p>Votre résultat et votre capture d'écran ont bien été enregistrés. Le statut passera à <strong>Validé</strong> dès vérification par l'arbitre.</p>
-                    <a href="/captain" class="btn-outline btn-block" style="margin-top: 1rem; text-align: center; display: block; text-decoration: none;">
+                    <a href="/captain" class="ar-btn ar-btn-solid ar-btn-block" style="margin-top: 1rem; text-decoration: none;">
                         Transmettre un autre match
                     </a>
                 </div>
@@ -153,7 +165,7 @@
                             <div class="dropzone-content" id="dropzone-prompt">
                                 <span class="dropzone-tag">COLLEZ DIRECTEMENT ICI (CTRL + V)</span>
                                 <p>ou glissez-déposez votre capture d'écran</p>
-                                <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 0.5rem;">
+                                <div class="dropzone-actions">
                                     <label for="file-input" class="btn-text" style="display: inline-block; cursor: pointer;">
                                         Parcourir les fichiers
                                     </label>
@@ -176,8 +188,8 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-primary btn-block btn-lg" id="submit-score-btn">
-                        Envoyer le Score pour Arbitrage
+                    <button type="submit" class="ar-btn ar-btn-solid ar-btn-block ar-btn-lg" id="submit-score-btn">
+                        Envoyer le Score pour Arbitrage →
                     </button>
                 </form>
             </section>
@@ -195,7 +207,7 @@
             </div>
             <div class="modal-body">
                 <p class="panel-desc">Vérifiez les données du match avant transmission définitive aux arbitres :</p>
-                <div style="background: var(--surface-subtle); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--line-subtle); margin: 1rem 0;">
+                <div class="confirm-recap-box">
                     <div style="margin-bottom: 0.65rem;">
                         <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">ÉPREUVE / MATCH</span>
                         <strong id="confirm-game" style="font-size: 1.05rem;">--</strong>
@@ -230,9 +242,10 @@
         </div>
     </footer>
 
-    <script type="module" src="/js/captain.js"></script>
-    <script type="module" src="/js/theme-switcher.js"></script>
-    <script type="module" src="/js/cookie-banner.js"></script>
+    
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+<script type="module" src="/js/captain.js"></script>
+<script type="module" src="/js/cookie-banner.js"></script>
+{% endblock %}

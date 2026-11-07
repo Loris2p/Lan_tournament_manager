@@ -1,0 +1,118 @@
+/* ==========================================================================
+   THEME: Tactical Broadcast / Pro HUD
+   Esports broadcast aesthetic (Vrai Rouge Esport #e50914 - Zéro rose)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+
+:root, [data-theme="tactical-broadcast"] {
+    --bg-root: #07080c;
+    --bg-surface: rgba(13, 16, 24, 0.94);
+    --bg-card: rgba(16, 20, 30, 0.9);
+    --bg-elevated: rgba(22, 28, 42, 0.95);
+    --bg-hover: rgba(32, 42, 64, 0.95);
+
+    --body-bg-gradient:
+        linear-gradient(rgba(220, 38, 38, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(220, 38, 38, 0.04) 1px, transparent 1px),
+        radial-gradient(ellipse at 50% -10%, rgba(220, 38, 38, 0.2) 0%, transparent 65%),
+        #07080c;
+
+    --line-subtle: rgba(220, 38, 38, 0.2);
+    --line-strong: #e50914;
+
+    /* ROUGE PUR */
+    --red: #e50914;
+    --red-hover: #b91c1c;
+    --red-subtle: rgba(229, 9, 20, 0.14);
+    --red-glow: 0 0 22px rgba(229, 9, 20, 0.5);
+    --red-gradient: linear-gradient(135deg, #e50914 0%, #991b1b 100%);
+
+    --green-status: #00ffaa;
+    --green-subtle: rgba(0, 255, 170, 0.15);
+
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --card-radius: 4px;
+    --btn-radius: 3px;
+    --card-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(229, 9, 20, 0.2);
+    --card-backdrop: blur(14px);
+
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-heading: 'Chakra Petch', 'Rajdhani', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* --- Typographie et En-têtes --- */
+[data-theme="tactical-broadcast"] h1,
+[data-theme="tactical-broadcast"] h2,
+[data-theme="tactical-broadcast"] h3,
+[data-theme="tactical-broadcast"] .brand-title,
+[data-theme="tactical-broadcast"] .main-title,
+[data-theme="tactical-broadcast"] .section-title {
+    font-family: var(--font-heading);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+[data-theme="tactical-broadcast"] .brand-title {
+    background: linear-gradient(180deg, #ffffff 40%, #e50914 120%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+[data-theme="tactical-broadcast"] .main-title {
+    background: linear-gradient(180deg, #ffffff 30%, #e2e8f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- Composants et Badges HUD --- */
+[data-theme="tactical-broadcast"] .btn-primary {
+    background: var(--red-gradient);
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+}
+
+[data-theme="tactical-broadcast"] .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--red-glow);
+}
+
+[data-theme="tactical-broadcast"] .topbar {
+    border-bottom: 2px solid #e50914;
+    background: rgba(7, 8, 12, 0.96);
+    backdrop-filter: blur(16px);
+}
+
+[data-theme="tactical-broadcast"] .overview-header {
+    border-left: 4px solid var(--red);
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.08) 0%, transparent 100%);
+}
+
+[data-theme="tactical-broadcast"] .podium-slot {
+    border: 1px solid rgba(229, 9, 20, 0.25);
+    background: linear-gradient(180deg, rgba(22, 28, 42, 0.95) 0%, rgba(13, 16, 24, 0.9) 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="tactical-broadcast"] .podium-slot.slot-1 {
+    border-color: #ffd700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.25);
+}
+
+[data-theme="tactical-broadcast"] .podium-slot.slot-2 {
+    border-color: #cbd5e1;
+    box-shadow: 0 0 20px rgba(203, 213, 225, 0.2);
+}
+
+[data-theme="tactical-broadcast"] .podium-slot.slot-3 {
+    border-color: #f97316;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+}

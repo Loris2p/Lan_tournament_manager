@@ -59,15 +59,16 @@ class WsClient {
     }
 
     updateIndicator(connected) {
-        const dot = document.querySelector('.status-dot');
+        const dot = document.querySelector('#ws-indicator .status-dot') || document.querySelector('.status-dot:not(#tournament-kicker-dot)');
         const text = document.getElementById('ws-status-text');
 
         if (dot) {
-            dot.style.background = connected ? 'var(--green-status)' : '#eab308';
+            dot.style.background = connected ? 'var(--green-status)' : 'var(--red, #ef4444)';
+            dot.style.boxShadow = connected ? '0 0 8px var(--green-status)' : '0 0 8px var(--red, #ef4444)';
         }
         if (text) {
-            text.textContent = connected ? 'EN DIRECT' : 'RECONNEXION...';
-            text.style.color = connected ? 'var(--text-secondary)' : '#eab308';
+            text.textContent = connected ? 'CONNECTÉ' : 'DÉCONNECTÉ';
+            text.style.color = connected ? 'var(--text-secondary)' : 'var(--red, #ef4444)';
         }
     }
 

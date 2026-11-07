@@ -1,48 +1,47 @@
+const STYLES = [
+    { id: 'arena', label: 'Arena (affiche & dock)', layout: 'arena' },
+    { id: 'tactical-pro', label: 'Tactical Pro (barre haute)', layout: 'tactical-deck' }
+];
+
 const THEMES = [
-    { id: 'modern-esport', label: 'Glass' },
-    { id: 'cyber-crimson', label: 'Crimson' }
+    { id: 'tactical-broadcast', label: 'Tactical Pro' }
 ];
 
 const LAYOUTS = [
-    { id: 'sidebar-hud',   label: 'Sidebar' },
-    { id: 'classic-stack', label: 'Stack' }
+    { id: 'arena', label: 'Arena' },
+    { id: 'tactical-deck', label: 'Tactical Pro' }
 ];
 
 const THEME_KEY = 'ltm_theme';
 const LAYOUT_KEY = 'ltm_layout';
 
 export function getActiveTheme() {
-    return localStorage.getItem(THEME_KEY) || 'modern-esport';
+    return 'tactical-broadcast';
 }
 
 export function getActiveLayout() {
-    return localStorage.getItem(LAYOUT_KEY) || 'classic-stack';
+    return 'arena';
 }
 
 export function setTheme(themeId) {
-    if (!THEMES.some(t => t.id === themeId)) {
-        themeId = 'modern-esport';
-    }
+    themeId = 'tactical-broadcast';
     document.documentElement.setAttribute('data-theme', themeId);
     localStorage.setItem(THEME_KEY, themeId);
 
-    const selector = document.getElementById('theme-select');
-    if (selector && selector.value !== themeId) {
-        selector.value = themeId;
+    const themeStylesheet = document.getElementById('ltm-theme-style');
+    if (themeStylesheet) {
+        themeStylesheet.href = `/css/themes/${themeId}.css`;
     }
 }
 
 export function setLayout(layoutId) {
-    if (!LAYOUTS.some(l => l.id === layoutId)) {
-        layoutId = 'classic-stack';
+    if (layoutId !== 'tactical-deck' && layoutId !== 'arena') {
+        layoutId = 'arena';
     }
     document.documentElement.setAttribute('data-layout', layoutId);
     localStorage.setItem(LAYOUT_KEY, layoutId);
-
-    const selector = document.getElementById('layout-select');
-    if (selector && selector.value !== layoutId) {
-        selector.value = layoutId;
-    }
+    // Le serveur choisit le markup des pages publiques d'après ce cookie.
+    document.cookie = `${LAYOUT_KEY}=${layoutId}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
 export function initSwitcher() {
@@ -65,7 +64,7 @@ export function initSwitcher() {
     btn.setAttribute('aria-haspopup', 'true');
     btn.setAttribute('aria-expanded', 'false');
     btn.title = 'Paramètres d\'affichage';
-    btn.innerHTML = `<span class="papicon icon-gears" aria-hidden="true"></span><span class="settings-btn-label">Options</span>`;
+    btn.innerHTML = `<span class="papicon icon-gears" aria-hidden="true"></span>`;
 
     const dropdown = document.createElement('div');
     dropdown.id = 'settings-dropdown';
@@ -75,70 +74,56 @@ export function initSwitcher() {
     const header = document.createElement('div');
     header.className = 'settings-dropdown-header';
     header.innerHTML = `<span class="settings-dropdown-title"><span class="papicon icon-gears" aria-hidden="true"></span> Paramètres</span>`;
+
+    const wsIndicator = document.getElementById('ws-indicator');
+    if (wsIndicator) {
+        header.appendChild(wsIndicator);
+    }
     dropdown.appendChild(header);
 
     const body = document.createElement('div');
     body.className = 'settings-dropdown-body';
 
-    const themeGroup = document.createElement('div');
-    themeGroup.className = 'settings-group';
+    // Sélecteur de thème temporairement désactivé pour ne conserver qu'Arena (conservé pour réactivation future si besoin)
+    /*
+    const styleGroup = document.createElement('div');
+    styleGroup.className = 'settings-group';
 
-    const themeLabel = document.createElement('label');
-    themeLabel.htmlFor = 'theme-select';
-    themeLabel.className = 'settings-label';
-    themeLabel.innerHTML = `<span class="papicon icon-palette" aria-hidden="true"></span><span>Ambiance visuelle</span>`;
+    const styleLabel = document.createElement('label');
+    styleLabel.htmlFor = 'theme-select';
+    styleLabel.className = 'settings-label';
+    styleLabel.innerHTML = `<span class="papicon icon-palette" aria-hidden="true"></span><span>Thème</span>`;
 
-    const themeSelect = document.createElement('select');
-    themeSelect.id = 'theme-select';
-    themeSelect.className = 'switcher-select-input';
-    themeSelect.title = 'Changer l\'ambiance visuelle du tournoi';
+    const styleSelect = document.createElement('select');
+    styleSelect.id = 'theme-select';
+    styleSelect.className = 'switcher-select-input';
+    styleSelect.title = 'Changer le thème du tournoi';
 
-    const activeTheme = getActiveTheme();
-    THEMES.forEach(t => {
+    const currentLayout = getActiveLayout();
+    const activeStyleId = currentLayout === 'tactical-deck' ? 'tactical-pro' : 'arena';
+
+    STYLES.forEach(s => {
         const opt = document.createElement('option');
-        opt.value = t.id;
-        opt.textContent = t.label;
-        if (t.id === activeTheme) opt.selected = true;
-        themeSelect.appendChild(opt);
+        opt.value = s.id;
+        opt.textContent = s.label;
+        if (s.id === activeStyleId) opt.selected = true;
+        styleSelect.appendChild(opt);
     });
 
-    themeSelect.addEventListener('change', (e) => {
-        setTheme(e.target.value);
+    styleSelect.addEventListener('change', (e) => {
+        const wasArena = document.documentElement.getAttribute('data-layout') === 'arena';
+        const targetLayout = e.target.value === 'tactical-pro' ? 'tactical-deck' : 'arena';
+        setLayout(targetLayout);
+        setTheme('tactical-broadcast');
+        if (wasArena !== (targetLayout === 'arena')) {
+            window.location.reload();
+        }
     });
 
-    themeGroup.appendChild(themeLabel);
-    themeGroup.appendChild(themeSelect);
-    body.appendChild(themeGroup);
-
-    const layoutGroup = document.createElement('div');
-    layoutGroup.className = 'settings-group';
-
-    const layoutLabel = document.createElement('label');
-    layoutLabel.htmlFor = 'layout-select';
-    layoutLabel.className = 'settings-label';
-    layoutLabel.innerHTML = `<span class="papicon icon-grid" aria-hidden="true"></span><span>Disposition</span>`;
-
-    const layoutSelect = document.createElement('select');
-    layoutSelect.id = 'layout-select';
-    layoutSelect.className = 'switcher-select-input';
-    layoutSelect.title = 'Changer la disposition de la page';
-
-    const activeLayout = getActiveLayout();
-    LAYOUTS.forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l.id;
-        opt.textContent = l.label;
-        if (l.id === activeLayout) opt.selected = true;
-        layoutSelect.appendChild(opt);
-    });
-
-    layoutSelect.addEventListener('change', (e) => {
-        setLayout(e.target.value);
-    });
-
-    layoutGroup.appendChild(layoutLabel);
-    layoutGroup.appendChild(layoutSelect);
-    body.appendChild(layoutGroup);
+    styleGroup.appendChild(styleLabel);
+    styleGroup.appendChild(styleSelect);
+    body.appendChild(styleGroup);
+    */
 
     const fsGroup = document.createElement('div');
     fsGroup.className = 'settings-group';
@@ -204,11 +189,11 @@ export function initSwitcher() {
         }
     });
 
-    const wsIndicator = document.getElementById('ws-indicator');
-    if (wsIndicator) {
-        topbarRight.insertBefore(container, wsIndicator);
+    const authBtn = document.getElementById('auth-btn') || document.getElementById('logout-btn');
+    if (authBtn) {
+        topbarRight.insertBefore(container, authBtn);
     } else {
-        topbarRight.prepend(container);
+        topbarRight.appendChild(container);
     }
 }
 

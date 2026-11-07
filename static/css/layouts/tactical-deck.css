@@ -1,0 +1,319 @@
+/* ==========================================================================
+   LAYOUT: Tactical Deck
+   Ergonomie chirurgicale & esport moderne (proportions équilibrées)
+   ========================================================================== */
+
+/* --- Conteneur Principal Maîtrisé --- */
+[data-layout="tactical-deck"] .page-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+/* ==========================================================================
+   1. HERO BANDEAU COMPACT (Hauteur maîtrisée ~190px au lieu de 400px)
+   ========================================================================== */
+[data-layout="tactical-deck"] #presentation {
+    margin-bottom: 0;
+}
+
+[data-layout="tactical-deck"] #presentation .overview-header {
+    padding: 1.75rem 2rem;
+    background: linear-gradient(135deg, var(--red-subtle) 0%, var(--bg-surface) 65%);
+    border: 1px solid var(--line-subtle);
+    border-left: 4px solid var(--red);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    position: relative;
+}
+
+@media (min-width: 860px) {
+    [data-layout="tactical-deck"] #presentation .overview-header {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 2rem;
+    }
+}
+
+[data-layout="tactical-deck"] #presentation .meta-strip {
+    margin-bottom: 0.35rem;
+}
+
+[data-layout="tactical-deck"] #presentation .meta-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    letter-spacing: 0.08em;
+    background: var(--red-subtle);
+    border: 1px solid var(--line-strong);
+    color: var(--red);
+    border-radius: 4px;
+}
+
+[data-layout="tactical-deck"] #presentation .main-title {
+    font-size: clamp(1.5rem, 2.8vw, 2rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.25rem 0 0.5rem;
+    letter-spacing: 0.02em;
+}
+
+[data-layout="tactical-deck"] #presentation .main-lead {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 0;
+    max-width: 680px;
+}
+
+[data-layout="tactical-deck"] #presentation .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+[data-layout="tactical-deck"] #presentation .hero-actions .btn-primary,
+[data-layout="tactical-deck"] #presentation .hero-actions .btn-outline {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   2. STEPPER RAIL JOUEUR (Ruban horizontal compact en 4 étapes)
+   ========================================================================== */
+[data-layout="tactical-deck"] #player-guide {
+    margin-bottom: 0;
+}
+
+[data-layout="tactical-deck"] #player-guide .specs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+    [data-layout="tactical-deck"] #player-guide .specs-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+    }
+}
+
+[data-layout="tactical-deck"] #player-guide .spec-cell {
+    background: var(--bg-surface);
+    border: 1px solid var(--line-subtle);
+    border-top: 2px solid var(--line-subtle);
+    border-radius: var(--card-radius);
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+}
+
+[data-layout="tactical-deck"] #player-guide .spec-cell:hover {
+    border-top-color: var(--red);
+    transform: translateY(-2px);
+}
+
+[data-layout="tactical-deck"] #player-guide .spec-cell .spec-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--red);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.25rem;
+}
+
+[data-layout="tactical-deck"] #player-guide .spec-cell .spec-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+[data-layout="tactical-deck"] #player-guide .spec-cell .spec-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+    margin-bottom: 0.6rem;
+}
+
+[data-layout="tactical-deck"] #player-guide .spec-cell a {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ==========================================================================
+   3. ÉPREUVES : CARROUSEL AUX PROPORTIONS CALIBRÉES
+   ========================================================================== */
+[data-layout="tactical-deck"] #carousel-section {
+    margin-bottom: 0;
+}
+
+[data-layout="tactical-deck"] #carousel-section .section-titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line-subtle);
+}
+
+[data-layout="tactical-deck"] #carousel-section .section-titlebar h2 {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+[data-layout="tactical-deck"] #carousel-section .section-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0.15rem 0 0;
+}
+
+[data-layout="tactical-deck"] #carousel-section .carousel-wrapper {
+    background: var(--bg-surface);
+    border: 1px solid var(--line-subtle);
+    border-radius: var(--card-radius);
+    padding: 1.25rem;
+    box-shadow: var(--card-shadow);
+}
+
+[data-layout="tactical-deck"] #carousel-section .slide-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+@media (min-width: 860px) {
+    [data-layout="tactical-deck"] #carousel-section .slide-grid {
+        grid-template-columns: 1.15fr 1fr;
+        gap: 2rem;
+    }
+}
+
+[data-layout="tactical-deck"] #carousel-section .slide-media {
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+[data-layout="tactical-deck"] #carousel-section .slide-image-placeholder,
+[data-layout="tactical-deck"] #carousel-section .slide-media img {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--card-radius);
+}
+
+[data-layout="tactical-deck"] #carousel-section .slide-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+[data-layout="tactical-deck"] #carousel-section .slide-header {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+[data-layout="tactical-deck"] #carousel-section .slide-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+[data-layout="tactical-deck"] #carousel-section .slide-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* ==========================================================================
+   4. RÈGLEMENT EN GRILLE ÉQUILIBRÉE
+   ========================================================================== */
+[data-layout="tactical-deck"] #rules .rules-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    [data-layout="tactical-deck"] #rules .rules-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    [data-layout="tactical-deck"] #rules .rules-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+[data-layout="tactical-deck"] .rule-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--line-subtle);
+    border-left: 3px solid var(--red);
+    border-radius: var(--card-radius);
+    padding: 1.15rem 1.1rem;
+}
+
+/* ==========================================================================
+   5. LEADERBOARD : PODIUM OLYMPIQUE COMPACT & TABLEAU CLINIQUE
+   ========================================================================== */
+[data-layout="tactical-deck"] .leaderboard-page #podium-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    align-items: end;
+}
+
+@media (min-width: 768px) {
+    [data-layout="tactical-deck"] .leaderboard-page #podium-container {
+        grid-template-columns: 1fr 1.1fr 1fr;
+        gap: 1.25rem;
+    }
+}
+
+[data-layout="tactical-deck"] .leaderboard-page .podium-slot {
+    border-radius: var(--card-radius);
+    border: 1px solid var(--line-subtle);
+    background: var(--bg-surface);
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    position: relative;
+    box-shadow: var(--card-shadow);
+}
+
+[data-layout="tactical-deck"] .leaderboard-page .podium-slot.slot-1 {
+    border-color: #ffd700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.2), var(--card-shadow);
+    padding: 2rem 1.25rem;
+}
+
+[data-layout="tactical-deck"] .leaderboard-page #table-frame {
+    border-radius: var(--card-radius);
+    border: 1px solid var(--line-subtle);
+    background: var(--bg-surface);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}

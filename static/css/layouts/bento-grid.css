@@ -1,0 +1,220 @@
+/* ==========================================================================
+   LAYOUT: Bento Grid
+   Barre haute flottante en capsule + contenu en cartes arrondies disposées
+   sur une grille 12 colonnes (accueil et classement façon dashboard).
+   Respecte le thème actif : le rayon minimal est imposé, jamais réduit.
+   ========================================================================== */
+
+[data-layout="bento-grid"] {
+    --bento-r: max(var(--card-radius), 16px);
+    --bento-gap: 1rem;
+}
+
+/* --- Barre flottante ------------------------------------------------------ */
+[data-layout="bento-grid"] .topbar {
+    top: 0.75rem;
+    width: min(1240px, calc(100% - 1.5rem));
+    margin: 0.75rem auto 0;
+    border: 1px solid var(--line-subtle);
+    border-radius: calc(var(--bento-r) * 2);
+    background: color-mix(in srgb, var(--bg-surface) 82%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.8);
+}
+
+[data-layout="bento-grid"] .topbar-inner {
+    max-width: none;
+    padding: 0.5rem 0.75rem 0.5rem 1rem;
+}
+
+[data-layout="bento-grid"] .nav-menu {
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--bg-elevated);
+    border-radius: 999px;
+}
+
+[data-layout="bento-grid"] .nav-menu a {
+    padding: 0.4rem 0.95rem;
+    border-bottom: none;
+    border-radius: 999px;
+    font-size: 0.78rem;
+}
+
+[data-layout="bento-grid"] .nav-menu a:hover,
+[data-layout="bento-grid"] .nav-menu a.active {
+    background: var(--red);
+    color: #fff;
+    border-bottom: none;
+}
+
+[data-layout="bento-grid"] .topbar .btn-primary,
+[data-layout="bento-grid"] .topbar .btn-text,
+[data-layout="bento-grid"] .topbar .status-indicator,
+[data-layout="bento-grid"] .settings-trigger-btn {
+    border-radius: 999px;
+}
+
+@media (max-width: 680px) {
+    [data-layout="bento-grid"] .topbar {
+        border-radius: var(--bento-r);
+    }
+    [data-layout="bento-grid"] .nav-menu {
+        flex-wrap: wrap;
+        border-radius: var(--bento-r);
+    }
+}
+
+/* --- Cartes arrondies ------------------------------------------------------ */
+[data-layout="bento-grid"] .overview-header,
+[data-layout="bento-grid"] .spec-cell,
+[data-layout="bento-grid"] .carousel-wrapper,
+[data-layout="bento-grid"] .rule-box,
+[data-layout="bento-grid"] .podium-slot,
+[data-layout="bento-grid"] .table-frame,
+[data-layout="bento-grid"] .live-lobbies,
+[data-layout="bento-grid"] .match-live-card,
+[data-layout="bento-grid"] .captain-banner,
+[data-layout="bento-grid"] .section-box,
+[data-layout="bento-grid"] .admin-panel,
+[data-layout="bento-grid"] .match-admin-card,
+[data-layout="bento-grid"] .submission-card,
+[data-layout="bento-grid"] .danger-card,
+[data-layout="bento-grid"] .auth-card,
+[data-layout="bento-grid"] .modal-card,
+[data-layout="bento-grid"] .settings-dropdown {
+    border-radius: var(--bento-r);
+}
+
+[data-layout="bento-grid"] .overview-header {
+    border-left-width: 1px;
+    border-left-style: solid;
+    border-left-color: var(--line-subtle);
+}
+
+[data-layout="bento-grid"] .slide-media,
+[data-layout="bento-grid"] .slide-media img,
+[data-layout="bento-grid"] .slide-image-placeholder {
+    border-radius: calc(var(--bento-r) - 4px);
+}
+
+[data-layout="bento-grid"] .live-lobbies {
+    background: var(--bg-surface);
+    border: 1px solid var(--line-subtle);
+    padding: 1.25rem;
+    box-shadow: var(--card-shadow);
+}
+
+[data-layout="bento-grid"] .tab-btn {
+    border-radius: 999px;
+}
+
+/* --- Grille 12 colonnes (pages avec contenu libre) --------------------------- */
+[data-layout="bento-grid"] .page-container:not(.auth-container) {
+    max-width: 1240px;
+    padding: 1.25rem 0.75rem 4rem;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--bento-gap);
+    align-content: start;
+}
+
+[data-layout="bento-grid"] .page-container:not(.auth-container) > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+[data-layout="bento-grid"] .section,
+[data-layout="bento-grid"] .overview-header,
+[data-layout="bento-grid"] .captain-banner,
+[data-layout="bento-grid"] .podium-row {
+    margin-bottom: 0;
+}
+
+/* Accueil : hero + guide côte à côte */
+@media (min-width: 1100px) {
+    [data-layout="bento-grid"] #presentation {
+        grid-column: span 7;
+    }
+    [data-layout="bento-grid"] #player-guide {
+        grid-column: span 5;
+    }
+}
+
+[data-layout="bento-grid"] #presentation,
+[data-layout="bento-grid"] #player-guide {
+    display: flex;
+    flex-direction: column;
+}
+
+[data-layout="bento-grid"] #presentation .overview-header {
+    flex: 1;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+[data-layout="bento-grid"] #player-guide .specs-grid {
+    flex: 1;
+    margin-bottom: 0;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--bento-gap);
+}
+
+[data-layout="bento-grid"] #player-guide .spec-cell {
+    padding: 1.1rem;
+}
+
+[data-layout="bento-grid"] #rules .rules-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--bento-gap);
+}
+
+@media (max-width: 960px) {
+    [data-layout="bento-grid"] #rules .rules-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 680px) {
+    [data-layout="bento-grid"] #player-guide .specs-grid,
+    [data-layout="bento-grid"] #rules .rules-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Classement : podium en bandeau, tableau + lobbies côte à côte */
+[data-layout="bento-grid"] #standings {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--bento-gap);
+    align-items: start;
+}
+
+[data-layout="bento-grid"] #standings > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+[data-layout="bento-grid"] #standings .podium-slot {
+    min-height: 150px;
+    padding: 1.4rem;
+}
+
+@media (min-width: 1100px) {
+    [data-layout="bento-grid"] #standings .table-frame {
+        grid-column: span 7;
+    }
+    [data-layout="bento-grid"] #standings .live-lobbies {
+        grid-column: span 5;
+    }
+}
+
+/* Capitaine : bannière pleine largeur puis deux cartes */
+[data-layout="bento-grid"] .captain-grid {
+    gap: var(--bento-gap);
+}
