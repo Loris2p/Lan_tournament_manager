@@ -73,6 +73,7 @@ html[data-layout="arena"],
 [data-layout="arena"] .brand {
     display: inline-flex;
     align-items: center;
+    gap: 0.35rem;
 }
 
 [data-layout="arena"] .brand a {
@@ -109,6 +110,10 @@ html[data-layout="arena"],
     display: inline-flex;
     align-items: center;
     gap: 0.2rem;
+}
+
+[data-layout="arena"] .nav-menu:empty {
+    display: none;
 }
 
 [data-layout="arena"] .nav-menu a {
@@ -1235,4 +1240,670 @@ html[data-layout="arena"],
     .ar-footer-links {
         justify-content: center;
     }
+}
+
+/* ==========================================================================
+   ADMIN & MANAGEMENT (Arena theme harmonization)
+   ========================================================================== */
+
+/* Header contextuel admin */
+[data-layout="arena"] .admin-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line-subtle);
+}
+
+[data-layout="arena"] .admin-header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+[data-layout="arena"] .admin-main-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin: 0;
+}
+
+[data-layout="arena"] .admin-badge-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
+    border: 1px solid var(--line-subtle);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+}
+
+[data-layout="arena"] .admin-badge-user strong {
+    color: var(--text-primary);
+}
+
+/* Onglets admin Arena (Pills segmentés) */
+[data-layout="arena"] .admin-tabs {
+    display: flex;
+    gap: 0.45rem;
+    padding: 0.4rem;
+    background: color-mix(in srgb, var(--bg-surface) 75%, transparent);
+    border: 1px solid var(--line-subtle);
+    border-radius: 999px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    margin-bottom: 2.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    width: max-content;
+    max-width: 100%;
+}
+
+[data-layout="arena"] .admin-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+[data-layout="arena"] .tab-btn {
+    border-radius: 999px;
+    border: 1px solid transparent;
+    padding: 0.55rem 1.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    background: transparent;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    white-space: nowrap;
+    box-shadow: none;
+}
+
+[data-layout="arena"] .tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-layout="arena"] .tab-btn.active {
+    background: var(--red-gradient, var(--red));
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: var(--red-glow);
+}
+
+[data-layout="arena"] .tab-btn-danger.active {
+    background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 20px rgba(185, 28, 28, 0.4);
+}
+
+[data-layout="arena"] .tab-btn .tab-badge {
+    background: var(--red);
+    color: #ffffff;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    line-height: 1.2;
+}
+
+[data-layout="arena"] .tab-btn.active .tab-badge {
+    background: #ffffff;
+    color: #b91c1c;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Panneaux et formulaires admin */
+[data-layout="arena"] .admin-panel {
+    background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+    border: 1px solid var(--line-subtle);
+    border-radius: 12px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--card-shadow);
+    padding: 1.85rem;
+}
+
+[data-layout="arena"] .admin-panel h3 {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+}
+
+[data-layout="arena"] .admin-form label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+    display: block;
+}
+
+[data-layout="arena"] .admin-form input,
+[data-layout="arena"] .admin-form select,
+[data-layout="arena"] .admin-form textarea {
+    background: color-mix(in srgb, var(--bg-root) 70%, transparent);
+    border: 1px solid var(--line-subtle);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    padding: 0.65rem 0.85rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+[data-layout="arena"] .admin-form input:focus,
+[data-layout="arena"] .admin-form select:focus,
+[data-layout="arena"] .admin-form textarea:focus {
+    border-color: var(--red);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--red-subtle);
+}
+
+/* Presets bar */
+[data-layout="arena"] .game-presets-bar {
+    margin-bottom: 1.25rem;
+    padding: 0.85rem;
+    background: color-mix(in srgb, var(--bg-root) 60%, transparent);
+    border: 1px solid var(--line-subtle);
+    border-radius: 8px;
+}
+
+[data-layout="arena"] .presets-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.55rem;
+}
+
+[data-layout="arena"] .presets-pills {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+[data-layout="arena"] .btn-preset-pill,
+[data-layout="arena"] .game-presets-bar .btn-game-preset {
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    background: transparent;
+    border: 1px solid var(--line-subtle);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+[data-layout="arena"] .btn-preset-pill:hover,
+[data-layout="arena"] .game-presets-bar .btn-game-preset:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+/* Zone planning et danger */
+[data-layout="arena"] .badge-planning {
+    background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #93c5fd;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+}
+
+[data-layout="arena"] .schedule-presets-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+[data-layout="arena"] .danger-card {
+    border-radius: 10px;
+    border: 1px solid var(--line-subtle);
+    background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+[data-layout="arena"] .danger-card:hover {
+    border-color: rgba(220, 38, 38, 0.4);
+}
+
+[data-layout="arena"] .danger-card-extreme {
+    border-color: rgba(220, 38, 38, 0.4);
+    background: color-mix(in srgb, #7f1d1d 15%, var(--bg-surface));
+}
+
+/* Cartes de soumissions d'arbitrage */
+[data-layout="arena"] .submission-card {
+    border-radius: 12px;
+    border: 1px solid var(--line-subtle);
+    background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+[data-layout="arena"] .sub-team-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+}
+
+[data-layout="arena"] .sub-scores-declared {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+[data-layout="arena"] .sub-placement-pill {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-root) 80%, transparent);
+    border: 1px solid var(--line-subtle);
+    color: var(--text-primary);
+}
+
+[data-layout="arena"] .sub-secondary-pill {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: var(--green-subtle);
+    border: 1px solid rgba(0, 255, 170, 0.3);
+    color: var(--green-status);
+}
+
+/* Cartes de matchs admin */
+[data-layout="arena"] .match-admin-card {
+    border-radius: 10px;
+    border: 1px solid var(--line-subtle);
+    background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+[data-layout="arena"] .match-admin-card.is-open {
+    border-left: 4px solid var(--green-status);
+}
+
+[data-layout="arena"] .match-admin-card.is-closed {
+    border-left: 4px solid var(--text-muted);
+    opacity: 0.85;
+}
+
+[data-layout="arena"] .match-admin-header h4 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* Tableaux admin Arena */
+[data-layout="arena"] .table-frame {
+    border: 1px solid var(--line-subtle);
+    border-radius: 10px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--bg-surface) 60%, transparent);
+}
+
+[data-layout="arena"] .standings-table th {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.45);
+    border-bottom: 1px solid var(--line-subtle);
+    padding: 0.75rem 1rem;
+    color: var(--text-secondary);
+}
+
+[data-layout="arena"] .standings-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+[data-layout="arena"] .standings-table tr:hover td {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+/* Modales d'administration */
+[data-layout="arena"] .modal-card {
+    border-radius: 14px;
+    border: 1px solid var(--line-strong);
+    background: color-mix(in srgb, var(--bg-surface) 95%, transparent);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9), var(--red-glow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* ==========================================================================
+   CAPTAIN / TEAM PORTAL (Arena theme harmonization)
+   ========================================================================== */
+
+/* Conteneur principal Espace Capitaine */
+.ar-captain-main {
+    max-width: 1240px;
+}
+
+/* Hero d'équipe Arena */
+.ar-hero-team {
+    min-height: auto;
+    padding: 3rem 0 2.5rem;
+    position: relative;
+    border-bottom: 1px solid var(--line-subtle);
+    margin-bottom: 2.5rem;
+}
+
+.ar-team-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .ar-team-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+.ar-hero-team .ar-lead {
+    margin: 0.75rem 0 0;
+    max-width: 580px;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+}
+
+/* Carte de Score Équipe eSport */
+.ar-team-score-card {
+    background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+    border: 1px solid var(--line-subtle);
+    border-radius: 14px;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--card-shadow), 0 0 30px rgba(229, 9, 20, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 200px;
+}
+
+.ar-score-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.ar-score-val {
+    font-family: var(--font-mono);
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--red);
+    text-shadow: var(--red-glow);
+    line-height: 1;
+}
+
+.ar-score-val small {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-left: 0.15rem;
+}
+
+.ar-score-link {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-top: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.ar-score-link:hover {
+    color: var(--red);
+}
+
+/* Grille 2 colonnes capitaine */
+.ar-captain-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .ar-captain-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Panneaux de carte Arena */
+.ar-card-panel {
+    background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+    border: 1px solid var(--line-subtle);
+    border-radius: 14px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--card-shadow);
+    padding: 1.85rem;
+}
+
+.ar-card-panel .ar-sec-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line-subtle);
+}
+
+.ar-card-panel .ar-sec-head h2 {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.ar-badge-pill {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-root) 70%, transparent);
+    border: 1px solid var(--line-subtle);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.ar-badge-red {
+    background: var(--red-subtle);
+    border-color: rgba(229, 9, 20, 0.35);
+    color: var(--red);
+}
+
+/* Boutons Arena en bloc */
+.ar-btn-block {
+    width: 100%;
+    justify-content: center;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    padding: 1rem 1.75rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.ar-btn-lg {
+    font-size: 0.95rem;
+}
+
+/* Liste des matchs capitaine */
+[data-layout="arena"] .match-item {
+    border: 1px solid var(--line-subtle);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-root) 65%, transparent);
+    padding: 1rem 1.15rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+[data-layout="arena"] .match-item:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: color-mix(in srgb, var(--bg-hover) 80%, transparent);
+    transform: translateX(4px);
+}
+
+[data-layout="arena"] .match-item.selected {
+    border-color: var(--red);
+    background: color-mix(in srgb, #7f1d1d 15%, var(--bg-root));
+    box-shadow: 0 0 16px var(--red-subtle);
+    border-left: 4px solid var(--red);
+}
+
+[data-layout="arena"] .match-item-header strong {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+[data-layout="arena"] .match-details-panel {
+    border: 1px solid var(--line-subtle);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-root) 50%, transparent);
+    padding: 1.15rem;
+    margin-top: 1.25rem;
+}
+
+[data-layout="arena"] .match-details-header h4 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Zone de drop de capture */
+[data-layout="arena"] .dropzone-area {
+    border: 2px dashed var(--line-subtle);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-root) 65%, transparent);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+[data-layout="arena"] .dropzone-area:focus,
+[data-layout="arena"] .dropzone-area.drag-active {
+    border-color: var(--red);
+    background: color-mix(in srgb, #7f1d1d 12%, var(--bg-root));
+    box-shadow: 0 0 18px var(--red-subtle);
+}
+
+[data-layout="arena"] .dropzone-tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--red-subtle);
+    border: 1px solid rgba(229, 9, 20, 0.35);
+    color: var(--red);
+    display: inline-block;
+    margin-bottom: 0.65rem;
+}
+
+[data-layout="arena"] .dropzone-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+[data-layout="arena"] .dropzone-actions .btn-text,
+[data-layout="arena"] .dropzone-actions .btn-outline {
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+}
+
+/* Boîte de confirmation et messages de succès */
+[data-layout="arena"] .submission-success-box {
+    border-radius: 10px;
+    border: 1px solid rgba(0, 255, 170, 0.3);
+    background: color-mix(in srgb, var(--green-subtle) 40%, var(--bg-root));
+    padding: 1.5rem;
+    text-align: center;
+}
+
+[data-layout="arena"] .submission-success-box .success-icon {
+    font-size: 2rem;
+    color: var(--green-status);
+    margin-bottom: 0.5rem;
+}
+
+[data-layout="arena"] .confirm-recap-box {
+    background: color-mix(in srgb, var(--bg-root) 70%, transparent);
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--line-subtle);
+    margin: 1rem 0;
 }

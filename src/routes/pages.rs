@@ -71,6 +71,7 @@ pub struct CaptainTemplate {
     pub total_points: u32,
     pub matches: Vec<CaptainMatchView>,
     pub status: Option<String>,
+    pub tournament_status: TournamentStatusView,
 }
 
 impl CaptainTemplate {
@@ -126,6 +127,58 @@ impl NavAuth {
             target_url: "/login".to_string(),
             label: "Connexion".to_string(),
         }
+    }
+}
+
+pub async fn get_tournament_status_view(db: &mongodb::Database) -> TournamentStatusView {
+    let settings = db::get_tournament_settings(db).await.unwrap_or_default();
+    let (label, dot_color) = if settings.is_paused {
+        ("TOURNOI EN PAUSE".to_string(), "#f97316".to_string())
+    } else {
+        let now = chrono::Utc::now();
+        let parse_dt = |s: &str| -> Option<chrono::DateTime<chrono::Utc>> {
+            chrono::DateTime::parse_from_rfc3339(s)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .or_else(|_| {
+                    chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M")
+                        .map(|naive| chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(naive, chrono::Utc))
+                })
+                .ok()
+        };
+
+        let start_dt = settings.start_at.as_deref().and_then(parse_dt);
+        let end_dt = settings.end_at.as_deref().and_then(parse_dt);
+
+        if let Some(start) = start_dt {
+            if now < start {
+                ("TOURNOI À VENIR".to_string(), "#eab308".to_string())
+            } else if let Some(end) = end_dt {
+                if now > end {
+                    ("TOURNOI TERMINÉ".to_string(), "#64748b".to_string())
+                } else {
+                    ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+                }
+            } else {
+                ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+            }
+        } else if let Some(end) = end_dt {
+            if now > end {
+                ("TOURNOI TERMINÉ".to_string(), "#64748b".to_string())
+            } else {
+                ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+            }
+        } else {
+            ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+        }
+    };
+
+    TournamentStatusView {
+        label,
+        dot_color,
+        start_at: settings.start_at,
+        end_at: settings.end_at,
+        is_paused: settings.is_paused,
+        is_running: !settings.is_paused,
     }
 }
 
@@ -214,55 +267,7 @@ pub async fn serve_home_page(State(state): State<Arc<AppState>>, jar: CookieJar)
         })
         .collect();
 
-    let settings = db::get_tournament_settings(&state.db).await.unwrap_or_default();
-    let (label, dot_color) = if settings.is_paused {
-        ("TOURNOI EN PAUSE".to_string(), "#f97316".to_string())
-    } else {
-        let now = chrono::Utc::now();
-        let parse_dt = |s: &str| -> Option<chrono::DateTime<chrono::Utc>> {
-            chrono::DateTime::parse_from_rfc3339(s)
-                .map(|dt| dt.with_timezone(&chrono::Utc))
-                .or_else(|_| {
-                    chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M")
-                        .map(|naive| chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(naive, chrono::Utc))
-                })
-                .ok()
-        };
-
-        let start_dt = settings.start_at.as_deref().and_then(parse_dt);
-        let end_dt = settings.end_at.as_deref().and_then(parse_dt);
-
-        if let Some(start) = start_dt {
-            if now < start {
-                ("TOURNOI À VENIR".to_string(), "#eab308".to_string())
-            } else if let Some(end) = end_dt {
-                if now > end {
-                    ("TOURNOI TERMINÉ".to_string(), "#64748b".to_string())
-                } else {
-                    ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
-                }
-            } else {
-                ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
-            }
-        } else if let Some(end) = end_dt {
-            if now > end {
-                ("TOURNOI TERMINÉ".to_string(), "#64748b".to_string())
-            } else {
-                ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
-            }
-        } else {
-            ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
-        }
-    };
-
-    let status_view = TournamentStatusView {
-        label,
-        dot_color,
-        start_at: settings.start_at,
-        end_at: settings.end_at,
-        is_paused: settings.is_paused,
-        is_running: !settings.is_paused,
-    };
+    let status_view = get_tournament_status_view(&state.db).await;
 
     HtmlTemplate(IndexTemplate {
         games: games_view,
@@ -707,11 +712,14 @@ pub async fn serve_captain_page(
         })
         .collect();
 
+    let tournament_status = get_tournament_status_view(&state.db).await;
+
     let template = CaptainTemplate {
         team_name: team.name,
         total_points: team.total_points,
         matches: matches_view,
         status: query.status,
+        tournament_status,
     };
     HtmlTemplate(template).into_response()
 }

@@ -13,11 +13,10 @@
         }
 
         var themes = ['tactical-broadcast', 'neo-arcade', 'industrial-brutalism', 'stealth-laser'];
-        var layouts = ['arena', 'tactical-deck', 'bento-grid'];
         var t = localStorage.getItem('ltm_theme');
         if (themes.indexOf(t) === -1) t = 'tactical-broadcast';
-        var l = localStorage.getItem('ltm_layout');
-        if (layouts.indexOf(l) === -1) l = 'arena';
+        var l = 'arena';
+        localStorage.setItem('ltm_layout', 'arena');
         var root = document.documentElement;
         root.setAttribute('data-theme', t);
         root.setAttribute('data-layout', l);

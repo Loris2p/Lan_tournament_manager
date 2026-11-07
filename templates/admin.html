@@ -3,9 +3,10 @@
 {% block title %}Back-Office Arbitrage{% endblock %}
 {% block body_class %}admin-page{% endblock %}
 {% block brand_title %}CENTRE DE CONTRÔLE // ADMIN{% endblock %}
+{% block brand_url %}/admin{% endblock %}
 
 {% block nav %}
-            <a href="/leaderboard.html" target="_blank" class="nav-link">Grand Écran ↗</a>
+            <a href="/" class="nav-link">Accueil</a>
 {% endblock %}
 
 {% block topbar_right %}
@@ -25,6 +26,18 @@
 
 {% block content %}
     <main class="page-container">
+
+        <header class="admin-header-bar">
+            <div class="admin-header-titles">
+                <span class="ar-tag ar-tag-live">CONSOLE D'ARBITRAGE</span>
+                <h1 class="admin-main-title">GESTION DU TOURNOI</h1>
+            </div>
+            <div class="admin-header-meta">
+                <span class="admin-badge-user">
+                    ADMIN : <strong>{{ admin_username.to_uppercase() }}</strong>
+                </span>
+            </div>
+        </header>
 
         <nav class="admin-tabs" id="admin-tabs-nav">
             <button type="button" class="tab-btn active" data-tab="arbitrage">
@@ -108,15 +121,15 @@
                     <h3>AJOUTER UNE ÉPREUVE AU CATALOGUE</h3>
                     <p class="panel-desc">Définissez le barème dynamique et les limites anti-triche du jeu.</p>
 
-                    <div class="game-presets-bar" style="margin-bottom: 1.25rem; padding: 0.75rem; background: var(--bg-surface-2, rgba(255,255,255,0.03)); border: 1px solid var(--border-color); border-radius: 6px;">
-                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">MODÈLES DE JEUX PRÉCONFIGURÉS (1 CLIC) :</span>
-                        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="apex">Apex Legends</button>
-                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="lol">League of Legends</button>
-                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="fallguys">Fall Guys</button>
-                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="geoguessr">GeoGuessr</button>
-                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="ssbu">Smash Bros</button>
-                            <button type="button" class="btn-outline btn-sm btn-game-preset" data-preset="mk8">Mario Kart 8</button>
+                    <div class="game-presets-bar">
+                        <span class="presets-label">MODÈLES DE JEUX PRÉCONFIGURÉS (1 CLIC) :</span>
+                        <div class="presets-pills">
+                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="apex">Apex Legends</button>
+                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="lol">League of Legends</button>
+                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="fallguys">Fall Guys</button>
+                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="geoguessr">GeoGuessr</button>
+                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="ssbu">Smash Bros</button>
+                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="mk8">Mario Kart 8</button>
                         </div>
                     </div>
 
@@ -458,22 +471,22 @@
         </div>
 
         <div class="tab-pane" id="tab-danger">
-            <div class="danger-box" style="margin-bottom: 2.5rem; border-color: var(--line-subtle); background: var(--bg-surface);">
+            <div class="danger-box schedule-box">
                 <div class="danger-header">
-                    <span class="badge-format" style="background: #2563eb; color: #fff;">PLANNING & HORAIRES</span>
+                    <span class="badge-planning">PLANNING & HORAIRES</span>
                     <h2>CYCLE DE VIE DU TOURNOI</h2>
                     <p>Définissez les dates de début et de fin de la LAN pour activer le compte à rebours interactif sur la page d'accueil.</p>
                 </div>
 
                 <form id="tournament-schedule-form" class="admin-form" style="max-width: 680px; margin-top: 1.5rem;">
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
-                        <button type="button" class="btn-text" id="schedule-preset-weekend" style="font-size: 0.72rem; padding: 0.35rem 0.65rem;">
+                    <div class="schedule-presets-bar">
+                        <button type="button" class="btn-preset-pill" id="schedule-preset-weekend">
                             Prochain week-end (Ven 18h → Dim 18h)
                         </button>
-                        <button type="button" class="btn-text" id="schedule-preset-48h" style="font-size: 0.72rem; padding: 0.35rem 0.65rem;">
+                        <button type="button" class="btn-preset-pill" id="schedule-preset-48h">
                             Fin = Début + 48h
                         </button>
-                        <button type="button" class="btn-text" id="schedule-preset-clear" style="font-size: 0.72rem; padding: 0.35rem 0.65rem; color: var(--red);">
+                        <button type="button" class="btn-preset-pill" id="schedule-preset-clear" style="color: var(--red);">
                             Effacer les dates
                         </button>
                     </div>

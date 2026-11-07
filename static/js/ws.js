@@ -59,7 +59,7 @@ class WsClient {
     }
 
     updateIndicator(connected) {
-        const dot = document.querySelector('.status-dot');
+        const dot = document.querySelector('#ws-indicator .status-dot') || document.querySelector('.status-dot:not(#tournament-kicker-dot)');
         const text = document.getElementById('ws-status-text');
 
         if (dot) {

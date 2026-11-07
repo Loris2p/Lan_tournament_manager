@@ -20,10 +20,6 @@ export function getActiveTheme() {
 }
 
 export function getActiveLayout() {
-    const saved = localStorage.getItem(LAYOUT_KEY);
-    if (saved === 'tactical-deck' || saved === 'arena') {
-        return saved;
-    }
     return 'arena';
 }
 
@@ -88,6 +84,8 @@ export function initSwitcher() {
     const body = document.createElement('div');
     body.className = 'settings-dropdown-body';
 
+    // Sélecteur de thème temporairement désactivé pour ne conserver qu'Arena (conservé pour réactivation future si besoin)
+    /*
     const styleGroup = document.createElement('div');
     styleGroup.className = 'settings-group';
 
@@ -125,6 +123,7 @@ export function initSwitcher() {
     styleGroup.appendChild(styleLabel);
     styleGroup.appendChild(styleSelect);
     body.appendChild(styleGroup);
+    */
 
     const fsGroup = document.createElement('div');
     fsGroup.className = 'settings-group';

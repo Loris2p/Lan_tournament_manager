@@ -18,8 +18,10 @@
     <header class="topbar">
         <div class="topbar-inner">
             <div class="brand">
-                <a href="/">
+                <a href="/" title="Accueil du tournoi">
                     <img src="/logo.png" alt="Logo" class="brand-logo">
+                </a>
+                <a href="{% block brand_url %}/{% endblock %}">
                     <span class="brand-title">{% block brand_title %}LAN TOURNAMENT MANAGER{% endblock %}</span>
                 </a>
             </div>
