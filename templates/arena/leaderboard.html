@@ -18,83 +18,49 @@
     </nav>
 
     <div class="tab-pane active" id="tab-general">
-        <div class="ar-lb-grid">
+        <p class="ar-count" id="standings-count">{{ teams.len() }} ÉQUIPE{% if teams.len() > 1 %}S{% endif %} EN COURSE</p>
 
-            <div class="ar-lb-left">
-                <p class="ar-count" id="standings-count">{{ teams.len() }} ÉQUIPE{% if teams.len() > 1 %}S{% endif %} EN COURSE</p>
-
-                <div class="ar-podium" id="podium-container">
-                    <div class="ar-pod ar-pod-2" id="podium-second">
-                        <span class="ar-pod-rank" aria-hidden="true">2</span>
-                        <span class="ar-pod-label">Dauphin</span>
-                        <h3 class="ar-pod-name" id="podium-2-name">{% if let Some(t) = second() %}{{ t.name }}{% else %}--{% endif %}</h3>
-                        <div class="ar-pod-points" id="podium-2-points">{% if let Some(t) = second() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
-                    </div>
-                    <div class="ar-pod ar-pod-1" id="podium-first">
-                        <span class="ar-pod-rank" aria-hidden="true">1</span>
-                        <span class="ar-pod-label">Leader du tournoi</span>
-                        <h3 class="ar-pod-name" id="podium-1-name">{% if let Some(t) = first() %}{{ t.name }}{% else %}--{% endif %}</h3>
-                        <div class="ar-pod-points" id="podium-1-points">{% if let Some(t) = first() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
-                    </div>
-                    <div class="ar-pod ar-pod-3" id="podium-third">
-                        <span class="ar-pod-rank" aria-hidden="true">3</span>
-                        <span class="ar-pod-label">Troisième</span>
-                        <h3 class="ar-pod-name" id="podium-3-name">{% if let Some(t) = third() %}{{ t.name }}{% else %}--{% endif %}</h3>
-                        <div class="ar-pod-points" id="podium-3-points">{% if let Some(t) = third() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
-                    </div>
-                </div>
-
-                <table class="ar-table" id="leaderboard-table">
-                    <thead>
-                        <tr><th>Pos</th><th>Équipe</th><th>Points cumulés</th></tr>
-                    </thead>
-                    <tbody id="leaderboard-tbody">
-                        {% if remaining_teams().is_empty() %}
-                            {% if teams.is_empty() %}
-                            <tr><td colspan="3" class="ar-empty">Aucune équipe inscrite pour le moment.</td></tr>
-                            {% endif %}
-                        {% else %}
-                            {% for t in remaining_teams() %}
-                            <tr>
-                                <td class="ar-rk">{% if loop.index + 3 < 10 %}0{{ loop.index + 3 }}{% else %}{{ loop.index + 3 }}{% endif %}</td>
-                                <td class="ar-tm">{{ t.name }}</td>
-                                <td class="ar-pt">{{ t.total_points }} PTS</td>
-                            </tr>
-                            {% endfor %}
-                        {% endif %}
-                    </tbody>
-                </table>
+        <div class="ar-podium" id="podium-container">
+            <div class="ar-pod ar-pod-2" id="podium-second">
+                <span class="ar-pod-rank" aria-hidden="true">2</span>
+                <span class="ar-pod-label">Dauphin</span>
+                <h3 class="ar-pod-name" id="podium-2-name">{% if let Some(t) = second() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                <div class="ar-pod-points" id="podium-2-points">{% if let Some(t) = second() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
             </div>
-
-            <aside class="ar-lb-right">
-                <div class="ar-aside-head">
-                    <h2>Lobbies en cours</h2>
-                    <span class="ar-live-chip">● En ligne</span>
-                </div>
-                <div class="ar-lobbies" id="live-matches-list">
-                    {% if live_matches.is_empty() %}
-                    <div class="ar-empty">Aucun match ouvert aux soumissions pour le moment.</div>
-                    {% else %}
-                    {% for m in live_matches %}
-                    <div class="ar-lobby">
-                        <div class="ar-lobby-top">
-                            <strong>{{ m.game_name }}</strong>
-                            <span class="ar-live-chip">En cours</span>
-                        </div>
-                        <p>
-                            {% if m.instructions.trim().is_empty() %}
-                                En attente des consignes d'arbitrage
-                            {% else %}
-                                {{ m.instructions }}
-                            {% endif %}
-                        </p>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-                </div>
-            </aside>
-
+            <div class="ar-pod ar-pod-1" id="podium-first">
+                <span class="ar-pod-rank" aria-hidden="true">1</span>
+                <span class="ar-pod-label">Leader du tournoi</span>
+                <h3 class="ar-pod-name" id="podium-1-name">{% if let Some(t) = first() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                <div class="ar-pod-points" id="podium-1-points">{% if let Some(t) = first() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
+            </div>
+            <div class="ar-pod ar-pod-3" id="podium-third">
+                <span class="ar-pod-rank" aria-hidden="true">3</span>
+                <span class="ar-pod-label">Troisième</span>
+                <h3 class="ar-pod-name" id="podium-3-name">{% if let Some(t) = third() %}{{ t.name }}{% else %}--{% endif %}</h3>
+                <div class="ar-pod-points" id="podium-3-points">{% if let Some(t) = third() %}{{ t.total_points }} PTS{% else %}--{% endif %}</div>
+            </div>
         </div>
+
+        <table class="ar-table" id="leaderboard-table">
+            <thead>
+                <tr><th>Pos</th><th>Équipe</th><th>Points cumulés</th></tr>
+            </thead>
+            <tbody id="leaderboard-tbody">
+                {% if remaining_teams().is_empty() %}
+                    {% if teams.is_empty() %}
+                    <tr><td colspan="3" class="ar-empty">Aucune équipe inscrite pour le moment.</td></tr>
+                    {% endif %}
+                {% else %}
+                    {% for t in remaining_teams() %}
+                    <tr>
+                        <td class="ar-rk">{% if loop.index + 3 < 10 %}0{{ loop.index + 3 }}{% else %}{{ loop.index + 3 }}{% endif %}</td>
+                        <td class="ar-tm">{{ t.name }}</td>
+                        <td class="ar-pt">{{ t.total_points }} PTS</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 
     {% for g in game_leaderboards %}
