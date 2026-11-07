@@ -156,8 +156,11 @@ pub struct TournamentSettings {
     pub global_placement_points: Vec<u32>,
 }
 impl TournamentSettings {
-    pub fn points_for_rank(&self, rank :usize) -> u32{
-        self.global_placement_points.get(rank.saturating_sub(1)).copied().unwrap_or(0)
+    pub fn points_for_rank(&self, rank: usize) -> u32 {
+        if rank == 0 {
+            return 0;
+        }
+        self.global_placement_points.get(rank - 1).copied().unwrap_or(0)
     }
 }
 

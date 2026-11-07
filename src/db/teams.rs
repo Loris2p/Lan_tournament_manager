@@ -93,20 +93,7 @@ pub async fn delete_team(db: &Database, team_id: ObjectId) -> Result<(), Errors>
     }
     Ok(())
 }
-pub async fn add_points_to_team(
-    db: &Database,
-    team_id: ObjectId,
-    points: u32,
-) -> Result<(), Errors> {
-    let res = db
-        .collection::<Team>("teams")
-        .update_one(doc! {"_id":team_id}, doc! {"$inc":{"total_points":points}})
-        .await?;
-    if res.matched_count == 0 {
-        return Err(Errors::Error404NotFound("Équipe introuvable".to_string()));
-    }
-    Ok(())
-}
+
 pub async fn adjust_team_points(
     db: &Database,
     team_id: ObjectId,
