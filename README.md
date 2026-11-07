@@ -190,7 +190,6 @@ Lan_tournament_manager/
 ├── Cargo.lock            # Arbre résolu et verrouillé des dépendances
 ├── .env.example          # Gabarit des variables d'environnement
 ├── docker-compose.yml    # Service de base de données MongoDB local
-├── deploiement.md        # Guide d'exploitation et procédures de déploiement
 ├── README.md             # Documentation générale du projet
 ├── src/
 │   ├── main.rs           # Point d'entrée, initialisation Tokio, MongoDB et Axum
@@ -237,6 +236,14 @@ Lan_tournament_manager/
 
 ---
 
-## 7. Exploitation et Déploiement
+## 7. Lancement Local
 
-Pour les détails relatifs au déploiement en production, à la sauvegarde ou à la migration des données MongoDB (notamment vers un hébergeur cloud tel que Clever Cloud), consulter le guide dédié dans [`deploiement.md`](deploiement.md).
+1. Démarrer la base de données MongoDB locale :
+   ```bash
+   docker compose up -d
+   ```
+2. Configurer les variables d'environnement en copiant `.env.example` vers `.env`.
+3. Lancer le serveur :
+   ```bash
+   cargo run
+   ```

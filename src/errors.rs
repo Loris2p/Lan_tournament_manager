@@ -40,7 +40,6 @@ impl IntoResponse for Errors {
         (status, Json(json!({"error":message}))).into_response()
     }
 }
-// Erreurs liées à la connexion discord
 impl From<bcrypt::BcryptError> for Errors {
     fn from(err: bcrypt::BcryptError) -> Self {
         Errors::Error500InternalError(err.to_string())

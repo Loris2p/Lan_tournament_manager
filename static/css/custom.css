@@ -139,6 +139,19 @@ a {
     gap: 0.75rem;
 }
 
+.brand-logo {
+    height: 30px;
+    width: 30px;
+    object-fit: contain;
+    border-radius: var(--radius-sm, 6px);
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.brand a:hover .brand-logo {
+    transform: scale(1.05);
+}
+
 .brand-tag {
     background: var(--red-gradient, var(--red));
     box-shadow: var(--red-glow);

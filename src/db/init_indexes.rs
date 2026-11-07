@@ -8,7 +8,7 @@ use mongodb::{
 
 pub async fn init_indexes(db: &Database) -> Result<(), Errors> {
     let unique_option = IndexOptions::builder().unique(true).build();
-    //
+
     let admin_index = IndexModel::builder()
         .keys(doc! {"username":1})
         .options(unique_option.clone())
@@ -16,7 +16,7 @@ pub async fn init_indexes(db: &Database) -> Result<(), Errors> {
     db.collection::<Admin>("admins")
         .create_index(admin_index)
         .await?;
-    //
+
     let submissions = IndexModel::builder()
         .keys(doc! {"match_id":1, "team_id":1})
         .options(unique_option.clone())
@@ -24,7 +24,7 @@ pub async fn init_indexes(db: &Database) -> Result<(), Errors> {
     db.collection::<Submission>("submissions")
         .create_index(submissions)
         .await?;
-    //
+
     let teams_captain = IndexModel::builder()
         .keys(doc! { "captain_username": 1 })
         .options(unique_option.clone())

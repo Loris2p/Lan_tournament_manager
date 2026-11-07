@@ -1,5 +1,3 @@
-// #![allow(dead_code)]
-
 use crate::errors::Errors;
 use crate::routes::create_router;
 use axum::extract::DefaultBodyLimit;
