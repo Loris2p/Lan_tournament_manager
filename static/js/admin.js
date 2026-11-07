@@ -23,12 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function initWebSocket() {
     wsClient.connect();
 
-    wsClient.on('NEW_SUBMISSION', () => {
+    wsClient.on('NEW_SUBMISSION', async () => {
         showToast("Nouveau score en attente d'arbitrage !", "info");
-        const badge = document.getElementById('pending-badge');
-        if (badge) {
-            badge.textContent = (parseInt(badge.textContent, 10) || 0) + 1;
-        }
+        await refreshSubmissionsSilently();
     });
 
     wsClient.on('LEADERBOARD_UPDATE', () => {
@@ -67,7 +64,7 @@ function initTabs() {
     });
 }
 
-function initSubmissions() {
+function wireSubmissionMediaZoom() {
     const listEl = document.getElementById('submissions-list');
     if (listEl) {
         listEl.querySelectorAll('.sub-media').forEach(media => {
@@ -81,9 +78,38 @@ function initSubmissions() {
             });
         });
     }
+}
 
-    document.getElementById('refresh-submissions-btn')?.addEventListener('click', () => {
-        window.location.reload();
+async function refreshSubmissionsSilently() {
+    try {
+        const res = await fetch(window.location.href);
+        if (!res.ok) return;
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+        const newList = doc.getElementById('submissions-list');
+        const currentList = document.getElementById('submissions-list');
+        if (newList && currentList) {
+            currentList.innerHTML = newList.innerHTML;
+            wireSubmissionMediaZoom();
+        }
+
+        const newBadge = doc.getElementById('pending-badge');
+        const currentBadge = document.getElementById('pending-badge');
+        if (newBadge && currentBadge) {
+            currentBadge.textContent = newBadge.textContent;
+        }
+    } catch (e) {
+        console.warn("Échec du rafraîchissement silencieux des soumissions:", e);
+    }
+}
+
+function initSubmissions() {
+    wireSubmissionMediaZoom();
+
+    document.getElementById('refresh-submissions-btn')?.addEventListener('click', async () => {
+        await refreshSubmissionsSilently();
+        showToast("File d'arbitrage synchronisée !", "info");
     });
 }
 

@@ -43,17 +43,24 @@
 
     <main class="page-container">
 
-        <!-- Barre de navigation des onglets de classement -->
-        <nav class="admin-tabs" id="leaderboard-tabs-nav" style="margin-top: 1.5rem;">
-            <button type="button" class="tab-btn active" data-tab="general">
-                🏆 Classement Général
-            </button>
-            {% for g in game_leaderboards %}
-            <button type="button" class="tab-btn" data-tab="game-{{ g.game_id }}">
-                {{ g.game_name }}
-            </button>
-            {% endfor %}
-        </nav>
+        <!-- Barre de navigation des onglets de classement avec contrôles Kiosk -->
+        <div class="tabs-toolbar" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line-subtle); margin-top: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; gap: 0.75rem;">
+            <nav class="admin-tabs" id="leaderboard-tabs-nav" style="border-bottom: none; margin-bottom: 0;">
+                <button type="button" class="tab-btn active" data-tab="general">
+                    🏆 Classement Général
+                </button>
+                {% for g in game_leaderboards %}
+                <button type="button" class="tab-btn" data-tab="game-{{ g.game_id }}">
+                    {{ g.game_name }}
+                </button>
+                {% endfor %}
+            </nav>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                <button type="button" id="auto-kiosk-btn" class="btn-outline btn-sm" title="Alterner automatiquement entre les onglets pour vidéoprojecteur">
+                    ⏱️ Défilement Auto : OFF
+                </button>
+            </div>
+        </div>
 
         <!-- ========================================== -->
         <!-- ONGLET 1 : CLASSEMENT GÉNÉRAL             -->

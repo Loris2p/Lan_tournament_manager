@@ -1,5 +1,5 @@
 import { wsClient } from './ws.js';
-import { showToast } from './ui.js';
+import { showToast, openModal, closeModal } from './ui.js';
 
 let selectedMatch = null;
 
@@ -9,8 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initFormSubmit();
 
     wsClient.connect();
-    wsClient.on('LEADERBOARD_UPDATE', () => {
-        window.location.reload();
+    wsClient.on('LEADERBOARD_UPDATE', async () => {
+        await updateCaptainPointsSilently();
+        if (isFormDirty()) {
+            showToast("Classement mis à jour (votre saisie en cours est préservée)", "info");
+        } else {
+            window.location.reload();
+        }
     });
 
     const newSubBtn = document.getElementById('new-submission-btn');
@@ -138,6 +143,15 @@ function initDropzoneAndPaste() {
         }
     });
 
+    const cameraInput = document.getElementById('camera-input');
+    if (cameraInput) {
+        cameraInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                processAndCompressImage(e.target.files[0]);
+            }
+        });
+    }
+
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropzone.classList.add('drag-active');
@@ -163,11 +177,13 @@ function initDropzoneAndPaste() {
 function resetImage() {
     const proofInput = document.getElementById('sub-proof-base64');
     const fileInput = document.getElementById('file-input');
+    const cameraInput = document.getElementById('camera-input');
     const previewWrapper = document.getElementById('preview-wrapper');
     const dropzonePrompt = document.getElementById('dropzone-prompt');
 
     if (proofInput) proofInput.value = '';
     if (fileInput) fileInput.value = '';
+    if (cameraInput) cameraInput.value = '';
     if (previewWrapper) previewWrapper.style.display = 'none';
     if (dropzonePrompt) dropzonePrompt.style.display = 'block';
 }
@@ -178,6 +194,7 @@ function processAndCompressImage(file) {
         return;
     }
 
+    const originalSizeKb = Math.round(file.size / 1024);
     const reader = new FileReader();
     reader.onload = (event) => {
         const img = new Image();
@@ -215,7 +232,14 @@ function processAndCompressImage(file) {
             const previewBadge = document.getElementById('preview-size-badge');
 
             if (previewImg) previewImg.src = dataUrl;
-            if (previewBadge) previewBadge.textContent = `${sizeKb} Ko [Compressé]`;
+            if (previewBadge) {
+                if (originalSizeKb > sizeKb) {
+                    const ratio = Math.round((1 - sizeKb / originalSizeKb) * 100);
+                    previewBadge.textContent = `✓ Optimisée : ${originalSizeKb} Ko ➔ ${sizeKb} Ko (-${ratio}%)`;
+                } else {
+                    previewBadge.textContent = `${sizeKb} Ko [Compressé]`;
+                }
+            }
 
             const prompt = document.getElementById('dropzone-prompt');
             const wrapper = document.getElementById('preview-wrapper');
@@ -230,23 +254,98 @@ function processAndCompressImage(file) {
 function initFormSubmit() {
     const form = document.getElementById('submission-form');
     const submitBtn = document.getElementById('submit-score-btn');
+    const finalConfirmBtn = document.getElementById('btn-final-confirm-submit');
     if (!form || !submitBtn) return;
 
+    // Fermeture de la modale de confirmation
+    document.querySelectorAll('[data-close-modal="modal-confirm-submission"]').forEach(btn => {
+        btn.addEventListener('click', () => closeModal('modal-confirm-submission'));
+    });
+
+    let isConfirmed = false;
+
     form.addEventListener('submit', (e) => {
+        if (isConfirmed) return; // Soumission autorisée suite à la modale
+
+        e.preventDefault();
+
         if (!selectedMatch) {
-            e.preventDefault();
             showToast("Veuillez sélectionner un match.", "error");
+            return;
+        }
+
+        const placementInput = document.getElementById('sub-placement');
+        if (!placementInput || !placementInput.value.trim()) {
+            showToast("Veuillez indiquer le classement final obtenu.", "error");
+            placementInput?.focus();
             return;
         }
 
         const proofInput = document.getElementById('sub-proof-base64');
         if (!proofInput || !proofInput.value) {
-            e.preventDefault();
             showToast("Veuillez joindre une capture d'écran faisant foi (Ctrl + V).", "error");
             return;
         }
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Transmission en cours...";
+        // Remplir la modale de confirmation
+        const confGame = document.getElementById('confirm-game');
+        const confPlacement = document.getElementById('confirm-placement');
+        const confSecRow = document.getElementById('confirm-sec-row');
+        const confSecLabel = document.getElementById('confirm-sec-label');
+        const confSecValue = document.getElementById('confirm-sec-value');
+
+        if (confGame) confGame.textContent = `${selectedMatch.game_name} — ${selectedMatch.title}`;
+        if (confPlacement) {
+            confPlacement.textContent = `${placementInput.value}${placementInput.value === '1' ? 'er (Victoire / Top 1)' : 'e place'}`;
+        }
+
+        const secInput = document.getElementById('sub-secondary');
+        const secLabelEl = document.getElementById('secondary-stat-label');
+        if (secInput && secLabelEl && secInput.value && secInput.offsetParent !== null) {
+            if (confSecRow) confSecRow.style.display = 'block';
+            if (confSecLabel) confSecLabel.textContent = secLabelEl.textContent;
+            if (confSecValue) confSecValue.textContent = secInput.value;
+        } else if (confSecRow) {
+            confSecRow.style.display = 'none';
+        }
+
+        openModal('modal-confirm-submission');
     });
+
+    if (finalConfirmBtn) {
+        finalConfirmBtn.addEventListener('click', () => {
+            isConfirmed = true;
+            closeModal('modal-confirm-submission');
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Transmission en cours...";
+            form.submit();
+        });
+    }
+}
+
+function isFormDirty() {
+    const proofInput = document.getElementById('sub-proof-base64');
+    const placementInput = document.getElementById('sub-placement');
+    const secInput = document.getElementById('sub-secondary');
+    const hasProof = Boolean(proofInput && proofInput.value && proofInput.value.trim().length > 0);
+    const hasPlacement = Boolean(placementInput && placementInput.value.trim().length > 0);
+    const hasSec = Boolean(secInput && secInput.value.trim().length > 0);
+    return hasProof || hasPlacement || hasSec;
+}
+
+async function updateCaptainPointsSilently() {
+    try {
+        const res = await fetch(window.location.href);
+        if (!res.ok) return;
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const newPts = doc.getElementById('captain-team-points');
+        const currentPts = document.getElementById('captain-team-points');
+        if (newPts && currentPts && newPts.textContent !== currentPts.textContent) {
+            currentPts.textContent = newPts.textContent;
+            showToast(`Points de votre équipe actualisés : ${newPts.textContent}`, 'info');
+        }
+    } catch (e) {
+        console.warn('Erreur lors de la mise à jour silencieuse des points:', e);
+    }
 }
