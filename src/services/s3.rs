@@ -1,5 +1,5 @@
 use crate::errors::Errors;
-use aws_config::{BehaviorVersion, Region};
+use aws_sdk_s3::config::{BehaviorVersion, Region};
 use aws_sdk_s3::Client;
 use aws_sdk_s3::config::Credentials;
 use aws_sdk_s3::primitives::ByteStream;
