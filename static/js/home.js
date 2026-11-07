@@ -1,9 +1,3 @@
-/**
- * Logique de la page d'accueil (index.html)
- * - Données rendues en SSR (Askama)
- * - Carrousel fluide avec support des boutons, dots et touches clavier
- */
-
 import { wsClient } from './ws.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,5 +58,4 @@ function initGamesCarousel() {
 
     updateCarousel();
 }
-
 

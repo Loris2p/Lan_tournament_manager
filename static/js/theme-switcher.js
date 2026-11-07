@@ -1,9 +1,3 @@
-/**
- * Gestionnaire d'ambiances visuelles et de dispositions de page (theme-switcher.js)
- * - Thèmes : Pro Esport Glass, Cyber Crimson
- * - Dispositions : Sidebar HUD, Stack Classique
- */
-
 const THEMES = [
     { id: 'modern-esport', label: 'Glass' },
     { id: 'cyber-crimson', label: 'Crimson' }
@@ -52,22 +46,18 @@ export function setLayout(layoutId) {
 }
 
 export function initSwitcher() {
-    // 1. Appliquer thème et disposition actifs
     setTheme(getActiveTheme());
     setLayout(getActiveLayout());
 
-    // 2. Insérer le menu de paramètres dans la topbar si présente
     const topbarRight = document.querySelector('.topbar-right');
     if (!topbarRight || document.getElementById('settings-menu-container')) {
         return;
     }
 
-    // Conteneur principal
     const container = document.createElement('div');
     container.id = 'settings-menu-container';
     container.className = 'settings-menu-wrapper';
 
-    // Bouton déclencheur
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'settings-toggle-btn';
@@ -77,23 +67,19 @@ export function initSwitcher() {
     btn.title = 'Paramètres d\'affichage';
     btn.innerHTML = `<span class="papicon icon-gears" aria-hidden="true"></span><span class="settings-btn-label">Options</span>`;
 
-    // Panneau déroulant (masqué par défaut)
     const dropdown = document.createElement('div');
     dropdown.id = 'settings-dropdown';
     dropdown.className = 'settings-dropdown';
     dropdown.setAttribute('hidden', '');
 
-    // En-tête
     const header = document.createElement('div');
     header.className = 'settings-dropdown-header';
     header.innerHTML = `<span class="settings-dropdown-title"><span class="papicon icon-gears" aria-hidden="true"></span> Paramètres</span>`;
     dropdown.appendChild(header);
 
-    // Corps du menu
     const body = document.createElement('div');
     body.className = 'settings-dropdown-body';
 
-    // Groupe 1 : Ambiance visuelle (Thème)
     const themeGroup = document.createElement('div');
     themeGroup.className = 'settings-group';
 
@@ -124,7 +110,6 @@ export function initSwitcher() {
     themeGroup.appendChild(themeSelect);
     body.appendChild(themeGroup);
 
-    // Groupe 2 : Disposition (Layout)
     const layoutGroup = document.createElement('div');
     layoutGroup.className = 'settings-group';
 
@@ -155,7 +140,6 @@ export function initSwitcher() {
     layoutGroup.appendChild(layoutSelect);
     body.appendChild(layoutGroup);
 
-    // Groupe 3 : Mode Plein Écran [F11]
     const fsGroup = document.createElement('div');
     fsGroup.className = 'settings-group';
 
@@ -189,7 +173,6 @@ export function initSwitcher() {
     container.appendChild(btn);
     container.appendChild(dropdown);
 
-    // Logique d'ouverture / fermeture
     const toggleMenu = (forceState) => {
         const isCurrentlyHidden = dropdown.hasAttribute('hidden');
         const shouldOpen = forceState !== undefined ? forceState : isCurrentlyHidden;
@@ -208,14 +191,12 @@ export function initSwitcher() {
         toggleMenu();
     });
 
-    // Clic en dehors -> refermer
     document.addEventListener('click', (e) => {
         if (!container.contains(e.target)) {
             toggleMenu(false);
         }
     });
 
-    // Touche Échap -> refermer et redonner le focus au bouton
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !dropdown.hasAttribute('hidden')) {
             toggleMenu(false);
@@ -223,7 +204,6 @@ export function initSwitcher() {
         }
     });
 
-    // Insérer juste avant l'indicateur WebSocket
     const wsIndicator = document.getElementById('ws-indicator');
     if (wsIndicator) {
         topbarRight.insertBefore(container, wsIndicator);
@@ -232,7 +212,6 @@ export function initSwitcher() {
     }
 }
 
-// Auto-initialisation au chargement du DOM
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSwitcher);
 } else {

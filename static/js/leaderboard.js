@@ -1,10 +1,3 @@
-/**
- * Logique du Classement en Direct (leaderboard.js)
- * - Données rendues en SSR côté serveur (Askama)
- * - Actualisation temps réel via WebSocket (LEADERBOARD_UPDATE)
- * - Mode projection plein écran (F11)
- */
-
 import { wsClient } from './ws.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -100,7 +93,6 @@ async function refreshLeaderboardSilently() {
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
 
-        // Éléments du classement général à mettre à jour
         const selectors = [
             '#standings-count',
             '#podium-container',
@@ -116,7 +108,6 @@ async function refreshLeaderboardSilently() {
             }
         });
 
-        // Mise à jour de chaque onglet par épreuve
         document.querySelectorAll('.tab-pane[id^="tab-game-"]').forEach(pane => {
             const newPane = doc.getElementById(pane.id);
             if (newPane) {
@@ -124,7 +115,6 @@ async function refreshLeaderboardSilently() {
             }
         });
 
-        // Flash visuel subtil sur le voyant direct pour signaler la synchronisation
         const dot = document.querySelector('.status-dot');
         if (dot) {
             dot.style.transform = 'scale(1.5)';

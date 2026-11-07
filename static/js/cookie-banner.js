@@ -1,8 +1,3 @@
-/**
- * Bannière d'information Cookies (cookie-banner.js)
- * Conforme RGPD / ePrivacy : Information claire sur l'utilisation du cookie technique de session.
- */
-
 const STORAGE_KEY = 'ltm_cookie_ack';
 
 export function initCookieBanner() {
@@ -28,7 +23,6 @@ export function initCookieBanner() {
 
     document.body.appendChild(banner);
 
-    // Animation d'apparition
     requestAnimationFrame(() => {
         banner.classList.add('visible');
     });
@@ -43,7 +37,6 @@ export function initCookieBanner() {
     }
 }
 
-// Exécution automatique dès que le DOM est prêt
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCookieBanner);
 } else {

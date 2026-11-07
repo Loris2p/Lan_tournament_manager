@@ -78,7 +78,6 @@ function selectMatchElement(el) {
     const rulesEl = document.getElementById('selected-match-rules');
     if (rulesEl) rulesEl.textContent = rules;
 
-    // Adaptation du placement
     const placementInput = document.getElementById('sub-placement');
     const placementHint = document.getElementById('placement-hint');
     if (placementInput) {
@@ -92,7 +91,6 @@ function selectMatchElement(el) {
         }
     }
 
-    // Adaptation de la statistique secondaire conditionnelle
     const secGroup = document.getElementById('secondary-stat-group');
     const secLabel = document.getElementById('secondary-stat-label');
     const secInput = document.getElementById('sub-secondary');
@@ -257,7 +255,6 @@ function initFormSubmit() {
     const finalConfirmBtn = document.getElementById('btn-final-confirm-submit');
     if (!form || !submitBtn) return;
 
-    // Fermeture de la modale de confirmation
     document.querySelectorAll('[data-close-modal="modal-confirm-submission"]').forEach(btn => {
         btn.addEventListener('click', () => closeModal('modal-confirm-submission'));
     });
@@ -287,7 +284,6 @@ function initFormSubmit() {
             return;
         }
 
-        // Remplir la modale de confirmation
         const confGame = document.getElementById('confirm-game');
         const confPlacement = document.getElementById('confirm-placement');
         const confSecRow = document.getElementById('confirm-sec-row');

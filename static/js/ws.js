@@ -1,10 +1,3 @@
-/**
- * Client WebSocket résilient (ws.js)
- * Gère la connexion temps réel avec le serveur Axum (/ws),
- * la reconnexion automatique en cas de coupure LAN,
- * et l'indicateur d'état visuel (vert/jaune).
- */
-
 class WsClient {
     constructor() {
         this.socket = null;

@@ -331,7 +331,6 @@ function initTournamentSettings() {
 
     if (!form || !input) return;
 
-    // Charger les paramètres actuels
     api.get('/api/admin/settings')
         .then(settings => {
             if (settings && Array.isArray(settings.global_placement_points)) {
@@ -342,13 +341,11 @@ function initTournamentSettings() {
             console.warn("Impossible de charger les paramètres de tournoi:", err);
         });
 
-    // Bouton de réinitialisation vers le barème par défaut (10 équipes)
     defaultBtn?.addEventListener('click', () => {
         input.value = '25, 18, 15, 12, 10, 8, 6, 4, 2, 1';
         showToast("Barème standard par défaut (10 équipes) chargé.", "info");
     });
 
-    // Envoi du formulaire de barème
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const rawValues = input.value

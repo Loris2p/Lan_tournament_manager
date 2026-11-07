@@ -1,17 +1,9 @@
-/* ==========================================================================
-   LAN TOURNAMENT MANAGER — THÈMES & STYLES COMPÉTITION (ROUGE CENTRAL)
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   THÈME 1 (DÉFAUT) : PRO ESPORT GLASS
-   Verre fumé, rouge compétition éclatant, rétroéclairage diffus et rebonds doux
-   -------------------------------------------------------------------------- */
 :root, [data-theme="modern-esport"] {
     --bg-root: #0a0b10;
     --bg-surface: rgba(17, 20, 29, 0.85);
     --bg-elevated: rgba(25, 30, 44, 0.9);
     --bg-hover: rgba(36, 43, 62, 0.95);
-    --body-bg-gradient: 
+    --body-bg-gradient:
         radial-gradient(circle at 50% -10%, rgba(239, 68, 68, 0.18) 0%, transparent 60%),
         radial-gradient(circle at 90% 40%, rgba(185, 28, 28, 0.08) 0%, transparent 50%),
         #0a0b10;
@@ -41,16 +33,12 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
-/* --------------------------------------------------------------------------
-   THÈME 2 : CYBER CRIMSON
-   Néon tournoi cyberpunk, contrastes électriques, angles vifs et grille techno
-   -------------------------------------------------------------------------- */
 [data-theme="cyber-crimson"] {
     --bg-root: #050508;
     --bg-surface: #0d0d15;
     --bg-elevated: #151522;
     --bg-hover: #202034;
-    --body-bg-gradient: 
+    --body-bg-gradient:
         linear-gradient(rgba(255, 0, 60, 0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 0, 60, 0.04) 1px, transparent 1px),
         radial-gradient(circle at 50% 0%, rgba(255, 0, 60, 0.22) 0%, #050508 70%);
@@ -76,11 +64,6 @@
     --card-shadow: 0 0 16px rgba(255, 0, 60, 0.16), inset 0 0 10px rgba(255, 0, 60, 0.06);
     --card-backdrop: none;
 }
-
-
-/* ==========================================================================
-   BASE & RESET
-   ========================================================================== */
 
 *, *::before, *::after {
     box-sizing: border-box;
@@ -109,7 +92,6 @@ body {
     transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Scrollbar soignée */
 ::-webkit-scrollbar {
     width: 7px;
     height: 7px;
@@ -129,10 +111,6 @@ a {
     color: inherit;
     text-decoration: none;
 }
-
-/* ==========================================================================
-   NAVIGATION TECHNIQUE (TOPBAR)
-   ========================================================================== */
 
 .topbar {
     border-bottom: 1px solid var(--line-subtle);
@@ -155,7 +133,6 @@ a {
     gap: 1.5rem;
 }
 
-/* Marque */
 .brand a {
     display: flex;
     align-items: center;
@@ -183,7 +160,6 @@ a {
     color: var(--text-primary);
 }
 
-/* Menu */
 .nav-menu {
     display: flex;
     align-items: center;
@@ -206,14 +182,12 @@ a {
     border-bottom-color: var(--red);
 }
 
-/* Actions droites */
 .topbar-right {
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
 
-/* Sélecteur d'ambiance visuelle */
 .theme-switcher-wrapper {
     display: flex;
     align-items: center;
@@ -268,7 +242,6 @@ a {
     50% { opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 3px var(--green-status); }
 }
 
-/* Boutons */
 button {
     font-family: inherit;
 }
@@ -362,10 +335,6 @@ button {
     width: 100%;
 }
 
-/* ==========================================================================
-   LAYOUT PRINCIPAL
-   ========================================================================== */
-
 .page-container {
     max-width: 1320px;
     margin: 0 auto;
@@ -377,10 +346,6 @@ button {
 .section {
     margin-bottom: 4.5rem;
 }
-
-/* ==========================================================================
-   FORMULAIRES & INPUTS
-   ========================================================================== */
 
 .form-group {
     display: flex;
@@ -428,10 +393,6 @@ input:focus, select:focus, textarea:focus {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem;
 }
-
-/* ==========================================================================
-   1. OVERVIEW & PRÉSENTATION (INDEX.HTML)
-   ========================================================================== */
 
 .overview-header {
     border-left: 4px solid var(--red);
@@ -588,10 +549,6 @@ input:focus, select:focus, textarea:focus {
     color: var(--text-muted);
     letter-spacing: 0.08em;
 }
-
-/* ==========================================================================
-   2. CARROUSEL DES JEUX
-   ========================================================================== */
 
 .carousel-controls {
     display: flex;
@@ -832,10 +789,6 @@ input:focus, select:focus, textarea:focus {
     font-size: 0.9rem;
     line-height: 1.6;
 }
-
-/* ==========================================================================
-   3. LEADERBOARD (STANDINGS)
-   ========================================================================== */
 
 .standings-meta {
     font-family: var(--font-mono);
@@ -1083,10 +1036,6 @@ input:focus, select:focus, textarea:focus {
     color: var(--text-secondary);
 }
 
-/* ==========================================================================
-   4. AUTHENTIFICATION (LOGIN.HTML)
-   ========================================================================== */
-
 .auth-container {
     display: flex;
     align-items: center;
@@ -1147,10 +1096,6 @@ input:focus, select:focus, textarea:focus {
     color: #86efac;
     box-shadow: 0 0 10px var(--green-subtle);
 }
-
-/* ==========================================================================
-   5. ESPACE CAPITAINE (CAPTAIN.HTML)
-   ========================================================================== */
 
 .captain-banner {
     background: var(--bg-surface);
@@ -1306,7 +1251,6 @@ input:focus, select:focus, textarea:focus {
     color: var(--text-primary);
 }
 
-/* Dropzone Canvas */
 .dropzone-area {
     border: 2px dashed var(--line-strong);
     border-radius: var(--card-radius);
@@ -1364,10 +1308,6 @@ input:focus, select:focus, textarea:focus {
     color: var(--green-status);
     margin-bottom: 0.75rem;
 }
-
-/* ==========================================================================
-   6. ADMIN DASHBOARD & ONGLETS (ADMIN.HTML)
-   ========================================================================== */
 
 .admin-tabs {
     display: flex;
@@ -1459,7 +1399,6 @@ input:focus, select:focus, textarea:focus {
     margin-bottom: 1.5rem;
 }
 
-/* Arbitrage Grid */
 .submissions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -1565,7 +1504,6 @@ input:focus, select:focus, textarea:focus {
     gap: 0.75rem;
 }
 
-/* Matchs Admin */
 .match-admin-card {
     border: 1px solid var(--line-subtle);
     background: var(--bg-root);
@@ -1619,7 +1557,6 @@ input:focus, select:focus, textarea:focus {
     cursor: pointer;
 }
 
-/* Zone de Danger */
 .danger-box {
     background: var(--bg-surface);
     border: 1px solid var(--red);
@@ -1667,10 +1604,6 @@ input:focus, select:focus, textarea:focus {
 .danger-card-extreme {
     border-color: var(--red);
 }
-
-/* ==========================================================================
-   MODALES
-   ========================================================================== */
 
 .modal-overlay {
     position: fixed;
@@ -1732,10 +1665,6 @@ input:focus, select:focus, textarea:focus {
     display: block;
     margin: 0 auto;
 }
-
-/* ==========================================================================
-   TOASTS DE NOTIFICATION
-   ========================================================================== */
 
 .toast-container {
     position: fixed;
@@ -1799,10 +1728,6 @@ input:focus, select:focus, textarea:focus {
     color: var(--text-secondary);
 }
 
-/* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
-
 @media (max-width: 960px) {
     .specs-grid, .rules-grid, .danger-actions-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -1860,10 +1785,6 @@ input:focus, select:focus, textarea:focus {
         grid-template-columns: 1fr;
     }
 }
-
-/* ==========================================================================
-   BANNIÈRE D'INFORMATION COOKIES
-   ========================================================================== */
 
 .cookie-banner {
     position: fixed;
@@ -1932,10 +1853,6 @@ input:focus, select:focus, textarea:focus {
     }
 }
 
-/* ==========================================================================
-   PIED DE PAGE TECHNIQUE (FOOTER)
-   ========================================================================== */
-
 .footer {
     border-top: 1px solid var(--line-subtle);
     background: var(--bg-surface);
@@ -1982,10 +1899,6 @@ input:focus, select:focus, textarea:focus {
     color: var(--red);
 }
 
-/* ==========================================================================
-   MODE KIOSQUE / PLEIN ÉCRAN
-   ========================================================================== */
-
 .fullscreen-mode .topbar,
 .fullscreen-mode .footer {
     display: none !important;
@@ -1996,16 +1909,12 @@ input:focus, select:focus, textarea:focus {
     padding: 1.5rem 2rem;
 }
 
-/* ==========================================================================
-   ACCENTS PODIUM 2E & 3E & CONTENEURS
-   ========================================================================== */
-
 .podium-slot.rank-second {
-    border-top: 3px solid #94a3b8; /* Argent */
+    border-top: 3px solid #94a3b8;
 }
 
 .podium-slot.rank-third {
-    border-top: 3px solid #b45309; /* Bronze */
+    border-top: 3px solid #b45309;
 }
 
 .lobbies-list,
@@ -2015,16 +1924,6 @@ input:focus, select:focus, textarea:focus {
     gap: 1rem;
 }
 
-/* ==========================================================================
-   VARIATIONS THÉMATIQUES AVANCÉES (ROUGE MULTI-STYLE)
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   STYLE 1 : PRO ESPORT GLASS (DÉFAUT)
-   - Verre dépoli profond
-   - Dégradés rouges vifs
-   - Micro-effets de brillance
-   -------------------------------------------------------------------------- */
 [data-theme="modern-esport"] .brand-title {
     background: linear-gradient(180deg, #ffffff 40%, #94a3b8 100%);
     -webkit-background-clip: text;
@@ -2037,12 +1936,6 @@ input:focus, select:focus, textarea:focus {
     -webkit-text-fill-color: transparent;
 }
 
-/* --------------------------------------------------------------------------
-   STYLE 2 : CYBER CRIMSON (NÉON ESPORT / HIGH VOLTAGE)
-   - Angles tranchés
-   - Néons rouges vibrants
-   - Accents monospace et techno-grille
-   -------------------------------------------------------------------------- */
 [data-theme="cyber-crimson"] .brand-tag,
 [data-theme="cyber-crimson"] .btn-primary,
 [data-theme="cyber-crimson"] .meta-tag,
@@ -2080,11 +1973,6 @@ input:focus, select:focus, textarea:focus {
     text-shadow: 0 0 20px rgba(255, 0, 60, 0.4), 0 0 40px rgba(255, 0, 60, 0.2);
 }
 
-
-/* ==========================================================================
-   ICÔNES VECTORIELLES PAPICONS (VIA MASQUE CSS)
-   ========================================================================== */
-
 .papicon {
     display: inline-block;
     width: 0.95rem;
@@ -2114,10 +2002,6 @@ input:focus, select:focus, textarea:focus {
     -webkit-mask-image: url('/vendor/papicons/icons/grid.svg');
     mask-image: url('/vendor/papicons/icons/grid.svg');
 }
-
-/* ==========================================================================
-   MENU PARAMÈTRES & SÉLECTEURS D'INTERFACE
-   ========================================================================== */
 
 .settings-menu-wrapper {
     position: relative;
@@ -2247,13 +2131,6 @@ input:focus, select:focus, textarea:focus {
     border-color: var(--red);
     box-shadow: 0 0 10px var(--red-subtle);
 }
-
-
-
-/* ==========================================================================
-   DISPOSITION 3 : COCKPIT HUD (SIDEBAR LATÉRALE)
-   Navigation latérale fixe à gauche, contenu applicatif étendu à droite
-   ========================================================================== */
 
 @media (min-width: 1024px) {
     [data-layout="sidebar-hud"] body {

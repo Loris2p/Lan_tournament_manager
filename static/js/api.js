@@ -1,9 +1,3 @@
-/**
- * Client HTTP centralisé (api.js)
- * Gère les requêtes vers l'API Axum avec cookies HttpOnly,
- * parsing JSON automatique et formatage standardisé des erreurs.
- */
-
 export class ApiError extends Error {
     constructor(status, message) {
         super(message);

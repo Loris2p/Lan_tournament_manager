@@ -9,9 +9,6 @@
 </head>
 <body class="captain-page">
 
-    <!-- ========================================== -->
-    <!-- BARRE TECHNIQUE CAPITAINE                  -->
-    <!-- ========================================== -->
     <header class="topbar">
         <div class="topbar-inner">
             <div class="brand">
@@ -39,7 +36,6 @@
 
     <main class="page-container">
 
-        <!-- Bandeau d'en-tête de l'équipe -->
         <div class="captain-banner">
             <div>
                 <span class="meta-tag">SESSION ACTIVE</span>
@@ -54,7 +50,6 @@
 
         <div class="captain-grid">
 
-            <!-- Colonne 1 : Matchs ouverts assignés -->
             <section class="section-box">
                 <div class="box-header">
                     <h3>MATCHS OUVERTS ASSIGNÉS</h3>
@@ -87,7 +82,6 @@
                     {% endif %}
                 </div>
 
-                <!-- Détails du match sélectionné -->
                 <div id="selected-match-details" class="match-details-panel" style="display: none;">
                     <div class="match-details-header">
                         <span class="badge-format" id="selected-match-format">FORMAT</span>
@@ -106,7 +100,6 @@
                 </div>
             </section>
 
-            <!-- Colonne 2 : Formulaire de soumission de score & Canvas Upload -->
             <section class="section-box">
                 <div class="box-header">
                     <h3>TRANSMETTRE UN RÉSULTAT</h3>
@@ -138,7 +131,6 @@
                     <input type="hidden" name="match_id" id="sub-match-id">
                     <input type="hidden" name="proof_base64" id="sub-proof-base64">
 
-                    <!-- Ligne des scores -->
                     <div class="form-row-grid">
                         <div class="form-group">
                             <label for="sub-placement">CLASSEMENT FINAL (PLACE)</label>
@@ -146,7 +138,6 @@
                             <small class="field-hint" id="placement-hint">1 = Vainqueur</small>
                         </div>
 
-                        <!-- Statistique secondaire conditionnelle -->
                         <div class="form-group" id="secondary-stat-group" style="display: none;">
                             <label for="sub-secondary" id="secondary-stat-label">STATISTIQUE SECONDAIRE</label>
                             <input type="number" name="secondary_stat" id="sub-secondary" min="0" value="0">
@@ -154,7 +145,6 @@
                         </div>
                     </div>
 
-                    <!-- Zone de capture d'écran avec compression Canvas & Ctrl + V -->
                     <div class="form-group">
                         <label>CAPTURE D'ÉCRAN (PREUVE DE VICTOIRE / SCORE)</label>
                         <div id="dropzone" class="dropzone-area" tabindex="0">
@@ -174,7 +164,6 @@
                                 <p class="dropzone-notice">Compression Canvas automatique en 1080p JPEG haute vitesse</p>
                             </div>
 
-                            <!-- Prévisualisation de l'image -->
                             <div id="preview-wrapper" class="preview-wrapper" style="display: none;">
                                 <img id="preview-img" alt="Capture d'écran">
                                 <div class="preview-actions">
@@ -195,9 +184,6 @@
 
     </main>
 
-    <!-- ========================================== -->
-    <!-- MODALE : CONFIRMATION DE SCORE CAPITAINE   -->
-    <!-- ========================================== -->
     <div id="modal-confirm-submission" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">

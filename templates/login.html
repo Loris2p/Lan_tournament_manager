@@ -9,9 +9,6 @@
 </head>
 <body class="auth-page">
 
-    <!-- ========================================== -->
-    <!-- BARRE DE NAVIGATION UNIFIÉE                -->
-    <!-- ========================================== -->
     <header class="topbar">
         <div class="topbar-inner">
             <div class="brand">
@@ -43,10 +40,8 @@
 
     <main class="page-container auth-container">
 
-        <!-- Carte centrale d'authentification -->
         <div class="auth-card">
 
-            <!-- Bandeau de notification / alerte -->
             {% if let Some(err) = error_message() %}
             <div id="auth-alert" class="auth-alert" style="display: block; margin-bottom: 1.5rem;">
                 {{ err }}
@@ -54,9 +49,7 @@
             {% endif %}
 
             {% if is_first_setup %}
-            <!-- ========================================== -->
-            <!-- VUE 1 : ASSISTANT DE PREMIER LANCEMENT     -->
-            <!-- ========================================== -->
+
             <div id="setup-form-wrapper">
                 <div class="auth-header">
                     <span class="badge-format">INITIALISATION SYSTÈME</span>
@@ -88,9 +81,7 @@
                 </form>
             </div>
             {% else %}
-            <!-- ========================================== -->
-            <!-- VUE 2 : CONNEXION CLASSIQUE                -->
-            <!-- ========================================== -->
+
             <div id="login-form-wrapper">
                 <div class="auth-header">
                     <span class="brand-tag">ACCÈS PRIVÉ</span>

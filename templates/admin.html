@@ -9,9 +9,6 @@
 </head>
 <body class="admin-page">
 
-    <!-- ========================================== -->
-    <!-- BARRE TECHNIQUE ADMINISTRATEUR             -->
-    <!-- ========================================== -->
     <header class="topbar">
         <div class="topbar-inner">
             <div class="brand">
@@ -44,7 +41,6 @@
 
     <main class="page-container">
 
-        <!-- Barre de navigation des 6 onglets -->
         <nav class="admin-tabs" id="admin-tabs-nav">
             <button type="button" class="tab-btn active" data-tab="arbitrage">
                 Arbitrage Captures
@@ -67,9 +63,6 @@
             </button>
         </nav>
 
-        <!-- ========================================== -->
-        <!-- ONGLET 1 : ARBITRAGE & VALIDATION PHOTOS   -->
-        <!-- ========================================== -->
         <div class="tab-pane active" id="tab-arbitrage">
             <div class="section-titlebar">
                 <div>
@@ -123,17 +116,13 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- ONGLET 2 : CATALOGUE DES JEUX              -->
-        <!-- ========================================== -->
         <div class="tab-pane" id="tab-games">
             <div class="admin-split">
-                <!-- Formulaire de création de jeu -->
+
                 <div class="admin-panel">
                     <h3>AJOUTER UNE ÉPREUVE AU CATALOGUE</h3>
                     <p class="panel-desc">Définissez le barème dynamique et les limites anti-triche du jeu.</p>
 
-                    <!-- Boutons de pré-remplissage rapide des 6 épreuves préconfigurées -->
                     <div class="game-presets-bar" style="margin-bottom: 1.25rem; padding: 0.75rem; background: var(--bg-surface-2, rgba(255,255,255,0.03)); border: 1px solid var(--border-color); border-radius: 6px;">
                         <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">MODÈLES DE JEUX PRÉCONFIGURÉS (1 CLIC) :</span>
                         <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
@@ -207,7 +196,6 @@
                     </form>
                 </div>
 
-                <!-- Liste des jeux existants -->
                 <div class="admin-panel">
                     <h3>JEUX ACTUELLEMENT CONFIGURÉS</h3>
                     <div id="games-table-wrapper" class="table-frame" style="margin-top: 1rem;">
@@ -246,12 +234,9 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- ONGLET 3 : MATCHS, LOBBIES & SAISIE RAPIDE -->
-        <!-- ========================================== -->
         <div class="tab-pane" id="tab-matches">
             <div class="admin-split">
-                <!-- Création de match -->
+
                 <div class="admin-panel">
                     <h3>CRÉER UN NOUVEAU MATCH</h3>
                     <form id="create-match-form" class="admin-form" method="POST" action="/admin/matches">
@@ -290,7 +275,6 @@
                     </form>
                 </div>
 
-                <!-- Liste des matchs et saisie groupée -->
                 <div class="admin-panel">
                     <h3>MATCHS DU TOURNOI</h3>
                     <div id="matches-admin-list" class="matches-admin-container">
@@ -335,12 +319,9 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- ONGLET 4 : ÉQUIPES & CAPITAINES            -->
-        <!-- ========================================== -->
         <div class="tab-pane" id="tab-teams">
             <div class="admin-split">
-                <!-- Formulaire d'ajout d'équipe -->
+
                 <div class="admin-panel">
                     <h3>INSCRIRE UNE NOUVELLE ÉQUIPE</h3>
                     <p class="panel-desc">Génère le compte de connexion pour le capitaine de l'équipe.</p>
@@ -365,7 +346,6 @@
                     </form>
                 </div>
 
-                <!-- Tableau des équipes & gestion des points -->
                 <div class="admin-panel">
                     <h3>LISTE DES ÉQUIPES & GESTION DES POINTS</h3>
                     <div class="table-frame" style="margin-top: 1rem;">
@@ -412,7 +392,6 @@
                 </div>
             </div>
 
-            <!-- Barème du tournoi général -->
             <div class="admin-panel" style="margin-top: 1.5rem;">
                 <h3>BARÈME DU TOURNOI GÉNÉRAL</h3>
                 <p class="panel-desc">Points généraux attribués aux équipes selon leur classement final à chaque épreuve.</p>
@@ -431,9 +410,6 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- ONGLET 5 : COMPTES ADMINISTRATEURS         -->
-        <!-- ========================================== -->
         <div class="tab-pane" id="tab-admins">
             <div class="admin-split">
                 <div class="admin-panel">
@@ -496,9 +472,6 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- ONGLET 6 : ZONE DE DANGER (RESET)          -->
-        <!-- ========================================== -->
         <div class="tab-pane" id="tab-danger">
             <div class="danger-box">
                 <div class="danger-header">
@@ -537,9 +510,6 @@
 
     </main>
 
-    <!-- ========================================== -->
-    <!-- MODALE 1 : ZOOM PHOTO ARBITRAGE            -->
-    <!-- ========================================== -->
     <div id="modal-image-zoom" class="modal-overlay">
         <div class="modal-card modal-card-lg">
             <div class="modal-header">
@@ -552,9 +522,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODALE 2 : SAISIE GROUPÉE SCORES (BRAWL)   -->
-    <!-- ========================================== -->
     <div id="modal-bulk-scores" class="modal-overlay">
         <div class="modal-card modal-card-lg">
             <div class="modal-header">
@@ -578,7 +545,7 @@
                                 </tr>
                             </thead>
                             <tbody id="bulk-scores-tbody">
-                                <!-- Rempli dynamiquement -->
+
                             </tbody>
                         </table>
                     </div>
@@ -588,9 +555,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODALE 3 : CONFIRMATION DE RESET           -->
-    <!-- ========================================== -->
     <div id="modal-confirm-reset" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
