@@ -1,54 +1,25 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAN Tournament Manager — Espace Capitaine</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" href="/logo.png">
-    <link rel="stylesheet" href="/css/custom.css">
-    <link rel="stylesheet" id="ltm-theme-style" href="/css/themes/tactical-broadcast.css">
-    <link rel="stylesheet" href="/css/layouts/tactical-deck.css">
-    <script>try{
-        const themes = ['tactical-broadcast', 'neo-arcade', 'industrial-brutalism', 'stealth-laser'];
-        let t = localStorage.getItem('ltm_theme') || 'tactical-broadcast';
-        if (!themes.includes(t)) t = 'tactical-broadcast';
-        const layouts = ['tactical-deck'];
-        let l = localStorage.getItem('ltm_layout') || 'tactical-deck';
-        if (!layouts.includes(l)) l = 'tactical-deck';
-        document.documentElement.setAttribute('data-theme', t);
-        document.documentElement.setAttribute('data-layout', l);
-        const link = document.getElementById('ltm-theme-style');
-        if (link) link.href = '/css/themes/' + t + '.css';
-    }catch(e){}</script>
-</head>
-<body class="captain-page">
+{% extends "base.html" %}
 
-    <header class="topbar">
-        <div class="topbar-inner">
-            <div class="brand">
-                <a href="/">
-                    <img src="/logo.png" alt="Logo" class="brand-logo">
-                    <span class="brand-title">ESPACE CAPITAINE</span>
-                </a>
+{% block title %}Espace Capitaine{% endblock %}
+{% block body_class %}captain-page{% endblock %}
+{% block brand_title %}ESPACE CAPITAINE{% endblock %}
+
+{% block nav %}
+            <a href="/leaderboard.html" target="_blank" class="nav-link">Classement [Onglet]</a>
+        
+{% endblock %}
+
+{% block topbar_right %}
+            <div class="status-indicator">
+                <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
             </div>
 
-            <nav class="nav-menu">
-                <a href="/leaderboard.html" target="_blank" class="nav-link">Classement [Onglet]</a>
-            </nav>
+            <a href="/logout" class="btn-text" id="logout-btn">
+                Déconnexion
+            </a>
+{% endblock %}
 
-            <div class="topbar-right">
-                <div class="status-indicator">
-                    <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
-                </div>
-
-                <a href="/logout" class="btn-text" id="logout-btn">
-                    Déconnexion
-                </a>
-            </div>
-        </div>
-    </header>
-
+{% block content %}
     <main class="page-container">
 
         <div class="captain-banner">
@@ -243,9 +214,10 @@
         </div>
     </footer>
 
-    <script type="module" src="/js/captain.js"></script>
-    <script type="module" src="/js/theme-switcher.js"></script>
-    <script type="module" src="/js/cookie-banner.js"></script>
+    
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+<script type="module" src="/js/captain.js"></script>
+<script type="module" src="/js/cookie-banner.js"></script>
+{% endblock %}

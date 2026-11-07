@@ -1,58 +1,29 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAN Tournament Manager — Authentification</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" href="/logo.png">
-    <link rel="stylesheet" href="/css/custom.css">
-    <link rel="stylesheet" id="ltm-theme-style" href="/css/themes/tactical-broadcast.css">
-    <link rel="stylesheet" href="/css/layouts/tactical-deck.css">
-    <script>try{
-        const themes = ['tactical-broadcast', 'neo-arcade', 'industrial-brutalism', 'stealth-laser'];
-        let t = localStorage.getItem('ltm_theme') || 'tactical-broadcast';
-        if (!themes.includes(t)) t = 'tactical-broadcast';
-        const layouts = ['tactical-deck'];
-        let l = localStorage.getItem('ltm_layout') || 'tactical-deck';
-        if (!layouts.includes(l)) l = 'tactical-deck';
-        document.documentElement.setAttribute('data-theme', t);
-        document.documentElement.setAttribute('data-layout', l);
-        const link = document.getElementById('ltm-theme-style');
-        if (link) link.href = '/css/themes/' + t + '.css';
-    }catch(e){}</script>
-</head>
-<body class="auth-page">
+{% extends "base.html" %}
 
-    <header class="topbar">
-        <div class="topbar-inner">
-            <div class="brand">
-                <a href="/">
-                    <img src="/logo.png" alt="Logo" class="brand-logo">
-                    <span class="brand-title">LAN TOURNAMENT MANAGER</span>
-                </a>
+{% block title %}Authentification{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block brand_title %}LAN TOURNAMENT MANAGER{% endblock %}
+
+{% block nav %}
+            <a href="/" class="nav-link">Accueil</a>
+            <a href="/#carousel-section" class="nav-link">Épreuves</a>
+            <a href="/#rules" class="nav-link">Règlement</a>
+            <a href="/leaderboard.html" class="nav-link">Classement</a>
+        
+{% endblock %}
+
+{% block topbar_right %}
+            <div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
+                <span class="status-dot"></span>
+                <span class="status-label" id="ws-status-text">EN DIRECT</span>
             </div>
 
-            <nav class="nav-menu">
-                <a href="/" class="nav-link">Accueil</a>
-                <a href="/#carousel-section" class="nav-link">Épreuves</a>
-                <a href="/#rules" class="nav-link">Règlement</a>
-                <a href="/leaderboard.html" class="nav-link">Classement</a>
-            </nav>
+            <a href="/login.html" class="btn-primary active" id="auth-btn">
+                Connexion
+            </a>
+{% endblock %}
 
-            <div class="topbar-right">
-                <div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
-                    <span class="status-dot"></span>
-                    <span class="status-label" id="ws-status-text">EN DIRECT</span>
-                </div>
-
-                <a href="/login.html" class="btn-primary active" id="auth-btn">
-                    Connexion
-                </a>
-            </div>
-        </div>
-    </header>
-
+{% block content %}
     <main class="page-container auth-container">
 
         <div class="auth-card">
@@ -138,8 +109,9 @@
         </div>
     </footer>
 
-    <script type="module" src="/js/theme-switcher.js"></script>
-    <script type="module" src="/js/cookie-banner.js"></script>
+    
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+<script type="module" src="/js/cookie-banner.js"></script>
+{% endblock %}

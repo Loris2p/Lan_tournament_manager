@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN Tournament Manager — {% block title %}{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="/css/custom.css">
+    <link rel="stylesheet" id="ltm-theme-style" href="/css/themes/tactical-broadcast.css">
+    <link rel="stylesheet" href="/css/layouts/tactical-deck.css">
+    <link rel="stylesheet" href="/css/layouts/bento-grid.css">
+    <script src="/js/theme-boot.js"></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <a href="/">
+                    <img src="/logo.png" alt="Logo" class="brand-logo">
+                    <span class="brand-title">{% block brand_title %}LAN TOURNAMENT MANAGER{% endblock %}</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">{% block nav %}{% endblock %}</nav>
+
+            <div class="topbar-right">{% block topbar_right %}{% endblock %}</div>
+        </div>
+    </header>
+{% block content %}{% endblock %}
+
+    {% block scripts %}{% endblock %}
+    <script type="module" src="/js/theme-switcher.js"></script>
+</body>
+</html>

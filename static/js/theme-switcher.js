@@ -6,7 +6,8 @@ const THEMES = [
 ];
 
 const LAYOUTS = [
-    { id: 'tactical-deck', label: 'Tactical Deck' }
+    { id: 'tactical-deck', label: 'Tactical Deck (barre haute)' },
+    { id: 'bento-grid', label: 'Bento Grid (cartes flottantes)' }
 ];
 
 const THEME_KEY = 'ltm_theme';
