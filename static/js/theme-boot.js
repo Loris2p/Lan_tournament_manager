@@ -2,6 +2,16 @@
 // Les listes doivent rester alignées avec THEMES / LAYOUTS de theme-switcher.js.
 (function () {
     try {
+        var params = new URLSearchParams(window.location.search);
+        var qTheme = params.get('theme') || params.get('layout');
+        if (qTheme === 'tactical-pro' || qTheme === 'tactical-deck') {
+            localStorage.setItem('ltm_layout', 'tactical-deck');
+            localStorage.setItem('ltm_theme', 'tactical-broadcast');
+        } else if (qTheme === 'arena') {
+            localStorage.setItem('ltm_layout', 'arena');
+            localStorage.setItem('ltm_theme', 'tactical-broadcast');
+        }
+
         var themes = ['tactical-broadcast', 'neo-arcade', 'industrial-brutalism', 'stealth-laser'];
         var layouts = ['arena', 'tactical-deck', 'bento-grid'];
         var t = localStorage.getItem('ltm_theme');

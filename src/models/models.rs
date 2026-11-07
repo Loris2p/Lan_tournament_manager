@@ -154,6 +154,12 @@ pub struct TournamentSettings {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub global_placement_points: Vec<u32>,
+    #[serde(default)]
+    pub start_at: Option<String>,
+    #[serde(default)]
+    pub end_at: Option<String>,
+    #[serde(default)]
+    pub is_paused: bool,
 }
 impl TournamentSettings {
     pub fn points_for_rank(&self, rank: usize) -> u32 {
@@ -168,7 +174,10 @@ impl Default for TournamentSettings{
     fn default() -> Self {
         TournamentSettings{
             id:None,
-            global_placement_points:vec![25,18,15,12,10,8,6,4,2,1]
+            global_placement_points:vec![25,18,15,12,10,8,6,4,2,1],
+            start_at: None,
+            end_at: None,
+            is_paused: false,
         }
     }
 }

@@ -5,14 +5,13 @@
 {% block brand_title %}CENTRE DE CONTRÔLE // ADMIN{% endblock %}
 
 {% block nav %}
-            <a href="/leaderboard.html" target="_blank" class="nav-link">Vue Grand Écran [↗]</a>
-        
+            <a href="/leaderboard.html" target="_blank" class="nav-link">Grand Écran ↗</a>
 {% endblock %}
 
 {% block topbar_right %}
             <div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
                 <span class="status-dot"></span>
-                <span class="status-label" id="ws-status-text">EN DIRECT</span>
+                <span class="status-label" id="ws-status-text">CONNECTÉ</span>
             </div>
 
             <div class="status-indicator">
@@ -459,6 +458,60 @@
         </div>
 
         <div class="tab-pane" id="tab-danger">
+            <div class="danger-box" style="margin-bottom: 2.5rem; border-color: var(--line-subtle); background: var(--bg-surface);">
+                <div class="danger-header">
+                    <span class="badge-format" style="background: #2563eb; color: #fff;">PLANNING & HORAIRES</span>
+                    <h2>CYCLE DE VIE DU TOURNOI</h2>
+                    <p>Définissez les dates de début et de fin de la LAN pour activer le compte à rebours interactif sur la page d'accueil.</p>
+                </div>
+
+                <form id="tournament-schedule-form" class="admin-form" style="max-width: 680px; margin-top: 1.5rem;">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+                        <button type="button" class="btn-text" id="schedule-preset-weekend" style="font-size: 0.72rem; padding: 0.35rem 0.65rem;">
+                            Prochain week-end (Ven 18h → Dim 18h)
+                        </button>
+                        <button type="button" class="btn-text" id="schedule-preset-48h" style="font-size: 0.72rem; padding: 0.35rem 0.65rem;">
+                            Fin = Début + 48h
+                        </button>
+                        <button type="button" class="btn-text" id="schedule-preset-clear" style="font-size: 0.72rem; padding: 0.35rem 0.65rem; color: var(--red);">
+                            Effacer les dates
+                        </button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+                        <div class="form-group">
+                            <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">LANCEMENT DE LA LAN</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="date" id="schedule-start-date" class="input" style="flex: 2;">
+                                <input type="time" id="schedule-start-time" class="input" value="18:00" style="flex: 1;">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">CLÔTURE DU TOURNOI</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="date" id="schedule-end-date" class="input" style="flex: 2;">
+                                <input type="time" id="schedule-end-time" class="input" value="18:00" style="flex: 1;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: inline-flex; align-items: center; gap: 0.6rem; cursor: pointer; text-transform: none; font-size: 0.85rem;">
+                            <input type="checkbox" id="schedule-is-paused" style="width: 1.1rem; height: 1.1rem; accent-color: var(--red);">
+                            <span><strong>Mettre le tournoi en pause</strong> (interrompt le décompte et affiche "TOURNOI EN PAUSE")</span>
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <button type="submit" class="btn-primary" id="btn-save-schedule">
+                            Enregistrer le planning
+                        </button>
+                        <span id="schedule-status-msg" style="font-family: var(--font-mono); font-size: 0.85rem;"></span>
+                    </div>
+                </form>
+            </div>
+
             <div class="danger-box">
                 <div class="danger-header">
                     <span class="badge-format" style="background: var(--red); color: #fff;">ZONE CRITIQUE</span>

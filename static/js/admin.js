@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMatches();
     initTeams();
     initTournamentSettings();
+    initTournamentSchedule();
     initBulkScoresForm();
     initResetZone();
 });
@@ -361,6 +362,119 @@ function initTournamentSettings() {
         try {
             await api.post('/api/admin/settings', { global_placement_points: rawValues });
             showToast("Barème général du tournoi enregistré avec succès !", "success");
+            if (statusMsg) {
+                statusMsg.textContent = "✓ Enregistré";
+                statusMsg.style.color = "var(--green, #22c55e)";
+                setTimeout(() => { statusMsg.textContent = ""; }, 3000);
+            }
+        } catch (err) {
+            showToast(err.message, "error");
+        }
+    });
+}
+
+function initTournamentSchedule() {
+    const form = document.getElementById('tournament-schedule-form');
+    const startDateInput = document.getElementById('schedule-start-date');
+    const startTimeInput = document.getElementById('schedule-start-time');
+    const endDateInput = document.getElementById('schedule-end-date');
+    const endTimeInput = document.getElementById('schedule-end-time');
+    const pausedCheckbox = document.getElementById('schedule-is-paused');
+    const statusMsg = document.getElementById('schedule-status-msg');
+
+    const btnPresetWeekend = document.getElementById('schedule-preset-weekend');
+    const btnPreset48h = document.getElementById('schedule-preset-48h');
+    const btnPresetClear = document.getElementById('schedule-preset-clear');
+
+    if (!form || !startDateInput || !endDateInput) return;
+
+    const parseIso = (isoStr) => {
+        if (!isoStr) return { date: '', time: '18:00' };
+        const parts = isoStr.split('T');
+        const date = parts[0] || '';
+        let time = '18:00';
+        if (parts[1]) {
+            time = parts[1].slice(0, 5);
+        }
+        return { date, time };
+    };
+
+    const combineIso = (dateInput, timeInput) => {
+        const d = dateInput.value.trim();
+        if (!d) return null;
+        const t = (timeInput.value.trim()) || '18:00';
+        return `${d}T${t}`;
+    };
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const formatYmd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    // Raccourci Prochain Week-end (Vendredi 18h -> Dimanche 18h)
+    btnPresetWeekend?.addEventListener('click', () => {
+        const now = new Date();
+        const day = now.getDay(); // 0: Dimanche, 5: Vendredi
+        const daysUntilFriday = (5 - day + 7) % 7 || 7;
+        const friday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilFriday);
+        const sunday = new Date(friday.getFullYear(), friday.getMonth(), friday.getDate() + 2);
+
+        startDateInput.value = formatYmd(friday);
+        startTimeInput.value = '18:00';
+        endDateInput.value = formatYmd(sunday);
+        endTimeInput.value = '18:00';
+        showToast("Dates du prochain week-end pré-remplies (Ven 18h → Dim 18h).", "info");
+    });
+
+    // Raccourci Début + 48h
+    btnPreset48h?.addEventListener('click', () => {
+        if (!startDateInput.value) {
+            showToast("Veuillez d'abord renseigner la date de lancement.", "error");
+            return;
+        }
+        const start = new Date(startDateInput.value + 'T00:00:00');
+        const end = new Date(start.getTime() + 48 * 3600 * 1000);
+        endDateInput.value = formatYmd(end);
+        endTimeInput.value = startTimeInput.value || '18:00';
+        showToast("Clôture calculée à Début + 48 heures.", "info");
+    });
+
+    // Raccourci Effacer
+    btnPresetClear?.addEventListener('click', () => {
+        startDateInput.value = '';
+        endDateInput.value = '';
+        startTimeInput.value = '18:00';
+        endTimeInput.value = '18:00';
+        showToast("Dates effacées. N'oubliez pas d'enregistrer.", "info");
+    });
+
+    api.get('/api/admin/settings')
+        .then(settings => {
+            if (settings) {
+                if (settings.start_at) {
+                    const parsed = parseIso(settings.start_at);
+                    startDateInput.value = parsed.date;
+                    startTimeInput.value = parsed.time;
+                }
+                if (settings.end_at) {
+                    const parsed = parseIso(settings.end_at);
+                    endDateInput.value = parsed.date;
+                    endTimeInput.value = parsed.time;
+                }
+                if (pausedCheckbox) pausedCheckbox.checked = Boolean(settings.is_paused);
+            }
+        })
+        .catch(err => {
+            console.warn("Impossible de charger le planning du tournoi:", err);
+        });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/api/admin/settings', {
+                start_at: combineIso(startDateInput, startTimeInput),
+                end_at: combineIso(endDateInput, endTimeInput),
+                is_paused: pausedCheckbox ? pausedCheckbox.checked : false,
+            });
+            showToast("Planning et cycle de vie du tournoi enregistrés !", "success");
             if (statusMsg) {
                 statusMsg.textContent = "✓ Enregistré";
                 statusMsg.style.color = "var(--green, #22c55e)";

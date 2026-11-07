@@ -2,7 +2,14 @@
 
     <section class="ar-hero" id="presentation">
         <div class="ar-hero-ghost" aria-hidden="true">LAN</div>
-        <p class="ar-kicker"><span class="status-dot"></span> TOURNOI EN COURS · 48H · {{ games.len() }} ÉPREUVE{% if games.len() > 1 %}S{% endif %}</p>
+        <p class="ar-kicker" id="tournament-kicker"
+           data-start="{{ status.start_at.as_deref().unwrap_or("") }}"
+           data-end="{{ status.end_at.as_deref().unwrap_or("") }}"
+           data-paused="{{ status.is_paused }}"
+           data-games="{{ games.len() }}">
+            <span class="status-dot" id="tournament-kicker-dot" style="background-color: {{ status.dot_color }}; box-shadow: 0 0 8px {{ status.dot_color }};"></span>
+            <span id="tournament-kicker-text">{{ status.label }} · {{ games.len() }} ÉPREUVE{% if games.len() > 1 %}S{% endif %}</span>
+        </p>
         <h1 class="ar-title">
             <span>Tournoi</span>
             <span class="ar-outline">Multi-jeux</span>

@@ -14,7 +14,7 @@ use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::{CookieJar, Form};
 use mongodb::bson::oid::ObjectId;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
@@ -139,12 +139,23 @@ pub struct HomeGameView {
     pub max_placement: u8,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct TournamentStatusView {
+    pub label: String,
+    pub dot_color: String,
+    pub start_at: Option<String>,
+    pub end_at: Option<String>,
+    pub is_paused: bool,
+    pub is_running: bool,
+}
+
 #[derive(Template)]
 #[template(path = "index.html")]
 pub struct IndexTemplate {
     pub games: Vec<HomeGameView>,
     pub auth: NavAuth,
     pub arena: bool,
+    pub status: TournamentStatusView,
 }
 
 /// Cookie de préférence posé par le sélecteur de disposition (static/js/theme-switcher.js).
@@ -203,10 +214,61 @@ pub async fn serve_home_page(State(state): State<Arc<AppState>>, jar: CookieJar)
         })
         .collect();
 
+    let settings = db::get_tournament_settings(&state.db).await.unwrap_or_default();
+    let (label, dot_color) = if settings.is_paused {
+        ("TOURNOI EN PAUSE".to_string(), "#f97316".to_string())
+    } else {
+        let now = chrono::Utc::now();
+        let parse_dt = |s: &str| -> Option<chrono::DateTime<chrono::Utc>> {
+            chrono::DateTime::parse_from_rfc3339(s)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .or_else(|_| {
+                    chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M")
+                        .map(|naive| chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(naive, chrono::Utc))
+                })
+                .ok()
+        };
+
+        let start_dt = settings.start_at.as_deref().and_then(parse_dt);
+        let end_dt = settings.end_at.as_deref().and_then(parse_dt);
+
+        if let Some(start) = start_dt {
+            if now < start {
+                ("TOURNOI À VENIR".to_string(), "#eab308".to_string())
+            } else if let Some(end) = end_dt {
+                if now > end {
+                    ("TOURNOI TERMINÉ".to_string(), "#64748b".to_string())
+                } else {
+                    ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+                }
+            } else {
+                ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+            }
+        } else if let Some(end) = end_dt {
+            if now > end {
+                ("TOURNOI TERMINÉ".to_string(), "#64748b".to_string())
+            } else {
+                ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+            }
+        } else {
+            ("TOURNOI EN COURS".to_string(), "#10b981".to_string())
+        }
+    };
+
+    let status_view = TournamentStatusView {
+        label,
+        dot_color,
+        start_at: settings.start_at,
+        end_at: settings.end_at,
+        is_paused: settings.is_paused,
+        is_running: !settings.is_paused,
+    };
+
     HtmlTemplate(IndexTemplate {
         games: games_view,
         auth,
         arena: wants_arena(&jar),
+        status: status_view,
     })
     .into_response()
 }

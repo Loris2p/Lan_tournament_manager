@@ -2,8 +2,13 @@
 
     <section class="section" id="presentation">
         <div class="overview-header">
-            <div class="meta-strip">
-                <span class="meta-tag">TOURNOI EN COURS</span>
+            <div class="meta-strip" id="tournament-kicker"
+                 data-start="{{ status.start_at.as_deref().unwrap_or("") }}"
+                 data-end="{{ status.end_at.as_deref().unwrap_or("") }}"
+                 data-paused="{{ status.is_paused }}"
+                 data-games="{{ games.len() }}">
+                <span class="meta-tag" id="tournament-kicker-text">{{ status.label }}</span>
+                <span class="meta-tag">{{ games.len() }} ÉPREUVE{% if games.len() > 1 %}S{% endif %}</span>
             </div>
             <h1 class="main-title">TOURNOI MULTI-JEUX LAN 48H</h1>
             <p class="main-lead">
