@@ -1,0 +1,160 @@
+<main class="ar-main">
+
+    <section class="ar-hero" id="presentation">
+        <div class="ar-hero-ghost" aria-hidden="true">LAN</div>
+        <p class="ar-kicker"><span class="status-dot"></span> TOURNOI EN COURS · 48H · {{ games.len() }} ÉPREUVE{% if games.len() > 1 %}S{% endif %}</p>
+        <h1 class="ar-title">
+            <span>Tournoi</span>
+            <span class="ar-outline">Multi-jeux</span>
+            <span class="ar-accent">LAN 48H</span>
+        </h1>
+        <p class="ar-lead">
+            Suivez les épreuves, consultez les règles de chacune et regardez le classement bouger en direct.
+            Une seule équipe repartira avec le titre.
+        </p>
+        <div class="ar-cta">
+            <a href="/leaderboard.html" class="ar-btn ar-btn-solid">Classement en direct <span aria-hidden="true">→</span></a>
+            <a href="#carousel-section" class="ar-btn">Découvrir les épreuves</a>
+        </div>
+    </section>
+
+    <div class="ar-marquee" aria-hidden="true">
+        <div class="ar-marquee-track">
+            {% for _ in 0..2 %}
+            <div class="ar-marquee-group">
+                {% for game in games %}<span>{{ game.name }}</span><i>✦</i>{% endfor %}
+                <span>Fair-play</span><i>✦</i>
+                <span>Capture obligatoire</span><i>✦</i>
+                <span>1er = 25 pts</span><i>✦</i>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <section class="ar-section" id="player-guide">
+        <header class="ar-sec-head">
+            <div>
+                <p class="ar-eyebrow">Mode d'emploi</p>
+                <h2>4 étapes, zéro prise de tête</h2>
+            </div>
+        </header>
+        <ol class="ar-steps">
+            <li>
+                <span class="ar-step-num">01</span>
+                <h3>Rejoindre le lobby</h3>
+                <p>Consultez les paramètres du jeu et rejoignez le lobby dès l'appel des arbitres.</p>
+                <a href="#carousel-section">Voir les épreuves ↓</a>
+            </li>
+            <li>
+                <span class="ar-step-num">02</span>
+                <h3>Capture d'écran</h3>
+                <p>Capture obligatoire du tableau final (F12 ou Impr écran). Résultat non prouvé = 0 point.</p>
+                <a href="#rules">Voir le règlement ↓</a>
+            </li>
+            <li>
+                <span class="ar-step-num">03</span>
+                <h3>Dépôt du score</h3>
+                <p>Le capitaine soumet le score avec sa capture (collage Ctrl+V pris en charge).</p>
+                <a href="{{ auth.target_url }}">{{ auth.label }} →</a>
+            </li>
+            <li>
+                <span class="ar-step-num">04</span>
+                <h3>Classement &amp; arbitres</h3>
+                <p>Classement synchronisé en direct. En cas de contestation, rendez-vous à la table d'arbitrage.</p>
+                <a href="/leaderboard.html">Classement en direct →</a>
+            </li>
+        </ol>
+    </section>
+
+    <section class="ar-section" id="carousel-section">
+        <header class="ar-sec-head">
+            <div>
+                <p class="ar-eyebrow">Au programme</p>
+                <h2>Les épreuves</h2>
+            </div>
+            <div class="ar-reel-nav">
+                <button type="button" id="ar-reel-prev" class="ar-round-btn" title="Épreuve précédente" aria-label="Épreuve précédente">←</button>
+                <button type="button" id="ar-reel-next" class="ar-round-btn" title="Épreuve suivante" aria-label="Épreuve suivante">→</button>
+            </div>
+        </header>
+
+        <div class="ar-reel" id="ar-reel" tabindex="0">
+            {% if games.is_empty() %}
+            <article class="ar-poster">
+                <span class="ar-poster-num" aria-hidden="true">00</span>
+                <div class="ar-poster-body">
+                    <h3>Aucune épreuve configurée</h3>
+                    <p class="ar-poster-text">Les jeux configurés par les organisateurs s'afficheront ici automatiquement avec leurs règles.</p>
+                </div>
+            </article>
+            {% else %}
+            {% for game in games %}
+            <article class="ar-poster">
+                {% if !game.cover_image.trim().is_empty() %}
+                <img class="ar-poster-img" src="{{ game.cover_image }}" alt="" loading="lazy">
+                {% endif %}
+                <span class="ar-poster-num" aria-hidden="true">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</span>
+                <div class="ar-poster-body">
+                    <span class="ar-chip">{{ game.format }}</span>
+                    <h3>{{ game.name }}</h3>
+                    <dl class="ar-facts">
+                        <div><dt>Barème</dt><dd>{{ game.placement_text }}</dd></div>
+                        <div><dt>Bonus</dt><dd>{{ game.secondary_text }}</dd></div>
+                        <div><dt>Max</dt><dd>{{ game.max_placement }} équipes</dd></div>
+                    </dl>
+                    <details class="ar-poster-rules">
+                        <summary>Règles de l'épreuve</summary>
+                        <p>{{ game.rules }}</p>
+                    </details>
+                </div>
+            </article>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="ar-section" id="rules">
+        <header class="ar-sec-head">
+            <div>
+                <p class="ar-eyebrow">Règlement</p>
+                <h2>Les règles du jeu</h2>
+            </div>
+            <a href="/reglement.pdf" target="_blank" class="ar-btn ar-btn-solid" download="reglement_lan.pdf">Règlement (PDF) ↓</a>
+        </header>
+        <div class="ar-rules">
+            <details class="ar-rule" open>
+                <summary><span>01</span> Horaires &amp; début de match</summary>
+                <p>Chaque équipe doit être connectée au lobby au plus tard 5 minutes après l'ouverture du match. Tout retard injustifié entraîne un forfait (0 point).</p>
+            </details>
+            <details class="ar-rule">
+                <summary><span>02</span> Capture d'écran obligatoire</summary>
+                <p>Le capitaine doit impérativement soumettre une capture d'écran nette du tableau de fin de partie via la plateforme (collage Ctrl+V supporté). Résultat manquant ou illisible = 0 point.</p>
+            </details>
+            <details class="ar-rule">
+                <summary><span>03</span> Attribution des points</summary>
+                <p>Chaque épreuve établit son classement propre, converti au général selon le barème du tournoi : 1er (25 pts), 2e (18), 3e (15), 4e (12), 5e (10), 6e (8), 7e (6), 8e (4), 9e (2), 10e (1 pt).</p>
+            </details>
+            <details class="ar-rule">
+                <summary><span>04</span> Matériel &amp; réseau filaire</summary>
+                <p>Un seul écran autorisé par poste, casque audio obligatoire (enceintes interdites), câble RJ45 et multiprise. Téléchargements massifs et streaming personnel formellement prohibés pendant les épreuves.</p>
+            </details>
+            <details class="ar-rule">
+                <summary><span>05</span> Règles de vie &amp; sécurité</summary>
+                <p>Nourriture interdite dans l'ensemble des salles informatiques. Boissons autorisées exclusivement en bouteilles ou contenants fermés (canettes et verres ouverts interdits). Respect du règlement de l'école.</p>
+            </details>
+            <details class="ar-rule">
+                <summary><span>06</span> Arbitrage &amp; fair-play</summary>
+                <p>Les arbitres disposent du plein pouvoir de vérification, d'ajustement des scores et de pénalisation ou disqualification en cas de contestation injustifiée, tricherie ou manquement au respect mutuel.</p>
+            </details>
+        </div>
+    </section>
+
+</main>
+
+<footer class="ar-footer">
+    <span>© Corpauration — LAN Tournament Manager</span>
+    <span class="ar-footer-links">
+        <a href="#rules">Règlement intérieur</a>
+        <a href="/reglement.pdf" target="_blank">Règlement (PDF)</a>
+    </span>
+</footer>

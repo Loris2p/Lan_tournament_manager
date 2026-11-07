@@ -6,6 +6,7 @@ const THEMES = [
 ];
 
 const LAYOUTS = [
+    { id: 'arena', label: 'Arena (affiche & dock)' },
     { id: 'tactical-deck', label: 'Tactical Deck (barre haute)' },
     { id: 'bento-grid', label: 'Bento Grid (cartes flottantes)' }
 ];
@@ -26,7 +27,7 @@ export function getActiveLayout() {
     if (LAYOUTS.some(l => l.id === saved)) {
         return saved;
     }
-    return 'tactical-deck';
+    return 'arena';
 }
 
 export function setTheme(themeId) {
@@ -49,10 +50,12 @@ export function setTheme(themeId) {
 
 export function setLayout(layoutId) {
     if (!LAYOUTS.some(l => l.id === layoutId)) {
-        layoutId = 'tactical-deck';
+        layoutId = 'arena';
     }
     document.documentElement.setAttribute('data-layout', layoutId);
     localStorage.setItem(LAYOUT_KEY, layoutId);
+    // Le serveur choisit le markup des pages publiques d'après ce cookie.
+    document.cookie = `${LAYOUT_KEY}=${layoutId}; path=/; max-age=31536000; SameSite=Lax`;
 
     const selector = document.getElementById('layout-select');
     if (selector && selector.value !== layoutId) {
@@ -148,7 +151,12 @@ export function initSwitcher() {
     });
 
     layoutSelect.addEventListener('change', (e) => {
+        const wasArena = document.documentElement.getAttribute('data-layout') === 'arena';
         setLayout(e.target.value);
+        // Arena a son propre HTML (rendu serveur) : on recharge quand on y entre ou en sort.
+        if (wasArena !== (e.target.value === 'arena')) {
+            window.location.reload();
+        }
     });
 
     layoutGroup.appendChild(layoutLabel);

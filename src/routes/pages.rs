@@ -144,6 +144,15 @@ pub struct HomeGameView {
 pub struct IndexTemplate {
     pub games: Vec<HomeGameView>,
     pub auth: NavAuth,
+    pub arena: bool,
+}
+
+/// Cookie de préférence posé par le sélecteur de disposition (static/js/theme-switcher.js).
+/// Le markup des pages publiques dépend de la disposition : "arena" par défaut, sauf si l'utilisateur a choisi un autre layout.
+fn wants_arena(jar: &CookieJar) -> bool {
+    jar.get("ltm_layout")
+        .map(|c| c.value() == "arena")
+        .unwrap_or(true)
 }
 
 pub async fn serve_home_page(State(state): State<Arc<AppState>>, jar: CookieJar) -> Response {
@@ -197,6 +206,7 @@ pub async fn serve_home_page(State(state): State<Arc<AppState>>, jar: CookieJar)
     HtmlTemplate(IndexTemplate {
         games: games_view,
         auth,
+        arena: wants_arena(&jar),
     })
     .into_response()
 }
@@ -208,6 +218,7 @@ pub struct LeaderboardTemplate {
     pub live_matches: Vec<Match>,
     pub game_leaderboards: Vec<GameLeaderboardView>,
     pub auth: NavAuth,
+    pub arena: bool,
 }
 
 impl LeaderboardTemplate {
@@ -239,6 +250,7 @@ pub async fn serve_leaderboard_page(
         live_matches,
         game_leaderboards,
         auth,
+        arena: wants_arena(&jar),
     })
     .into_response()
 }
