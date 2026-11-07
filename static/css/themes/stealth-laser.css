@@ -1,0 +1,105 @@
+/* ==========================================================================
+   THEME: Stealth Ruby / Laser Red Minimalist
+   Minimalisme sombre chirurgical & lueur laser rouge pur — Zéro teinte rose
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root, [data-theme="stealth-laser"] {
+    --bg-root: #050507;
+    --bg-surface: rgba(13, 13, 17, 0.78);
+    --bg-card: rgba(16, 16, 22, 0.82);
+    --bg-elevated: rgba(24, 24, 32, 0.88);
+    --bg-hover: rgba(34, 34, 46, 0.95);
+
+    --body-bg-gradient:
+        radial-gradient(circle at 50% -15%, rgba(220, 38, 38, 0.16) 0%, transparent 60%),
+        radial-gradient(circle at 90% 70%, rgba(185, 28, 28, 0.08) 0%, transparent 50%),
+        #050507;
+
+    --line-subtle: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(229, 9, 20, 0.55);
+
+    /* ROUGE PUR LASER */
+    --red: #e50914;
+    --red-hover: #b91c1c;
+    --red-subtle: rgba(229, 9, 20, 0.14);
+    --red-glow: 0 0 24px rgba(229, 9, 20, 0.5), 0 0 48px rgba(229, 9, 20, 0.2);
+    --red-gradient: linear-gradient(135deg, #e50914 0%, #991b1b 100%);
+
+    --green-status: #10b981;
+    --green-subtle: rgba(16, 185, 129, 0.15);
+
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --card-radius: 10px;
+    --btn-radius: 6px;
+    --card-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.85), 0 0 1px 1px rgba(255, 255, 255, 0.06);
+    --card-backdrop: blur(20px) saturate(180%);
+
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+
+/* --- Style Minimaliste : Verre dépoli & accents laser rouge pur --- */
+[data-theme="stealth-laser"] h1,
+[data-theme="stealth-laser"] h2,
+[data-theme="stealth-laser"] h3,
+[data-theme="stealth-laser"] .brand-title,
+[data-theme="stealth-laser"] .main-title,
+[data-theme="stealth-laser"] .section-title {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+    font-weight: 700;
+}
+
+[data-theme="stealth-laser"] .brand-title {
+    background: linear-gradient(180deg, #ffffff 40%, #e50914 130%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+[data-theme="stealth-laser"] .main-title {
+    background: linear-gradient(180deg, #ffffff 40%, #e50914 140%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+[data-theme="stealth-laser"] .btn-primary {
+    background: var(--red-gradient);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 4px 20px rgba(229, 9, 20, 0.4);
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="stealth-laser"] .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(229, 9, 20, 0.65);
+}
+
+[data-theme="stealth-laser"] .topbar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(5, 5, 7, 0.88);
+    backdrop-filter: blur(20px);
+}
+
+[data-theme="stealth-laser"] .overview-header {
+    border-left: 3px solid #e50914;
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.08) 0%, transparent 100%);
+}
+
+[data-theme="stealth-laser"] .podium-slot {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(16, 16, 22, 0.75);
+    backdrop-filter: blur(20px);
+}
+
+[data-theme="stealth-laser"] .podium-slot.slot-1 {
+    border-color: rgba(229, 9, 20, 0.6);
+    box-shadow: 0 0 30px rgba(229, 9, 20, 0.25);
+}

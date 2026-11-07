@@ -1,30 +1,44 @@
 const THEMES = [
-    { id: 'modern-esport', label: 'Glass' },
-    { id: 'cyber-crimson', label: 'Crimson' }
+    { id: 'tactical-broadcast', label: 'Tactical Pro' },
+    { id: 'neo-arcade', label: 'Neo-Arcade' },
+    { id: 'industrial-brutalism', label: 'Industrial' },
+    { id: 'stealth-laser', label: 'Stealth Laser' }
 ];
 
 const LAYOUTS = [
-    { id: 'sidebar-hud',   label: 'Sidebar' },
-    { id: 'classic-stack', label: 'Stack' }
+    { id: 'tactical-deck', label: 'Tactical Deck' }
 ];
 
 const THEME_KEY = 'ltm_theme';
 const LAYOUT_KEY = 'ltm_layout';
 
 export function getActiveTheme() {
-    return localStorage.getItem(THEME_KEY) || 'modern-esport';
+    const saved = localStorage.getItem(THEME_KEY);
+    if (THEMES.some(t => t.id === saved)) {
+        return saved;
+    }
+    return 'tactical-broadcast';
 }
 
 export function getActiveLayout() {
-    return localStorage.getItem(LAYOUT_KEY) || 'classic-stack';
+    const saved = localStorage.getItem(LAYOUT_KEY);
+    if (LAYOUTS.some(l => l.id === saved)) {
+        return saved;
+    }
+    return 'tactical-deck';
 }
 
 export function setTheme(themeId) {
     if (!THEMES.some(t => t.id === themeId)) {
-        themeId = 'modern-esport';
+        themeId = 'tactical-broadcast';
     }
     document.documentElement.setAttribute('data-theme', themeId);
     localStorage.setItem(THEME_KEY, themeId);
+
+    const themeStylesheet = document.getElementById('ltm-theme-style');
+    if (themeStylesheet) {
+        themeStylesheet.href = `/css/themes/${themeId}.css`;
+    }
 
     const selector = document.getElementById('theme-select');
     if (selector && selector.value !== themeId) {
@@ -34,7 +48,7 @@ export function setTheme(themeId) {
 
 export function setLayout(layoutId) {
     if (!LAYOUTS.some(l => l.id === layoutId)) {
-        layoutId = 'classic-stack';
+        layoutId = 'tactical-deck';
     }
     document.documentElement.setAttribute('data-layout', layoutId);
     localStorage.setItem(LAYOUT_KEY, layoutId);

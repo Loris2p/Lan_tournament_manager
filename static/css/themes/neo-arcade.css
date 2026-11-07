@@ -1,0 +1,109 @@
+/* ==========================================================================
+   THEME: Neo-Arcade (Rouge Pur & Arcade Électrique)
+   Style arcade tranchant, contrasté et lisible — Zéro teinte rose
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root, [data-theme="neo-arcade"] {
+    --bg-root: #08080a;
+    --bg-surface: #111115;
+    --bg-card: #16161c;
+    --bg-elevated: #1e1e26;
+    --bg-hover: #2a2a36;
+
+    --body-bg-gradient:
+        radial-gradient(ellipse at 50% -10%, rgba(220, 38, 38, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 90% 70%, rgba(185, 28, 28, 0.12) 0%, transparent 50%),
+        #08080a;
+
+    --line-subtle: rgba(220, 38, 38, 0.25);
+    --line-strong: #dc2626;
+
+    /* ROUGE PUR (Teinte 0° - aucun magenta/rose) */
+    --red: #e50914;
+    --red-hover: #b80710;
+    --red-subtle: rgba(229, 9, 20, 0.14);
+    --red-glow: 0 0 20px rgba(229, 9, 20, 0.55);
+    --red-gradient: linear-gradient(135deg, #e50914 0%, #8b0000 100%);
+
+    --green-status: #00e676;
+    --green-subtle: rgba(0, 230, 118, 0.15);
+
+    --text-primary: #ffffff;
+    --text-secondary: #d1d5db;
+    --text-muted: #9ca3af;
+
+    --card-radius: 6px;
+    --btn-radius: 4px;
+    --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(229, 9, 20, 0.25);
+    --card-backdrop: none;
+
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-heading: 'Russo One', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+
+/* --- Titres Nets & Lisibles (sans flou baveux) --- */
+[data-theme="neo-arcade"] h1,
+[data-theme="neo-arcade"] h2,
+[data-theme="neo-arcade"] h3,
+[data-theme="neo-arcade"] .brand-title,
+[data-theme="neo-arcade"] .main-title,
+[data-theme="neo-arcade"] .section-title {
+    font-family: var(--font-heading);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+[data-theme="neo-arcade"] .brand-title {
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #8b0000;
+}
+
+[data-theme="neo-arcade"] .main-title {
+    color: #ffffff;
+    text-shadow: 3px 3px 0px rgba(139, 0, 0, 0.8);
+}
+
+/* --- Boutons et Éléments Visuels Nets --- */
+[data-theme="neo-arcade"] .btn-primary {
+    background: var(--red-gradient);
+    border: 1px solid #ff4d4d;
+    color: #ffffff;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(229, 9, 20, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-theme="neo-arcade"] .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(229, 9, 20, 0.7);
+}
+
+[data-theme="neo-arcade"] .topbar {
+    border-bottom: 2px solid #e50914;
+    background: #0d0d10;
+}
+
+[data-theme="neo-arcade"] .overview-header {
+    border-left: 4px solid #e50914;
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.08) 0%, var(--bg-surface) 100%);
+}
+
+[data-theme="neo-arcade"] .podium-slot {
+    border: 1px solid rgba(229, 9, 20, 0.35);
+    background: #141418;
+}
+
+[data-theme="neo-arcade"] .podium-slot.slot-1 {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.25);
+}
+
+[data-theme="neo-arcade"] .badge-format,
+[data-theme="neo-arcade"] .meta-tag {
+    border: 1px solid rgba(229, 9, 20, 0.45);
+    color: #ff3333;
+}

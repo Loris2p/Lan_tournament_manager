@@ -7,7 +7,20 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" href="/logo.png">
     <link rel="stylesheet" href="/css/custom.css">
-    <script>try{const t=localStorage.getItem('ltm_theme')||'modern-esport';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="stylesheet" id="ltm-theme-style" href="/css/themes/tactical-broadcast.css">
+    <link rel="stylesheet" href="/css/layouts/tactical-deck.css">
+    <script>try{
+        const themes = ['tactical-broadcast', 'neo-arcade', 'industrial-brutalism', 'stealth-laser'];
+        let t = localStorage.getItem('ltm_theme') || 'tactical-broadcast';
+        if (!themes.includes(t)) t = 'tactical-broadcast';
+        const layouts = ['tactical-deck'];
+        let l = localStorage.getItem('ltm_layout') || 'tactical-deck';
+        if (!layouts.includes(l)) l = 'tactical-deck';
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.setAttribute('data-layout', l);
+        const link = document.getElementById('ltm-theme-style');
+        if (link) link.href = '/css/themes/' + t + '.css';
+    }catch(e){}</script>
 </head>
 <body class="auth-page">
 

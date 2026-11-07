@@ -1,0 +1,117 @@
+/* ==========================================================================
+   THEME: Industrial Brutalism / Pure Red
+   Hardcore LAN, grille industrielle & rouge pur #e50914 — Zéro rose
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700;800&display=swap');
+
+:root, [data-theme="industrial-brutalism"] {
+    --bg-root: #0b0b0d;
+    --bg-surface: #121215;
+    --bg-card: #121215;
+    --bg-elevated: #1a1a1f;
+    --bg-hover: #24242b;
+
+    --body-bg-gradient:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(ellipse at 50% 0%, rgba(229, 9, 20, 0.15) 0%, transparent 60%),
+        #0b0b0d;
+
+    --line-subtle: #272730;
+    --line-strong: #e50914;
+
+    /* ROUGE PUR */
+    --red: #e50914;
+    --red-hover: #b91c1c;
+    --red-subtle: rgba(229, 9, 20, 0.14);
+    --red-glow: 0 0 16px rgba(229, 9, 20, 0.45);
+    --red-gradient: linear-gradient(135deg, #e50914 0%, #8b0000 100%);
+
+    --green-status: #22c55e;
+    --green-subtle: rgba(34, 197, 94, 0.15);
+
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+
+    --card-radius: 0px;
+    --btn-radius: 0px;
+    --card-shadow: 4px 4px 0px #000000;
+    --card-backdrop: none;
+
+    --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-heading: 'JetBrains Mono', 'Space Grotesk', monospace;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* --- Style Brutaliste : Zéro arrondi, bordures franches & ombres dures --- */
+[data-theme="industrial-brutalism"] h1,
+[data-theme="industrial-brutalism"] h2,
+[data-theme="industrial-brutalism"] h3,
+[data-theme="industrial-brutalism"] .brand-title,
+[data-theme="industrial-brutalism"] .main-title,
+[data-theme="industrial-brutalism"] .section-title {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    font-weight: 800;
+}
+
+[data-theme="industrial-brutalism"] .brand-title {
+    color: #e50914;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+}
+
+[data-theme="industrial-brutalism"] .btn-primary {
+    border-radius: 0;
+    background: #e50914;
+    color: #ffffff;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0px #000000;
+    border: 1px solid #000000;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+[data-theme="industrial-brutalism"] .btn-primary:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px #000000;
+    background: #ff1f1f;
+}
+
+[data-theme="industrial-brutalism"] .topbar {
+    border-bottom: 2px solid #e50914;
+    background: #0b0b0d;
+}
+
+[data-theme="industrial-brutalism"] .overview-header {
+    border-left: 6px solid #e50914;
+    border-radius: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(229, 9, 20, 0.08),
+        rgba(229, 9, 20, 0.08) 10px,
+        transparent 10px,
+        transparent 20px
+    );
+}
+
+[data-theme="industrial-brutalism"] .spec-cell,
+[data-theme="industrial-brutalism"] .carousel-wrapper,
+[data-theme="industrial-brutalism"] .rule-box,
+[data-theme="industrial-brutalism"] .podium-slot,
+[data-theme="industrial-brutalism"] .auth-card,
+[data-theme="industrial-brutalism"] .captain-banner,
+[data-theme="industrial-brutalism"] .section-box,
+[data-theme="industrial-brutalism"] .admin-panel,
+[data-theme="industrial-brutalism"] .table-frame {
+    border-radius: 0 !important;
+    border: 2px solid #272730;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.85);
+}
+
+[data-theme="industrial-brutalism"] .podium-slot.slot-1 {
+    border-color: #ffd700;
+}
