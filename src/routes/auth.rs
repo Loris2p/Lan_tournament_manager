@@ -81,7 +81,9 @@ pub async fn login(
     Json(req): Json<LoginRequest>,
 ) -> Result<(CookieJar, Json<Value>), Errors> {
     let client_ip = extract_client_ip(&headers);
-    if !state.rate_limiter.check(&client_ip) {
+    let username = req.username.trim();
+    let key_rate = format!("{}:{}", client_ip, username);
+    if !state.rate_limiter.check(&key_rate) {
         return Err(Errors::Error429TooManyRequests(
             "Trop de tentatives de connexion. Veuillez patienter une minute.".to_string(),
         ));

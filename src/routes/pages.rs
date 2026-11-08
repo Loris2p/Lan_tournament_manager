@@ -393,7 +393,9 @@ pub async fn handle_login_form(
     Form(form): Form<LoginForm>,
 ) -> Response {
     let client_ip = extract_client_ip(&headers);
-    if !state.rate_limiter.check(&client_ip) {
+    let username = form.username.trim();
+    let key_rate = format!("{}:{}", client_ip, username);
+    if !state.rate_limiter.check(&key_rate) {
         return Redirect::to("/login?error=rate_limited").into_response();
     }
 
