@@ -1,3 +1,4 @@
+use std::env;
 use crate::auth::claims::{Claims, UserRole};
 use crate::errors::Errors;
 use axum_extra::extract::cookie::{Cookie, SameSite};
@@ -51,10 +52,11 @@ pub fn verify_jwt(token: &str, secret: &str) -> Result<Claims, Errors> {
     Ok(res)
 }
 pub fn build_auth_cookie(token: String) -> Cookie<'static> {
+    let is_secure =  env::var("APP_ENV").map(|v| v=="production").unwrap_or(false)||env::var("CC_DEPLOYMENT_ID").is_ok();
     Cookie::build(("lan_session", token))
         .path("/")
         .http_only(true)
         .same_site(SameSite::Strict)
-        .secure(true)
+        .secure(is_secure)
         .build()
 }
