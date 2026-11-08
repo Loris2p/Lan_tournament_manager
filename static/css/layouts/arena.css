@@ -822,6 +822,10 @@ html[data-layout="arena"],
 }
 
 /* Pied de page */
+[data-layout="arena"] .footer {
+    display: none !important;
+}
+
 .ar-footer {
     display: flex;
     justify-content: space-between;
@@ -1290,6 +1294,39 @@ html[data-layout="arena"],
 
 [data-layout="arena"] .admin-badge-user strong {
     color: var(--text-primary);
+}
+
+/* Bandeau de télémétrie admin */
+[data-layout="arena"] .admin-telemetry-strip {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+[data-layout="arena"] .telemetry-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
+    border: 1px solid var(--line-subtle);
+    font-family: var(--font-mono);
+}
+
+[data-layout="arena"] .telemetry-val {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--accent, #e53e3e);
+}
+
+[data-layout="arena"] .telemetry-lbl {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 /* Onglets admin Arena (Pills segmentés) */
@@ -1906,4 +1943,74 @@ html[data-layout="arena"],
     border-radius: 8px;
     border: 1px solid var(--line-subtle);
     margin: 1rem 0;
+}
+
+/* ==========================================================================
+   AUTH / LOGIN (Arena theme harmonization)
+   ========================================================================== */
+.ar-auth-main {
+    max-width: 440px;
+    width: 100%;
+    margin: 0 auto;
+    min-height: calc(82vh - var(--ar-dock-h));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem 1.25rem;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.ar-auth-ghost {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--ar-display);
+    font-weight: 900;
+    font-size: clamp(3rem, 7.5vw, 6.5rem);
+    line-height: 0.9;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--line-subtle);
+    user-select: none;
+    pointer-events: none;
+    z-index: 0;
+    white-space: nowrap;
+    opacity: 0.45;
+}
+
+.ar-auth-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
+    border: 1px solid var(--line-subtle);
+    border-radius: 16px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.65);
+    padding: 2.25rem 2rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.ar-auth-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    background: color-mix(in srgb, #7f1d1d 20%, var(--bg-root));
+    border: 1px solid var(--red);
+    color: #fca5a5;
+    box-shadow: 0 0 14px var(--red-subtle);
+}
+
+.ar-alert-icon {
+    font-size: 1.1rem;
+    color: var(--red);
 }

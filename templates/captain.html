@@ -29,7 +29,7 @@
     <main class="ar-main ar-captain-main">
 
         <section class="ar-hero ar-hero-team">
-            <div class="ar-hero-ghost" aria-hidden="true">TEAM</div>
+            <div class="ar-hero-ghost" aria-hidden="true">COCKPIT</div>
             <p class="ar-kicker" id="tournament-kicker"
                data-start="{{ tournament_status.start_at.as_deref().unwrap_or("") }}"
                data-end="{{ tournament_status.end_at.as_deref().unwrap_or("") }}"
@@ -42,16 +42,16 @@
             <div class="ar-team-hero-grid">
                 <div>
                     <h1 class="ar-title ar-title-sm">
-                        <span id="captain-team-name">{{ team_name }}</span>
+                        <span>ÉQUIPE</span> <span class="ar-accent" id="captain-team-name">{{ team_name }}</span>
                     </h1>
                     <p class="ar-lead">
-                        Déclarez vos scores avec capture d'écran pour validation immédiate par les arbitres.
+                        Consultez vos matchs ouverts, rejoignez les lobbies et envoyez votre capture de fin de partie.
                     </p>
                 </div>
                 <div class="ar-team-score-card">
                     <span class="ar-score-label">POINTS AU CLASSEMENT</span>
                     <span class="ar-score-val" id="captain-team-points">{{ total_points }} <small>PTS</small></span>
-                    <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct →</a>
+                    <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct ↗</a>
                 </div>
             </div>
         </section>
@@ -61,15 +61,15 @@
             <section class="ar-card-panel">
                 <header class="ar-sec-head">
                     <div>
-                        <p class="ar-eyebrow">Épreuves en cours</p>
-                        <h2>Matchs Assignés</h2>
+                        <p class="ar-eyebrow">Round en cours</p>
+                        <h2>Vos Matchs</h2>
                     </div>
                     <span class="ar-badge-pill" id="open-matches-count">{{ matches.len() }} ACTIF{% if matches.len() > 1 %}S{% endif %}</span>
                 </header>
 
                 <div id="matches-list" class="matches-select-list">
                     {% if matches.is_empty() %}
-                        <div class="empty-state">Aucun match ouvert assigné à votre équipe pour le moment. Attendez l'ouverture d'un round par les arbitres.</div>
+                        <div class="empty-state">Aucun match ouvert pour votre équipe. Attendez le lancement du prochain round par les organisateurs.</div>
                     {% else %}
                         {% for m in matches %}
                             <div class="match-item{% if loop.first %} selected{% endif %}"
@@ -100,11 +100,11 @@
                     </div>
                     <div class="match-details-body">
                         <div class="detail-row">
-                            <span class="detail-k">INSTRUCTIONS / LOBBY :</span>
+                            <span class="detail-k">ACCÈS LOBBY / SERVEUR :</span>
                             <span class="detail-v" id="selected-match-instructions">--</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-k">CONSIGNES DU JEU :</span>
+                            <span class="detail-k">RÈGLES DU JEU :</span>
                             <span class="detail-v" id="selected-match-rules">--</span>
                         </div>
                     </div>
@@ -114,19 +114,18 @@
             <section class="ar-card-panel">
                 <header class="ar-sec-head">
                     <div>
-                        <p class="ar-eyebrow">Dépôt de preuve</p>
-                        <h2>Transmettre un Résultat</h2>
+                        <p class="ar-eyebrow">Preuve de match</p>
+                        <h2>Déclarer un Résultat</h2>
                     </div>
-                    <!--<span class="ar-badge-pill ar-badge-red">SAISIE CAPITAINE</span>-->
                 </header>
 
                 {% if is_success() %}
                 <div id="submission-success" class="submission-success-box" style="display: block; margin-bottom: 1.5rem;">
                     <div class="success-icon">✓</div>
-                    <h4>SCORE TRANSMIS AUX ARBITRES</h4>
-                    <p>Votre résultat et votre capture d'écran ont bien été enregistrés. Le statut passera à <strong>Validé</strong> dès vérification par l'arbitre.</p>
+                    <h4>SCORE ENREGISTRÉ</h4>
+                    <p>Votre capture et vos points ont été transmis aux arbitres pour validation.</p>
                     <a href="/captain" class="ar-btn ar-btn-solid ar-btn-block" style="margin-top: 1rem; text-decoration: none;">
-                        Transmettre un autre match
+                        Déclarer un autre match
                     </a>
                 </div>
                 {% endif %}
@@ -189,7 +188,7 @@
                     </div>
 
                     <button type="submit" class="ar-btn ar-btn-solid ar-btn-block ar-btn-lg" id="submit-score-btn">
-                        Envoyer le Score pour Arbitrage →
+                        Valider et Transmettre le Score →
                     </button>
                 </form>
             </section>
@@ -201,19 +200,19 @@
     <div id="modal-confirm-submission" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <span class="brand-tag">CONFIRMATION</span>
+                <span class="brand-tag">RÉCAPITULATIF</span>
                 <h3>Vérification du Score</h3>
                 <button type="button" class="btn-text" data-close-modal="modal-confirm-submission">Modifier</button>
             </div>
             <div class="modal-body">
-                <p class="panel-desc">Vérifiez les données du match avant transmission définitive aux arbitres :</p>
+                <p class="panel-desc">Vérifiez vos données avant l'envoi final aux arbitres :</p>
                 <div class="confirm-recap-box">
                     <div style="margin-bottom: 0.65rem;">
                         <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">ÉPREUVE / MATCH</span>
                         <strong id="confirm-game" style="font-size: 1.05rem;">--</strong>
                     </div>
                     <div style="margin-bottom: 0.65rem;">
-                        <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">CLASSEMENT DÉCLARÉ</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">RANG OBTENU</span>
                         <strong id="confirm-placement" style="font-size: 1.15rem; color: var(--accent, #e53e3e);">--</strong>
                     </div>
                     <div id="confirm-sec-row" style="margin-bottom: 0.65rem; display: none;">
@@ -222,7 +221,7 @@
                     </div>
                     <div>
                         <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">PREUVE (CAPTURE)</span>
-                        <span style="color: var(--green, #22c55e); font-weight: 600;">Capture jointe et compressée ✓</span>
+                        <span style="color: var(--green, #22c55e); font-weight: 600;">Capture compressée prête ✓</span>
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
@@ -232,15 +231,6 @@
             </div>
         </div>
     </div>
-
-    <footer class="footer">
-        <div class="footer-inner">
-            <span>&copy; 2026 LAN Tournament Manager — Espace Capitaine</span>
-            <div class="footer-links">
-                <a href="/leaderboard.html" target="_blank">Classement [Onglet]</a>
-            </div>
-        </div>
-    </footer>
 
     
 {% endblock %}

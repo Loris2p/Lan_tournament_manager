@@ -29,10 +29,26 @@
 
         <header class="admin-header-bar">
             <div class="admin-header-titles">
-                <span class="ar-tag ar-tag-live">CONSOLE D'ARBITRAGE</span>
+                <span class="ar-tag ar-tag-live">COMMAND CENTER // LAN</span>
                 <h1 class="admin-main-title">GESTION DU TOURNOI</h1>
             </div>
-            <div class="admin-header-meta">
+            <div class="admin-telemetry-strip">
+                <div class="telemetry-pill">
+                    <span class="telemetry-val" id="telemetry-pending">{{ submissions.len() }}</span>
+                    <span class="telemetry-lbl">En Attente</span>
+                </div>
+                <div class="telemetry-pill">
+                    <span class="telemetry-val">{{ matches.len() }}</span>
+                    <span class="telemetry-lbl">Matchs</span>
+                </div>
+                <div class="telemetry-pill">
+                    <span class="telemetry-val">{{ teams.len() }}</span>
+                    <span class="telemetry-lbl">Équipes</span>
+                </div>
+                <div class="telemetry-pill">
+                    <span class="telemetry-val">{{ games.len() }}</span>
+                    <span class="telemetry-lbl">Jeux</span>
+                </div>
                 <span class="admin-badge-user">
                     ADMIN : <strong>{{ admin_username.to_uppercase() }}</strong>
                 </span>
@@ -41,38 +57,38 @@
 
         <nav class="admin-tabs" id="admin-tabs-nav">
             <button type="button" class="tab-btn active" data-tab="arbitrage">
-                Arbitrage Captures
+                Validation Captures
                 <span class="tab-badge" id="pending-badge">{{ submissions.len() }}</span>
             </button>
             <button type="button" class="tab-btn" data-tab="games">
                 Catalogue Jeux
             </button>
             <button type="button" class="tab-btn" data-tab="matches">
-                Matchs & Lobbies
+                Matchs &amp; Lobbies
             </button>
             <button type="button" class="tab-btn" data-tab="teams">
-                Équipes & Points
+                Équipes &amp; Points
             </button>
             <button type="button" class="tab-btn" data-tab="admins">
-                Comptes Admins
+                Staff &amp; Arbitres
             </button>
             <button type="button" class="tab-btn tab-btn-danger" data-tab="danger">
-                Zone de Danger
+                Planning &amp; Reset
             </button>
         </nav>
 
         <div class="tab-pane active" id="tab-arbitrage">
             <div class="section-titlebar">
                 <div>
-                    <h2>FILE D'ARBITRAGE DES CAPTURES D'ÉCRAN</h2>
-                    <p class="section-subtitle">Vérifiez les preuves transmises par les capitaines et validez les points</p>
+                    <h2>PREUVES EN ATTENTE DE VALIDATION</h2>
+                    <p class="section-subtitle">Vérifiez les captures transmises par les capitaines et créditez les points aux équipes</p>
                 </div>
                 <button type="button" class="btn-text" id="refresh-submissions-btn">Actualiser la file</button>
             </div>
 
             <div id="submissions-list" class="submissions-grid">
                 {% if submissions.is_empty() %}
-                    <div class="empty-state">Aucune soumission en attente. Toutes les captures ont été arbitrées !</div>
+                    <div class="empty-state">Toutes les captures ont été traitées ! File d'attente vide.</div>
                 {% else %}
                     {% for sub in submissions %}
                         <div class="submission-card" data-sub-id="{{ sub.id }}">
@@ -236,7 +252,7 @@
             <div class="admin-split">
 
                 <div class="admin-panel">
-                    <h3>CRÉER UN NOUVEAU MATCH</h3>
+                    <h3>LANCER UN NOUVEAU MATCH</h3>
                     <form id="create-match-form" class="admin-form" method="POST" action="/admin/matches">
                         <div class="form-group">
                             <label for="match-game-select">DISCIPLINE DU JEU</label>
@@ -249,10 +265,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label>ÉQUIPES CONVOQUÉES</label>
+                            <label>ÉQUIPES PARTICIPANTES</label>
                             <div id="match-teams-selector" class="teams-checkbox-grid">
                                 {% if teams.is_empty() %}
-                                    <span class="field-hint">Créez d'abord des équipes dans l'onglet Équipes.</span>
+                                    <span class="field-hint">Inscrivez d'abord des équipes dans l'onglet Équipes.</span>
                                 {% else %}
                                     {% for t in teams %}
                                         <label class="team-checkbox-label">
@@ -265,19 +281,19 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="match-instructions">INSTRUCTIONS / CODES DE LOBBY</label>
+                            <label for="match-instructions">ACCÈS LOBBY / SERVEUR</label>
                             <input type="text" id="match-instructions" name="instructions" placeholder="Ex: Code Lobby #4192 / Serveur EU-West / MDP: lan2026">
                         </div>
 
-                        <button type="submit" class="btn-primary btn-block">Créer le Match</button>
+                        <button type="submit" class="btn-primary btn-block">Créer et Déployer le Match</button>
                     </form>
                 </div>
 
                 <div class="admin-panel">
-                    <h3>MATCHS DU TOURNOI</h3>
+                    <h3>MATCHS PROGRAMMÉS</h3>
                     <div id="matches-admin-list" class="matches-admin-container">
                         {% if matches.is_empty() %}
-                            <div class="empty-state">Aucun match créé. Utilisez le formulaire ci-contre pour programmer une épreuve.</div>
+                            <div class="empty-state">Aucun match programmé. Utilisez le formulaire pour ouvrir une session.</div>
                         {% else %}
                             {% for m in matches %}
                                 <div class="match-admin-card {% if m.is_open %}is-open{% else %}is-closed{% endif %}">
@@ -287,26 +303,26 @@
                                             <h4 style="display: inline-block; margin-left: 0.5rem;">{{ m.game_name }}</h4>
                                         </div>
                                         <span class="pulse-indicator" style="{% if !m.is_open %}background: rgba(113, 113, 122, 0.2); color: var(--text-muted);{% endif %}">
-                                            {% if m.is_open %}OUVERT AUX SOUMISSIONS{% else %}FERMÉ{% endif %}
+                                            {% if m.is_open %}OUVERT{% else %}FERMÉ{% endif %}
                                         </span>
                                     </div>
 
                                     <div class="match-admin-body">
-                                        <p><strong>Instructions :</strong> {% if m.instructions.trim().is_empty() %}Aucune consigne{% else %}{{ m.instructions }}{% endif %}</p>
-                                        <p><small>{{ m.assigned_teams_count }} équipe(s) convoquée(s)</small></p>
+                                        <p><strong>Lobby :</strong> {% if m.instructions.trim().is_empty() %}Aucune consigne{% else %}{{ m.instructions }}{% endif %}</p>
+                                        <p><small>{{ m.assigned_teams_count }} équipe(s) assignée(s)</small></p>
                                     </div>
 
                                     <div class="match-admin-actions">
                                         <form method="POST" action="/admin/matches/{{ m.id }}/toggle" style="display:inline;">
                                             <button type="submit" class="btn-outline">
-                                                {% if m.is_open %}Fermer le Match{% else %}Ouvrir aux Joueurs{% endif %}
+                                                {% if m.is_open %}Clôturer le Match{% else %}Ouvrir aux Joueurs{% endif %}
                                             </button>
                                         </form>
                                         <button type="button" class="btn-text btn-edit-instructions" data-id="{{ m.id }}" data-instructions="{{ m.instructions }}">
-                                            Modifier Consignes
+                                            Modifier Accès
                                         </button>
                                         <button type="button" class="btn-primary btn-bulk-scores" data-id="{{ m.id }}">
-                                            Saisie Groupée des Scores
+                                            Saisie Immédiate (Arbitre)
                                         </button>
                                     </div>
                                 </div>
@@ -321,8 +337,8 @@
             <div class="admin-split">
 
                 <div class="admin-panel">
-                    <h3>INSCRIRE UNE NOUVELLE ÉQUIPE</h3>
-                    <p class="panel-desc">Génère le compte de connexion pour le capitaine de l'équipe.</p>
+                    <h3>AJOUTER UNE ÉQUIPE</h3>
+                    <p class="panel-desc">Génère les identifiants de connexion pour le capitaine de l'équipe.</p>
 
                     <form id="create-team-form" class="admin-form" method="POST" action="/admin/teams">
                         <div class="form-group">
@@ -345,7 +361,7 @@
                 </div>
 
                 <div class="admin-panel">
-                    <h3>LISTE DES ÉQUIPES & GESTION DES POINTS</h3>
+                    <h3>LISTE DES ÉQUIPES &amp; GESTION DES POINTS</h3>
                     <div class="table-frame" style="margin-top: 1rem;">
                         <table class="standings-table">
                             <thead>
@@ -411,7 +427,7 @@
         <div class="tab-pane" id="tab-admins">
             <div class="admin-split">
                 <div class="admin-panel">
-                    <h3>AJOUTER UN ORGANISATEUR / ARBITRE</h3>
+                    <h3>AJOUTER UN MEMBRE DU STAFF</h3>
                     <form id="create-admin-form" class="admin-form" method="POST" action="/admin/admins">
                         <div class="form-group">
                             <label for="new-admin-username">PSEUDO ADMINISTRATEUR</label>
@@ -423,12 +439,12 @@
                             <input type="password" id="new-admin-password" name="password" required placeholder="••••••••••••">
                         </div>
 
-                        <button type="submit" class="btn-primary btn-block">Créer le Compte Admin</button>
+                        <button type="submit" class="btn-primary btn-block">Créer le Compte Staff</button>
                     </form>
                 </div>
 
                 <div class="admin-panel">
-                    <h3>ADMINISTRATEURS ENREGISTRÉS</h3>
+                    <h3>STAFF &amp; ARBITRES ENREGISTRÉS</h3>
                     <div class="table-frame" style="margin-top: 1rem;">
                         <table class="standings-table">
                             <thead>
@@ -542,10 +558,10 @@
                     </div>
 
                     <div class="danger-card">
-                        <h4>2. Réinitialisation Utilisateurs & Équipes</h4>
+                        <h4>2. Réinitialisation Équipes &amp; Capitaines</h4>
                         <p>Supprime toutes les équipes inscrites et leurs comptes capitaines. Conserve le catalogue de jeux et les administrateurs.</p>
                         <button type="button" class="btn-outline btn-block" data-reset-scope="UsersAndTeams">
-                            Purger Équipes & Joueurs
+                            Réinitialiser Équipes &amp; Joueurs
                         </button>
                     </div>
 
@@ -627,15 +643,6 @@
             </form>
         </div>
     </div>
-
-    <footer class="footer">
-        <div class="footer-inner">
-            <span>&copy; 2026 LAN Tournament Manager — Console d'Administration</span>
-            <div class="footer-links">
-                <a href="/leaderboard.html" target="_blank">Classement [Onglet]</a>
-            </div>
-        </div>
-    </footer>
 
     
 {% endblock %}

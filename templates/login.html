@@ -24,13 +24,19 @@
 {% endblock %}
 
 {% block content %}
-    <main class="page-container auth-container">
+    <main class="ar-main ar-auth-main">
+        <div class="ar-auth-ghost" aria-hidden="true">CORPAURATUION</div>
 
-        <div class="auth-card">
+        <h1 class="ar-title ar-title-sm" style="text-align: center; margin-bottom: 1.5rem; position: relative; z-index: 1;">
+            <span>ESPACE</span> <span class="ar-accent">CONNEXION</span>
+        </h1>
+
+        <div class="ar-card-panel ar-auth-card">
 
             {% if let Some(err) = error_message() %}
-            <div id="auth-alert" class="auth-alert" style="display: block; margin-bottom: 1.5rem;">
-                {{ err }}
+            <div id="auth-alert" class="ar-auth-alert">
+                <span class="ar-alert-icon">⚠</span>
+                <span>{{ err }}</span>
             </div>
             {% endif %}
 
@@ -38,8 +44,8 @@
 
             <div id="setup-form-wrapper">
                 <div class="auth-header">
-                    <span class="badge-format">INITIALISATION SYSTÈME</span>
-                    <h2>PREMIER DÉMARRAGE</h2>
+                    <span class="ar-badge-pill ar-badge-red">INITIALISATION SYSTÈME</span>
+                    <h2 style="margin-top: 0.75rem;">PREMIER DÉMARRAGE</h2>
                     <p class="auth-subtitle">
                         Aucun administrateur n'a été détecté. Créez le compte d'administration principal pour sécuriser et verrouiller le tournoi.
                     </p>
@@ -61,26 +67,18 @@
                         <input type="password" name="password_confirm" id="setup-password-confirm" required placeholder="••••••••••••">
                     </div>
 
-                    <button type="submit" class="btn-primary btn-block" id="setup-submit-btn">
-                        Créer l'Administrateur & Démarrer
+                    <button type="submit" class="ar-btn ar-btn-solid ar-btn-block ar-btn-lg" id="setup-submit-btn">
+                        Créer l'Administrateur &amp; Démarrer →
                     </button>
                 </form>
             </div>
             {% else %}
 
             <div id="login-form-wrapper">
-                <div class="auth-header">
-                    <span class="brand-tag">ACCÈS PRIVÉ</span>
-                    <h2>ESPACE CONNEXION</h2>
-                    <p class="auth-subtitle">
-                        Connectez-vous avec vos identifiants d'organisateur ou votre compte d'équipe.
-                    </p>
-                </div>
-
                 <form id="login-form" class="auth-form" method="POST" action="/login" autocomplete="off">
                     <div class="form-group">
-                        <label for="login-username">IDENTIFIANT / PSEUDO</label>
-                        <input type="text" name="username" id="login-username" required placeholder="Nom d'équipe ou admin" autofocus>
+                        <label for="login-username">IDENTIFIANT</label>
+                        <input type="text" name="username" id="login-username" required placeholder="Votre identifiant" autofocus>
                     </div>
 
                     <div class="form-group">
@@ -88,8 +86,8 @@
                         <input type="password" name="password" id="login-password" required placeholder="••••••••••••">
                     </div>
 
-                    <button type="submit" class="btn-primary btn-block" id="login-submit-btn">
-                        Se Connecter
+                    <button type="submit" class="ar-btn ar-btn-solid ar-btn-block ar-btn-lg" id="login-submit-btn">
+                        Se Connecter →
                     </button>
                 </form>
             </div>
@@ -98,18 +96,6 @@
         </div>
 
     </main>
-
-    <footer class="footer">
-        <div class="footer-inner">
-            <span>&copy; 2026 LAN Tournament Manager</span>
-            <div class="footer-links">
-                <a href="/">Accueil</a>
-                <a href="/leaderboard.html">Classement</a>
-            </div>
-        </div>
-    </footer>
-
-    
 {% endblock %}
 
 {% block scripts %}
