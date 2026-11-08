@@ -18,10 +18,14 @@ impl RateLimiter {
         }
     }
 
-    pub fn check(&self, ip: &str) -> bool {
+    pub fn check(&self, key: &str) -> bool {
         let mut map = self.attempts.lock(). unwrap_or_else(|poisoned| poisoned.into_inner());
         let now = Instant::now();
-        let list = map.entry(ip.to_string()).or_default();
+        map.retain(|_, timestamps| {
+            timestamps.retain(|&t| now.saturating_duration_since(t) < self.window);
+            !timestamps.is_empty()
+        });
+        let list = map.entry(key.to_string()).or_default();
 
         // Conserve uniquement les tentatives dans la fenêtre temporelle
         list.retain(|&t| now.saturating_duration_since(t) < self.window);
