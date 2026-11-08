@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 use crate::auth::{
-    AuthenticatedUser, Claims, UserRole, build_auth_cookie, create_jwt, hash_password,
-    verify_jwt, verify_password,
+    build_auth_cookie, create_jwt, hash_password, verify_jwt, verify_password,
+    AuthenticatedUser, Claims, UserRole,
 };
 use crate::db::{
     count_admins, create_admin, find_admin_by_username, find_team_by_captain_username,
@@ -90,57 +90,56 @@ pub async fn login(
     }
 
     let db = &state.db;
-    let username = &req.username;
+    let username = req.username.trim();
     let password = &req.password;
     let exp = (chrono::Utc::now().timestamp() + 24 * 3600) as usize;
-    match find_admin_by_username(db, username).await {
-        Ok(admin) => {
-            if verify_password(password, &admin.password_hash)? {
-                let Some(admin_id) = admin.id else {
-                    return Err(Errors::Error500InternalError("ID manquant".to_string()));
-                };
-                let token = create_jwt(
-                    admin_id,
-                    admin.username,
-                    UserRole::Admin,
-                    admin.token_version,
-                    exp,
-                    &state.jwt_secret,
-                )?;
-                let jar = jar.add(build_auth_cookie(token));
-                return Ok((
-                    jar,
-                    Json(json!({ "role":"ADMIN", "redirect": "/admin.html" })),
-                ));
-            }
-        }
-        _ => {
-            if let Ok(team) = find_team_by_captain_username(db, username).await {
-                let pass_hash = team.captain_password_hash;
-                if verify_password(password, &pass_hash)? {
-                    let Some(team_id) = team.id else {
-                        return Err(Errors::Error500InternalError("ID manquant".to_string()));
-                    };
-                    let token = create_jwt(
-                        team_id,
-                        team.captain_username,
-                        UserRole::Captain {
-                            team_id: team_id.to_hex(),
-                        },
-                        team.token_version,
-                        exp,
-                        &state.jwt_secret,
-                    )?;
-                    let jar = jar.add(build_auth_cookie(token));
-                    return Ok((
-                        jar,
-                        Json(json!({ "role":"CAPTAIN", "redirect": "/captain.html" })),
-                    ));
-                }
-            }
-        }
+
+    let (target_hash, auth_info) = if let Ok(admin) = find_admin_by_username(db, username).await {
+        let info = admin
+            .id
+            .map(|id| (id, admin.username, UserRole::Admin, admin.token_version));
+        (Some(admin.password_hash), info)
+    } else if let Ok(team) = find_team_by_captain_username(db, username).await {
+        let info = team.id.map(|id| {
+            (
+                id,
+                team.captain_username,
+                UserRole::Captain {
+                    team_id: id.to_hex(),
+                },
+                team.token_version,
+            )
+        });
+        (Some(team.captain_password_hash), info)
+    } else {
+        (None, None)
     };
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+    let hash_to_verify = target_hash.as_deref().unwrap_or(crate::auth::DUMMY_HASH);
+    let is_valid = verify_password(password, hash_to_verify).unwrap_or(false);
+
+    if is_valid {
+        if let Some((user_id, user_name, role, token_version)) = auth_info {
+            let (role_str, redirect) = match role {
+                UserRole::Admin => ("ADMIN", "/admin.html"),
+                UserRole::Captain { .. } => ("CAPTAIN", "/captain.html"),
+            };
+            let token = create_jwt(
+                user_id,
+                user_name,
+                role,
+                token_version,
+                exp,
+                &state.jwt_secret,
+            )?;
+            let jar = jar.add(build_auth_cookie(token));
+            return Ok((
+                jar,
+                Json(json!({ "role": role_str, "redirect": redirect })),
+            ));
+        }
+    }
+
     Err(Errors::Error401Unauthorized(
         "Identifiant ou mot de passe incorrect".to_string(),
     ))

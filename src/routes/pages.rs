@@ -17,7 +17,6 @@ use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
-
 pub struct HtmlTemplate<T>(pub T);
 
 impl<T> IntoResponse for HtmlTemplate<T>
@@ -404,43 +403,50 @@ pub async fn handle_login_form(
     let password = &form.password;
     let exp = (chrono::Utc::now().timestamp() + 24 * 3600) as usize;
 
-    if let Ok(admin) = db::find_admin_by_username(db, username).await {
-        if verify_password(password, &admin.password_hash).unwrap_or(false) {
-            if let Some(admin_id) = admin.id {
-                if let Ok(token) = create_jwt(
-                    admin_id,
-                    admin.username,
-                    UserRole::Admin,
-                    admin.token_version,
-                    exp,
-                    &state.jwt_secret,
-                ) {
-                    let new_jar = jar.add(build_auth_cookie(token));
-                    return (new_jar, Redirect::to("/admin")).into_response();
-                }
-            }
-        }
+    let (target_hash, auth_info) = if let Ok(admin) = db::find_admin_by_username(db, username).await {
+        let info = admin
+            .id
+            .map(|id| (id, admin.username, UserRole::Admin, admin.token_version));
+        (Some(admin.password_hash), info)
     } else if let Ok(team) = db::find_team_by_captain_username(db, username).await {
-        if verify_password(password, &team.captain_password_hash).unwrap_or(false) {
-            if let Some(team_id) = team.id {
-                if let Ok(token) = create_jwt(
-                    team_id,
-                    team.captain_username,
-                    UserRole::Captain {
-                        team_id: team_id.to_hex(),
-                    },
-                    team.token_version,
-                    exp,
-                    &state.jwt_secret,
-                ) {
-                    let new_jar = jar.add(build_auth_cookie(token));
-                    return (new_jar, Redirect::to("/captain")).into_response();
-                }
+        let info = team.id.map(|id| {
+            (
+                id,
+                team.captain_username,
+                UserRole::Captain {
+                    team_id: id.to_hex(),
+                },
+                team.token_version,
+            )
+        });
+        (Some(team.captain_password_hash), info)
+    } else {
+        (None, None)
+    };
+
+    let hash_to_verify = target_hash.as_deref().unwrap_or(crate::auth::DUMMY_HASH);
+    let is_valid = verify_password(password, hash_to_verify).unwrap_or(false);
+
+    if is_valid {
+        if let Some((user_id, user_name, role, token_version)) = auth_info {
+            let target_url = match role {
+                UserRole::Admin => "/admin",
+                UserRole::Captain { .. } => "/captain",
+            };
+            if let Ok(token) = create_jwt(
+                user_id,
+                user_name,
+                role,
+                token_version,
+                exp,
+                &state.jwt_secret,
+            ) {
+                let new_jar = jar.add(build_auth_cookie(token));
+                return (new_jar, Redirect::to(target_url)).into_response();
             }
         }
     }
 
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     Redirect::to("/login?error=invalid_credentials").into_response()
 }
 

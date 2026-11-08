@@ -3,6 +3,7 @@ use crate::errors::Errors;
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use mongodb::bson::oid::ObjectId;
+pub const DUMMY_HASH: &str = "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4085449q1K"; //  hash factice pré-calculé (coût 12 identique aux mots de passes)
 pub fn hash_password(password: &str) -> Result<String, Errors> {
     Ok(bcrypt::hash(password, bcrypt::DEFAULT_COST)?)
 }
@@ -43,6 +44,7 @@ pub fn build_auth_cookie(token: String) -> Cookie<'static> {
     Cookie::build(("lan_session", token))
         .path("/")
         .http_only(true)
-        .same_site(SameSite::Strict).secure(true)
+        .same_site(SameSite::Strict)
+        .secure(true)
         .build()
 }
