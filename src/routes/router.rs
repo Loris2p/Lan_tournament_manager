@@ -26,7 +26,7 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .route("/setup", post(pages::handle_setup_form))
         .route(
             "/logout",
-            get(pages::handle_logout).post(pages::handle_logout),
+            post(pages::handle_logout),
         )
         .route("/admin", get(pages::serve_admin_page))
         .route("/admin.html", get(pages::serve_admin_page))
