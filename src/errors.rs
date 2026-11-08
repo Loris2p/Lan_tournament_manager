@@ -2,7 +2,9 @@ use aws_sdk_s3;
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+
 use serde_json::json;
+
 #[derive(Debug)]
 pub enum Errors {
     Error400BadRequest(String),
@@ -42,40 +44,46 @@ impl IntoResponse for Errors {
 }
 impl From<bcrypt::BcryptError> for Errors {
     fn from(err: bcrypt::BcryptError) -> Self {
-        Errors::Error500InternalError(err.to_string())
+        eprintln!("!!! Erreur Bcrypt : {err}");
+        Errors::Error500InternalError("Une erreur interne est survenue.".to_string())
     }
 }
 
 //Erreurs des cookies JWT
 impl From<jsonwebtoken::errors::Error> for Errors {
     fn from(err: jsonwebtoken::errors::Error) -> Self {
-        Errors::Error401Unauthorized(err.to_string())
+        eprintln!("!!! Erreur JWT : {err}");
+        Errors::Error401Unauthorized("Session invalide ou expirée.".to_string())
     }
 }
 
 //Erreurs de la DB mango
 impl From<mongodb::error::Error> for Errors {
     fn from(err: mongodb::error::Error) -> Self {
+        eprintln!("!!! Erreur MongoDB : {err}");
         if err.to_string().contains("E11000") {
-            return Errors::Error409Conflict(err.to_string());
+            return Errors::Error409Conflict("Cette ressource existe déjà !".to_string());
         }
-        Errors::Error500InternalError(err.to_string())
+        Errors::Error500InternalError("Une erreur interne est survenue".to_string())
     }
 }
 
 impl<E: std::fmt::Display> From<aws_sdk_s3::error::SdkError<E>> for Errors {
     fn from(err: aws_sdk_s3::error::SdkError<E>) -> Self {
-        Errors::Error500InternalError(err.to_string())
+        eprintln!("!!! Erreur S3/Cellar : {err}");
+        Errors::Error500InternalError("Erreur lors de l'accès au stockage distant.".to_string())
     }
 }
 
 impl From<std::io::Error> for Errors {
     fn from(err: std::io::Error) -> Self {
-        Errors::Error500InternalError(err.to_string())
+        eprintln!("!!! Erreur IO : {err}");
+        Errors::Error500InternalError("Une erreur interne est survenue".to_string())
     }
 }
 impl From<std::num::ParseIntError> for Errors {
     fn from(err: std::num::ParseIntError) -> Self {
-        Errors::Error500InternalError(err.to_string())
+        eprintln!("!!! Erreur ParseInt : {err}");
+        Errors::Error500InternalError("Une erreur interne est survenue".to_string())
     }
 }
