@@ -1,6 +1,6 @@
 use crate::db;
 use crate::errors::Errors;
-use crate::models::{AppState, GameResponse, MatchResponse, PublicTeam};
+use crate::models::{AppState, GameResponse, PublicTeam};
 use axum::Json;
 use axum::extract::State;
 use mongodb::bson::doc;
@@ -22,11 +22,4 @@ pub async fn list_games(
 pub async fn health_check(State(state): State<Arc<AppState>>) -> Result<Json<Value>, Errors> {
     let _ = &state.db.run_command(doc! { "ping": 1 }).await?;
     Ok(Json(json!({"status":"ok", "db":"connected"})))
-}
-pub async fn list_open_matches(
-    State(state): State<Arc<AppState>>,
-) -> Result<Json<Vec<MatchResponse>>, Errors> {
-    let matches = db::get_open_matches(&state.db).await?;
-    let response: Vec<MatchResponse> = matches.into_iter().map(MatchResponse::from).collect();
-    Ok(Json(response))
 }
