@@ -8,7 +8,9 @@ use futures::TryStreamExt;
 use mongodb::{
     Database,
     bson::{doc, oid::ObjectId},
+    options::ReturnDocument,
 };
+
 
 pub async fn find_team_by_captain_username(
     db: &Database,
@@ -99,14 +101,47 @@ pub async fn adjust_team_points(
     team_id: ObjectId,
     adjustment: i32,
 ) -> Result<u32, Errors> {
-    let team = find_team_by_id(db, team_id).await?;
-    let new_points = if adjustment < 0 {
-        team.total_points.saturating_sub(adjustment.unsigned_abs())
+    let coll = db.collection::<Team>("teams");
+
+    if adjustment >= 0 {
+        let updated = coll
+            .find_one_and_update(
+                doc! { "_id": team_id },
+                doc! { "$inc": { "total_points": adjustment } },
+            )
+            .return_document(ReturnDocument::After)
+            .await?;
+
+        match updated {
+            Some(team) => Ok(team.total_points),
+            None => Err(Errors::Error404NotFound("Équipe introuvable".to_string())),
+        }
     } else {
-        team.total_points.saturating_add(adjustment as u32)
-    };
-    set_points_to_team(db, team_id, new_points).await?;
-    Ok(new_points)
+        let updated = coll
+            .find_one_and_update(
+                doc! { "_id": team_id, "total_points": { "$gte": -adjustment as i64 } },
+                doc! { "$inc": { "total_points": adjustment } },
+            )
+            .return_document(ReturnDocument::After)
+            .await?;
+
+        if let Some(team) = updated {
+            return Ok(team.total_points);
+        }
+
+        let reset = coll
+            .find_one_and_update(
+                doc! { "_id": team_id },
+                doc! { "$set": { "total_points": 0 } },
+            )
+            .return_document(ReturnDocument::After)
+            .await?;
+
+        match reset {
+            Some(team) => Ok(team.total_points),
+            None => Err(Errors::Error404NotFound("Équipe introuvable".to_string())),
+        }
+    }
 }
 
 pub async fn set_points_to_team(
