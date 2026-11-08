@@ -1,7 +1,9 @@
 use crate::errors::Errors;
 use crate::routes::create_router;
-use axum::extract::DefaultBodyLimit;
-
+use axum::extract::{DefaultBodyLimit, Request};
+use axum::http::{HeaderName, HeaderValue};
+use axum::middleware::Next;
+use axum::response::Response;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 
@@ -66,13 +68,40 @@ impl Config {
     }
 }
 
+async fn security_headers_middleware(req: Request, next_handler: Next) -> Response {
+    let mut response = next_handler.run(req).await;
+    let headers = response.headers_mut();
+    headers.insert(
+        HeaderName::from_static("x-content-type-options"),
+        HeaderValue::from_static("nosniff"),
+    );
+    headers.insert(
+        HeaderName::from_static("referrer-policy"),
+        HeaderValue::from_static("strict-origin-when-cross-origin"),
+    );
+    headers.insert(
+        HeaderName::from_static("content-security-policy"),
+        HeaderValue::from_static(" default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';")
+    );
+    headers.insert(
+        HeaderName::from_static("x-frame-options"),
+        HeaderValue::from_static("DENY"),
+    );
+
+    response
+}
 async fn run() -> Result<(), Errors> {
     let config = Config::from_env();
 
     let client = mongodb::Client::with_uri_str(&config.mongo_uri).await?;
     let db = client.database("lan_tournament");
     db::init_indexes(&db).await?;
-    let s3=services::S3Service::new(config.cellar_host, config.cellar_key_id, config.cellar_key_secret, config.cellar_bucket);
+    let s3 = services::S3Service::new(
+        config.cellar_host,
+        config.cellar_key_id,
+        config.cellar_key_secret,
+        config.cellar_bucket,
+    );
     let (ws_tx, _) = tokio::sync::broadcast::channel(100);
     let rate_limiter = auth::RateLimiter::new(5, std::time::Duration::from_secs(60));
     let state = std::sync::Arc::new(models::AppState {
@@ -86,7 +115,8 @@ async fn run() -> Result<(), Errors> {
     let routeur = create_router()
         .with_state(state)
         .layer(DefaultBodyLimit::max(5 * 1024 * 1024))
-        .fallback_service(ServeDir::new("static"));
+        .fallback_service(ServeDir::new("static"))
+        .layer(axum::middleware::from_fn(security_headers_middleware));
 
     let addr = format!("0.0.0.0:{}", config.port);
     let listener = TcpListener::bind(&addr).await?;
