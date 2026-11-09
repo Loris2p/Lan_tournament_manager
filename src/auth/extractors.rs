@@ -87,7 +87,11 @@ impl FromRequestParts<Arc<AppState>> for CaptainUser {
     }
 }
 #[derive(Debug, Clone)]
-pub struct AdminUser {}
+pub struct AdminUser {
+    pub id: ObjectId,
+    #[allow(dead_code)]
+    pub username: String,
+}
 impl FromRequestParts<Arc<AppState>> for AdminUser {
     type Rejection = Errors;
 
@@ -97,7 +101,15 @@ impl FromRequestParts<Arc<AppState>> for AdminUser {
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthenticatedUser::from_request_parts(parts, state).await?;
         match auth_user.claims.role {
-            UserRole::Admin => Ok(AdminUser {}),
+            UserRole::Admin => {
+                let admin_oid = ObjectId::parse_str(&auth_user.claims.sub).map_err(|_| {
+                    Self::Rejection::Error401Unauthorized("ID de session invalide".to_string())
+                })?;
+                Ok(AdminUser {
+                    id: admin_oid,
+                    username: auth_user.claims.username,
+                })
+            }
             _ => Err(Self::Rejection::Error403Forbidden(
                 "Accès réservé aux Admins".to_string(),
             )),

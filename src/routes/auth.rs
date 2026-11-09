@@ -4,8 +4,8 @@ use crate::auth::{
     AuthenticatedUser, Claims, UserRole,
 };
 use crate::db::{
-    count_admins, create_admin, find_admin_by_username, find_team_by_captain_username,
-    increment_admin_token_version, increment_team_token_version,
+    create_initial_admin, find_admin_by_username, find_team_by_captain_username,
+    increment_admin_token_version, increment_team_token_version, is_setup_required,
 };
 use crate::errors::Errors;
 use crate::models::{AppState, CreateAdminRequest, LoginRequest};
@@ -19,8 +19,7 @@ use serde_json::{Value, json};
 use std::sync::Arc;
 
 pub async fn setup_status(State(state): State<Arc<AppState>>) -> Result<Json<Value>, Errors> {
-    let nb_admins = count_admins(&state.db).await?;
-    let need_setup = nb_admins == 0;
+    let need_setup = is_setup_required(&state.db).await?;
     Ok(Json(json!({ "needs_setup": need_setup })))
 }
 
@@ -31,10 +30,9 @@ pub async fn setup_first_admin(
 ) -> Result<(CookieJar, Json<Value>), Errors> {
     let db = &state.db;
     let username = &req.username;
-    let nb_admins = count_admins(db).await?;
-    if nb_admins != 0 {
+    if !is_setup_required(db).await? {
         return Err(Errors::Error403Forbidden(
-            "Un administrateur existe déjà".to_string(),
+            "L'initialisation a déjà été effectuée".to_string(),
         ));
     }
 
@@ -45,7 +43,7 @@ pub async fn setup_first_admin(
     }
 
     let h_pswd = hash_password(&req.password)?;
-    let admin = create_admin(db, username, &h_pswd).await?;
+    let admin = create_initial_admin(db, username, &h_pswd).await?;
     let admin_id = admin
         .id
         .ok_or_else(|| Errors::Error500InternalError("ID manquant".to_string()))?;

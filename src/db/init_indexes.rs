@@ -38,5 +38,22 @@ pub async fn init_indexes(db: &Database) -> Result<(), Errors> {
         .create_indexes([teams_captain, teams_name])
         .await?;
 
+    let count = crate::db::count_admins(db).await.unwrap_or(0);
+    let _ = db
+        .collection::<mongodb::bson::Document>("system_config")
+        .update_one(
+            doc! { "_id": "admin_count" },
+            doc! { "$set": { "count": count as i64 } },
+        )
+        .upsert(true)
+        .await;
+
+    if count > 0 {
+        let _ = db
+            .collection::<mongodb::bson::Document>("system_config")
+            .insert_one(doc! { "_id": "setup_done" })
+            .await;
+    }
+
     Ok(())
 }

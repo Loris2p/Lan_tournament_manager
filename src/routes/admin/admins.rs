@@ -44,14 +44,13 @@ pub async fn create_admin(
 pub async fn delete_admin(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,
-    _admin: AdminUser,
+    admin: AdminUser,
 ) -> Result<Json<Value>, Errors> {
-    let db = &state.db;
-    if db::count_admins(db).await? <= 1 {
+    if admin.id == id {
         return Err(Errors::Error400BadRequest(
-            "Impossible de supprimer le dernier Admin".to_string(),
+            "Vous ne pouvez pas supprimer votre propre compte".to_string(),
         ));
     }
-    db::delete_admin(db, id).await?;
+    db::delete_admin(&state.db, id).await?;
     Ok(Json(json!({"success":true})))
 }

@@ -3,6 +3,7 @@ use crate::auth::{
     verify_password,
 };
 use crate::db;
+use crate::errors::Errors;
 use crate::models::{
     AppState, Game, GameFormat, GameLeaderboardView, Match, PublicTeam, ResetScope,
     SubmissionScore, SubmissionStatus,
@@ -382,7 +383,7 @@ pub async fn serve_login_page(
         }
     }
 
-    let is_first_setup = db::count_admins(&state.db).await.unwrap_or(1) == 0;
+    let is_first_setup = db::is_setup_required(&state.db).await.unwrap_or(false);
 
     HtmlTemplate(LoginTemplate {
         is_first_setup,
@@ -463,8 +464,7 @@ pub async fn handle_setup_form(
     Form(form): Form<SetupForm>,
 ) -> Response {
     let db = &state.db;
-    let nb_admins = db::count_admins(db).await.unwrap_or(1);
-    if nb_admins != 0 {
+    if !db::is_setup_required(db).await.unwrap_or(false) {
         return Redirect::to("/login?error=setup_forbidden").into_response();
     }
 
@@ -485,8 +485,11 @@ pub async fn handle_setup_form(
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
 
-    let admin = match db::create_admin(db, username, &h_pswd).await {
+    let admin = match db::create_initial_admin(db, username, &h_pswd).await {
         Ok(a) => a,
+        Err(Errors::Error403Forbidden(_)) => {
+            return Redirect::to("/login?error=setup_forbidden").into_response();
+        }
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
 
@@ -888,9 +891,14 @@ pub async fn admin_delete_team(
 pub async fn admin_delete_admin(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,
-    _admin: AdminUser,
+    admin: AdminUser,
 ) -> Response {
-    let _ = db::delete_admin(&state.db, id).await;
+    if admin.id == id {
+        return Redirect::to("/admin?tab=admins&error=self_delete").into_response();
+    }
+    if db::delete_admin(&state.db, id).await.is_err() {
+        return Redirect::to("/admin?tab=admins&error=cannot_delete_admin").into_response();
+    }
     Redirect::to("/admin?tab=admins").into_response()
 }
 
