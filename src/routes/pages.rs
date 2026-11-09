@@ -1,6 +1,6 @@
 use crate::auth::{
-    build_auth_cookie, create_jwt, hash_password, verify_jwt, verify_password, AdminUser,
-    CaptainUser, UserRole,
+    AdminUser, CaptainUser, UserRole, build_auth_cookie, create_jwt, hash_password, verify_jwt,
+    verify_password,
 };
 use crate::db;
 use crate::models::{
@@ -15,8 +15,8 @@ use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::{CookieJar, Form};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-
 use std::sync::Arc;
+
 pub struct HtmlTemplate<T>(pub T);
 
 impl<T> IntoResponse for HtmlTemplate<T>
@@ -139,8 +139,12 @@ pub async fn get_tournament_status_view(db: &mongodb::Database) -> TournamentSta
             chrono::DateTime::parse_from_rfc3339(s)
                 .map(|dt| dt.with_timezone(&chrono::Utc))
                 .or_else(|_| {
-                    chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M")
-                        .map(|naive| chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(naive, chrono::Utc))
+                    chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M").map(|naive| {
+                        chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+                            naive,
+                            chrono::Utc,
+                        )
+                    })
                 })
                 .ok()
         };
@@ -308,7 +312,9 @@ pub async fn serve_leaderboard_page(
 ) -> Response {
     let teams = db::get_leaderboard(&state.db).await.unwrap_or_default();
     let live_matches = db::get_open_matches(&state.db).await.unwrap_or_default();
-    let game_leaderboards = db::get_game_leaderboards(&state.db).await.unwrap_or_default();
+    let game_leaderboards = db::get_game_leaderboards(&state.db)
+        .await
+        .unwrap_or_default();
     let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
 
     HtmlTemplate(LeaderboardTemplate {
@@ -403,7 +409,8 @@ pub async fn handle_login_form(
     let password = &form.password;
     let exp = (chrono::Utc::now().timestamp() + 24 * 3600) as usize;
 
-    let (target_hash, auth_info) = if let Ok(admin) = db::find_admin_by_username(db, username).await {
+    let (target_hash, auth_info) = if let Ok(admin) = db::find_admin_by_username(db, username).await
+    {
         let info = admin
             .id
             .map(|id| (id, admin.username, UserRole::Admin, admin.token_version));
@@ -818,23 +825,35 @@ pub async fn admin_approve_submission(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
+    let submission = match db::find_submission_by_id(&state.db, id).await {
+        Ok(s) => s,
+        Err(_) => return Redirect::to("/admin?tab=arbitrage").into_response(),
+    };
+    if submission.status != SubmissionStatus::Pending {
+        return Redirect::to("/admin?tab=arbitrage").into_response();
+    }
     if db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Approved)
         .await
         .is_ok()
     {
+        let _ = db::recalculate_tournament_scores(&state.db).await;
         let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     }
     Redirect::to("/admin?tab=arbitrage").into_response()
 }
-
 pub async fn admin_reject_submission(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ =
-        db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Rejected)
-            .await;
+    let submission = match db::find_submission_by_id(&state.db, id).await {
+        Ok(s) => s,
+        Err(_) => return Redirect::to("/admin?tab=arbitrage").into_response(),
+    };
+    if submission.status != SubmissionStatus::Pending {
+        return Redirect::to("/admin?tab=arbitrage").into_response();
+    }
+    let _ = db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Rejected).await;
     Redirect::to("/admin?tab=arbitrage").into_response()
 }
 
