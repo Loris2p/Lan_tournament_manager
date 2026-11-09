@@ -6,645 +6,699 @@
 {% block brand_url %}/admin{% endblock %}
 
 {% block nav %}
-            <a href="/" class="nav-link">Accueil</a>
+<a href="/" class="nav-link">Accueil</a>
 {% endblock %}
 
 {% block topbar_right %}
-            <div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
-                <span class="status-dot"></span>
-                <span class="status-label" id="ws-status-text">CONNECTÉ</span>
-            </div>
+<div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
+    <span class="status-dot"></span>
+    <span class="status-label" id="ws-status-text">CONNECTÉ</span>
+</div>
 
-            <div class="status-indicator">
-                <span class="status-label" id="admin-user-badge">ADMIN : {{ admin_username.to_uppercase() }}</span>
-            </div>
+<div class="status-indicator">
+    <span class="status-label" id="admin-user-badge">ADMIN : {{ admin_username.to_uppercase() }}</span>
+</div>
 
-            <a href="/logout" class="btn-text" id="logout-btn">
-                Déconnexion
-            </a>
+<form method="POST" action="/logout" style="display:inline;">
+    <button type="submit" class="btn-text" id="logout-btn">
+        Déconnexion
+    </button>
+</form>
 {% endblock %}
 
 {% block content %}
-    <main class="page-container">
+<main class="page-container">
 
-        <header class="admin-header-bar">
-            <div class="admin-header-titles">
-                <span class="ar-tag ar-tag-live">COMMAND CENTER // LAN</span>
-                <h1 class="admin-main-title">GESTION DU TOURNOI</h1>
+    <header class="admin-header-bar">
+        <div class="admin-header-titles">
+            <span class="ar-tag ar-tag-live">COMMAND CENTER // LAN</span>
+            <h1 class="admin-main-title">GESTION DU TOURNOI</h1>
+        </div>
+        <div class="admin-telemetry-strip">
+            <div class="telemetry-pill">
+                <span class="telemetry-val" id="telemetry-pending">{{ submissions.len() }}</span>
+                <span class="telemetry-lbl">En Attente</span>
             </div>
-            <div class="admin-telemetry-strip">
-                <div class="telemetry-pill">
-                    <span class="telemetry-val" id="telemetry-pending">{{ submissions.len() }}</span>
-                    <span class="telemetry-lbl">En Attente</span>
-                </div>
-                <div class="telemetry-pill">
-                    <span class="telemetry-val">{{ matches.len() }}</span>
-                    <span class="telemetry-lbl">Matchs</span>
-                </div>
-                <div class="telemetry-pill">
-                    <span class="telemetry-val">{{ teams.len() }}</span>
-                    <span class="telemetry-lbl">Équipes</span>
-                </div>
-                <div class="telemetry-pill">
-                    <span class="telemetry-val">{{ games.len() }}</span>
-                    <span class="telemetry-lbl">Jeux</span>
-                </div>
-                <span class="admin-badge-user">
+            <div class="telemetry-pill">
+                <span class="telemetry-val">{{ matches.len() }}</span>
+                <span class="telemetry-lbl">Matchs</span>
+            </div>
+            <div class="telemetry-pill">
+                <span class="telemetry-val">{{ teams.len() }}</span>
+                <span class="telemetry-lbl">Équipes</span>
+            </div>
+            <div class="telemetry-pill">
+                <span class="telemetry-val">{{ games.len() }}</span>
+                <span class="telemetry-lbl">Jeux</span>
+            </div>
+            <span class="admin-badge-user">
                     ADMIN : <strong>{{ admin_username.to_uppercase() }}</strong>
                 </span>
-            </div>
-        </header>
+        </div>
+    </header>
 
-        <nav class="admin-tabs" id="admin-tabs-nav">
-            <button type="button" class="tab-btn active" data-tab="arbitrage">
-                Validation Captures
-                <span class="tab-badge" id="pending-badge">{{ submissions.len() }}</span>
-            </button>
-            <button type="button" class="tab-btn" data-tab="games">
-                Catalogue Jeux
-            </button>
-            <button type="button" class="tab-btn" data-tab="matches">
-                Matchs &amp; Lobbies
-            </button>
-            <button type="button" class="tab-btn" data-tab="teams">
-                Équipes &amp; Points
-            </button>
-            <button type="button" class="tab-btn" data-tab="admins">
-                Staff &amp; Arbitres
-            </button>
-            <button type="button" class="tab-btn tab-btn-danger" data-tab="danger">
-                Planning &amp; Reset
-            </button>
-        </nav>
+    <nav class="admin-tabs" id="admin-tabs-nav">
+        <button type="button" class="tab-btn active" data-tab="arbitrage">
+            Validation Captures
+            <span class="tab-badge" id="pending-badge">{{ submissions.len() }}</span>
+        </button>
+        <button type="button" class="tab-btn" data-tab="games">
+            Catalogue Jeux
+        </button>
+        <button type="button" class="tab-btn" data-tab="matches">
+            Matchs &amp; Lobbies
+        </button>
+        <button type="button" class="tab-btn" data-tab="teams">
+            Équipes &amp; Points
+        </button>
+        <button type="button" class="tab-btn" data-tab="admins">
+            Staff &amp; Arbitres
+        </button>
+        <button type="button" class="tab-btn tab-btn-danger" data-tab="danger">
+            Planning &amp; Reset
+        </button>
+    </nav>
 
-        <div class="tab-pane active" id="tab-arbitrage">
-            <div class="section-titlebar">
-                <div>
-                    <h2>PREUVES EN ATTENTE DE VALIDATION</h2>
-                    <p class="section-subtitle">Vérifiez les captures transmises par les capitaines et créditez les points aux équipes</p>
-                </div>
-                <button type="button" class="btn-text" id="refresh-submissions-btn">Actualiser la file</button>
+    <div class="tab-pane active" id="tab-arbitrage">
+        <div class="section-titlebar">
+            <div>
+                <h2>PREUVES EN ATTENTE DE VALIDATION</h2>
+                <p class="section-subtitle">Vérifiez les captures transmises par les capitaines et créditez les points
+                    aux équipes</p>
             </div>
-
-            <div id="submissions-list" class="submissions-grid">
-                {% if submissions.is_empty() %}
-                    <div class="empty-state">Toutes les captures ont été traitées ! File d'attente vide.</div>
-                {% else %}
-                    {% for sub in submissions %}
-                        <div class="submission-card" data-sub-id="{{ sub.id }}">
-                            <div class="sub-media" data-zoom-url="{{ sub.proof_url }}" title="Cliquer pour agrandir la capture">
-                                {% if !sub.proof_url.is_empty() %}
-                                    <img src="{{ sub.proof_url }}" alt="Preuve de score" loading="lazy">
-                                {% else %}
-                                    <div class="slide-image-placeholder">SANS PHOTO</div>
-                                {% endif %}
-                                <span class="sub-zoom-hint">ZOOM [CLIQUEZ]</span>
-                            </div>
-                            <div class="sub-content">
-                                <div class="sub-header">
-                                    <span class="sub-team-title">{{ sub.team_name }}</span>
-                                    <span class="badge-code">{{ sub.calculated_points }} PTS ATTENDUS</span>
-                                </div>
-                                <div class="sub-scores-declared">
-                                    <span class="sub-placement-pill">PLACE : #{{ sub.placement }}</span>
-                                    {% if sub.secondary_stat > 0 %}
-                                        <span class="sub-secondary-pill">+ {{ sub.secondary_stat }} bonus</span>
-                                    {% endif %}
-                                </div>
-                                <div class="sub-actions">
-                                    <form method="POST" action="/admin/submissions/{{ sub.id }}/approve" style="display:inline;">
-                                        <button type="submit" class="btn-primary">
-                                            ✓ Valider & Créditer
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="/admin/submissions/{{ sub.id }}/reject" style="display:inline;">
-                                        <button type="submit" class="btn-outline">
-                                            ✕ Rejeter
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            </div>
+            <button type="button" class="btn-text" id="refresh-submissions-btn">Actualiser la file</button>
         </div>
 
-        <div class="tab-pane" id="tab-games">
-            <div class="admin-split">
-
-                <div class="admin-panel">
-                    <h3>AJOUTER UNE ÉPREUVE AU CATALOGUE</h3>
-                    <p class="panel-desc">Définissez le barème dynamique et les limites anti-triche du jeu.</p>
-
-                    <div class="game-presets-bar">
-                        <span class="presets-label">MODÈLES DE JEUX PRÉCONFIGURÉS (1 CLIC) :</span>
-                        <div class="presets-pills">
-                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="apex">Apex Legends</button>
-                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="lol">League of Legends</button>
-                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="fallguys">Fall Guys</button>
-                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="geoguessr">GeoGuessr</button>
-                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="ssbu">Smash Bros</button>
-                            <button type="button" class="btn-preset-pill btn-game-preset" data-preset="mk8">Mario Kart 8</button>
-                        </div>
+        <div id="submissions-list" class="submissions-grid">
+            {% if submissions.is_empty() %}
+            <div class="empty-state">Toutes les captures ont été traitées ! File d'attente vide.</div>
+            {% else %}
+            {% for sub in submissions %}
+            <div class="submission-card" data-sub-id="{{ sub.id }}">
+                <div class="sub-media" data-zoom-url="{{ sub.proof_url }}" title="Cliquer pour agrandir la capture">
+                    {% if !sub.proof_url.is_empty() %}
+                    <img src="{{ sub.proof_url }}" alt="Preuve de score" loading="lazy">
+                    {% else %}
+                    <div class="slide-image-placeholder">SANS PHOTO</div>
+                    {% endif %}
+                    <span class="sub-zoom-hint">ZOOM [CLIQUEZ]</span>
+                </div>
+                <div class="sub-content">
+                    <div class="sub-header">
+                        <span class="sub-team-title">{{ sub.team_name }}</span>
+                        <span class="badge-code">{{ sub.calculated_points }} PTS ATTENDUS</span>
                     </div>
-
-                    <form id="create-game-form" class="admin-form" method="POST" action="/admin/games">
-                        <div class="form-group">
-                            <label for="game-name">NOM DU JEU</label>
-                            <input type="text" id="game-name" name="name" required placeholder="Ex: Rocket League, Apex Legends...">
-                        </div>
-
-                        <div class="form-row-grid">
-                            <div class="form-group">
-                                <label for="game-format">FORMAT</label>
-                                <select id="game-format" name="format" required>
-                                    <option value="duel">Duel (1v1 équipes)</option>
-                                    <option value="brawl">Brawl (Multi-équipes en lobby)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="game-cover">URL DE L'ILLUSTRATION</label>
-                                <input type="text" id="game-cover" name="cover_image" placeholder="Ex: /img/rl.jpg ou URL">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="game-placement-points">BARÈME PAR CLASSEMENT (POINTS SÉPARÉS PAR DES VIRGULES)</label>
-                            <input type="text" id="game-placement-points" name="placement_points" required placeholder="Ex Duel: 50, 0 | Ex Brawl: 12, 9, 7, 5, 4, 3">
-                            <small class="field-hint">1er point = 1ère place, 2e point = 2ème place, etc.</small>
-                        </div>
-
-                        <div class="form-row-grid">
-                            <div class="form-group">
-                                <label for="game-default-points">POINTS PAR DÉFAUT (HORS BARÈME)</label>
-                                <input type="number" id="game-default-points" name="default_placement_points" value="0" min="0">
-                            </div>
-                            <div class="form-group">
-                                <label for="game-max-placement">MAX PLACEMENT (ANTI-TRICHE)</label>
-                                <input type="number" id="game-max-placement" name="max_placement" value="2" min="1" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row-grid">
-                            <div class="form-group">
-                                <label for="game-sec-label">NOM STAT SECONDAIRE (OPTIONNEL)</label>
-                                <input type="text" id="game-sec-label" name="secondary_stat_label" placeholder="Ex: Kills, Vies restantes (laisser vide si aucune)">
-                            </div>
-                            <div class="form-group">
-                                <label for="game-sec-pts">POINTS PAR UNITÉ</label>
-                                <input type="number" id="game-sec-pts" name="points_per_secondary_stat" value="0" min="0">
-                            </div>
-                            <div class="form-group">
-                                <label for="game-max-sec">MAX STAT (ANTI-TRICHE)</label>
-                                <input type="number" id="game-max-sec" name="max_secondary_stat" value="0" min="0">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="game-rules">CONSIGNES & RÈGLES DU JEU</label>
-                            <textarea id="game-rules" name="rules" rows="3" placeholder="Maps autorisées, réglages de serveur, consignes de lobby..."></textarea>
-                        </div>
-
-                        <button type="submit" class="btn-primary btn-block">Enregistrer le Jeu</button>
-                    </form>
-                </div>
-
-                <div class="admin-panel">
-                    <h3>JEUX ACTUELLEMENT CONFIGURÉS</h3>
-                    <div id="games-table-wrapper" class="table-frame" style="margin-top: 1rem;">
-                        <table class="standings-table">
-                            <thead>
-                                <tr>
-                                    <th>JEU</th>
-                                    <th>FORMAT</th>
-                                    <th>BARÈME</th>
-                                    <th>ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-games-tbody">
-                                {% if games.is_empty() %}
-                                    <tr><td colspan="4" class="cell-loading">Aucun jeu configuré. Ajoutez une épreuve ci-contre.</td></tr>
-                                	{% else %}
-                                    {% for game in games %}
-                                        <tr>
-                                            <td><strong>{{ game.name }}</strong></td>
-                                            <td><span class="badge-format">{{ game.format }}</span></td>
-                                            <td><code>{{ game.rules }}</code></td>
-                                            <td>
-                                                <form method="POST" action="/admin/games/{{ game.id }}/delete" onsubmit="return confirm('Supprimer ce jeu du catalogue ?');" style="display:inline;">
-                                                    <button type="submit" class="btn-text" style="color: var(--red);">
-                                                        Supprimer
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane" id="tab-matches">
-            <div class="admin-split">
-
-                <div class="admin-panel">
-                    <h3>LANCER UN NOUVEAU MATCH</h3>
-                    <form id="create-match-form" class="admin-form" method="POST" action="/admin/matches">
-                        <div class="form-group">
-                            <label for="match-game-select">DISCIPLINE DU JEU</label>
-                            <select id="match-game-select" name="game_id" required>
-                                <option value="">Sélectionnez un jeu...</option>
-                                {% for g in games %}
-                                    <option value="{{ g.id }}">{{ g.name }} ({{ g.format }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>ÉQUIPES PARTICIPANTES</label>
-                            <div id="match-teams-selector" class="teams-checkbox-grid">
-                                {% if teams.is_empty() %}
-                                    <span class="field-hint">Inscrivez d'abord des équipes dans l'onglet Équipes.</span>
-                                {% else %}
-                                    {% for t in teams %}
-                                        <label class="team-checkbox-label">
-                                            <input type="checkbox" name="match_teams" value="{{ t.id }}">
-                                            <span>{{ t.name }}</span>
-                                        </label>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="match-instructions">ACCÈS LOBBY / SERVEUR</label>
-                            <input type="text" id="match-instructions" name="instructions" placeholder="Ex: Code Lobby #4192 / Serveur EU-West / MDP: lan2026">
-                        </div>
-
-                        <button type="submit" class="btn-primary btn-block">Créer et Déployer le Match</button>
-                    </form>
-                </div>
-
-                <div class="admin-panel">
-                    <h3>MATCHS PROGRAMMÉS</h3>
-                    <div id="matches-admin-list" class="matches-admin-container">
-                        {% if matches.is_empty() %}
-                            <div class="empty-state">Aucun match programmé. Utilisez le formulaire pour ouvrir une session.</div>
-                        {% else %}
-                            {% for m in matches %}
-                                <div class="match-admin-card {% if m.is_open %}is-open{% else %}is-closed{% endif %}">
-                                    <div class="match-admin-header">
-                                        <div>
-                                            <span class="badge-format">{{ m.title }}</span>
-                                            <h4 style="display: inline-block; margin-left: 0.5rem;">{{ m.game_name }}</h4>
-                                        </div>
-                                        <span class="pulse-indicator" style="{% if !m.is_open %}background: rgba(113, 113, 122, 0.2); color: var(--text-muted);{% endif %}">
-                                            {% if m.is_open %}OUVERT{% else %}FERMÉ{% endif %}
-                                        </span>
-                                    </div>
-
-                                    <div class="match-admin-body">
-                                        <p><strong>Lobby :</strong> {% if m.instructions.trim().is_empty() %}Aucune consigne{% else %}{{ m.instructions }}{% endif %}</p>
-                                        <p><small>{{ m.assigned_teams_count }} équipe(s) assignée(s)</small></p>
-                                    </div>
-
-                                    <div class="match-admin-actions">
-                                        <form method="POST" action="/admin/matches/{{ m.id }}/toggle" style="display:inline;">
-                                            <button type="submit" class="btn-outline">
-                                                {% if m.is_open %}Clôturer le Match{% else %}Ouvrir aux Joueurs{% endif %}
-                                            </button>
-                                        </form>
-                                        <button type="button" class="btn-text btn-edit-instructions" data-id="{{ m.id }}" data-instructions="{{ m.instructions }}">
-                                            Modifier Accès
-                                        </button>
-                                        <button type="button" class="btn-primary btn-bulk-scores" data-id="{{ m.id }}">
-                                            Saisie Immédiate (Arbitre)
-                                        </button>
-                                    </div>
-                                </div>
-                            {% endfor %}
+                    <div class="sub-scores-declared">
+                        <span class="sub-placement-pill">PLACE : #{{ sub.placement }}</span>
+                        {% if sub.secondary_stat > 0 %}
+                        <span class="sub-secondary-pill">+ {{ sub.secondary_stat }} bonus</span>
                         {% endif %}
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane" id="tab-teams">
-            <div class="admin-split">
-
-                <div class="admin-panel">
-                    <h3>AJOUTER UNE ÉQUIPE</h3>
-                    <p class="panel-desc">Génère les identifiants de connexion pour le capitaine de l'équipe.</p>
-
-                    <form id="create-team-form" class="admin-form" method="POST" action="/admin/teams">
-                        <div class="form-group">
-                            <label for="team-name">NOM DE L'ÉQUIPE</label>
-                            <input type="text" id="team-name" name="name" required placeholder="Ex: Les Faucons, Team Vitality...">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="team-captain-username">PSEUDO DU CAPITAINE</label>
-                            <input type="text" id="team-captain-username" name="captain_username" required placeholder="Ex: Apex, Faker...">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="team-password">MOT DE PASSE DU CAPITAINE</label>
-                            <input type="password" id="team-password" name="captain_password" required placeholder="••••••••••••">
-                        </div>
-
-                        <button type="submit" class="btn-primary btn-block">Créer l'Équipe</button>
-                    </form>
-                </div>
-
-                <div class="admin-panel">
-                    <h3>LISTE DES ÉQUIPES &amp; GESTION DES POINTS</h3>
-                    <div class="table-frame" style="margin-top: 1rem;">
-                        <table class="standings-table">
-                            <thead>
-                                <tr>
-                                    <th>NOM D'ÉQUIPE</th>
-                                    <th>POINTS</th>
-                                    <th>AJUSTEMENT</th>
-                                    <th>ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-teams-tbody">
-                                {% if teams.is_empty() %}
-                                    <tr><td colspan="4" class="cell-loading">Aucune équipe inscrite.</td></tr>
-                                {% else %}
-                                    {% for t in teams %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ t.name }}</strong>
-                                                {% if !t.captain_username.is_empty() %}
-                                                    <br><small style="color: var(--text-muted);">Capitaine : {{ t.captain_username }}</small>
-                                                {% endif %}
-                                            </td>
-                                            <td class="col-points">{{ t.total_points }} PTS</td>
-                                            <td>
-                                                <button type="button" class="btn-text btn-adjust-pts" data-id="{{ t.id }}" data-name="{{ t.name }}">
-                                                    +/- Ajuster
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <form method="POST" action="/admin/teams/{{ t.id }}/delete" onsubmit="return confirm('Supprimer définitivement cette équipe et son compte capitaine ?');" style="display:inline;">
-                                                    <button type="submit" class="btn-text" style="color: var(--red);">
-                                                        Supprimer
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                {% endif %}
-                            </tbody>
-                        </table>
+                    <div class="sub-actions">
+                        <form method="POST" action="/admin/submissions/{{ sub.id }}/approve" style="display:inline;">
+                            <button type="submit" class="btn-primary">
+                                ✓ Valider & Créditer
+                            </button>
+                        </form>
+                        <form method="POST" action="/admin/submissions/{{ sub.id }}/reject" style="display:inline;">
+                            <button type="submit" class="btn-outline">
+                                ✕ Rejeter
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
 
-            <div class="admin-panel" style="margin-top: 1.5rem;">
-                <h3>BARÈME DU TOURNOI GÉNÉRAL</h3>
-                <p class="panel-desc">Points généraux attribués aux équipes selon leur classement final à chaque épreuve.</p>
-                <form id="settings-points-form" class="admin-form" style="max-width: 650px;">
+    <div class="tab-pane" id="tab-games">
+        <div class="admin-split">
+
+            <div class="admin-panel">
+                <h3>AJOUTER UNE ÉPREUVE AU CATALOGUE</h3>
+                <p class="panel-desc">Définissez le barème dynamique et les limites anti-triche du jeu.</p>
+
+                <div class="game-presets-bar">
+                    <span class="presets-label">MODÈLES DE JEUX PRÉCONFIGURÉS (1 CLIC) :</span>
+                    <div class="presets-pills">
+                        <button type="button" class="btn-preset-pill btn-game-preset" data-preset="apex">Apex Legends
+                        </button>
+                        <button type="button" class="btn-preset-pill btn-game-preset" data-preset="lol">League of
+                            Legends
+                        </button>
+                        <button type="button" class="btn-preset-pill btn-game-preset" data-preset="fallguys">Fall Guys
+                        </button>
+                        <button type="button" class="btn-preset-pill btn-game-preset" data-preset="geoguessr">
+                            GeoGuessr
+                        </button>
+                        <button type="button" class="btn-preset-pill btn-game-preset" data-preset="ssbu">Smash Bros
+                        </button>
+                        <button type="button" class="btn-preset-pill btn-game-preset" data-preset="mk8">Mario Kart 8
+                        </button>
+                    </div>
+                </div>
+
+                <form id="create-game-form" class="admin-form" method="POST" action="/admin/games">
                     <div class="form-group">
-                        <label for="tournament-placement-points">POINTS PAR RANG (SÉPARÉS PAR DES VIRGULES)</label>
-                        <input type="text" id="tournament-placement-points" name="global_placement_points" required placeholder="Ex: 25, 18, 15, 12, 10, 8, 6, 4, 2, 1">
-                        <small class="field-hint">Rang 1 = 1er point (ex: 25), Rang 2 = 2e point (ex: 18), etc.</small>
+                        <label for="game-name">NOM DU JEU</label>
+                        <input type="text" id="game-name" name="name" required
+                               placeholder="Ex: Rocket League, Apex Legends...">
                     </div>
-                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-                        <button type="submit" class="btn-primary" id="save-settings-btn">Enregistrer le Barème</button>
-                        <button type="button" id="btn-default-points" class="btn-outline">Barème Standard (10 équipes)</button>
-                        <span id="settings-status-msg" style="font-size: 0.88rem; font-weight: 500;"></span>
+
+                    <div class="form-row-grid">
+                        <div class="form-group">
+                            <label for="game-format">FORMAT</label>
+                            <select id="game-format" name="format" required>
+                                <option value="duel">Duel (1v1 équipes)</option>
+                                <option value="brawl">Brawl (Multi-équipes en lobby)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="game-cover">URL DE L'ILLUSTRATION</label>
+                            <input type="text" id="game-cover" name="cover_image" placeholder="Ex: /img/rl.jpg ou URL">
+                        </div>
                     </div>
+
+                    <div class="form-group">
+                        <label for="game-placement-points">BARÈME PAR CLASSEMENT (POINTS SÉPARÉS PAR DES
+                            VIRGULES)</label>
+                        <input type="text" id="game-placement-points" name="placement_points" required
+                               placeholder="Ex Duel: 50, 0 | Ex Brawl: 12, 9, 7, 5, 4, 3">
+                        <small class="field-hint">1er point = 1ère place, 2e point = 2ème place, etc.</small>
+                    </div>
+
+                    <div class="form-row-grid">
+                        <div class="form-group">
+                            <label for="game-default-points">POINTS PAR DÉFAUT (HORS BARÈME)</label>
+                            <input type="number" id="game-default-points" name="default_placement_points" value="0"
+                                   min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="game-max-placement">MAX PLACEMENT (ANTI-TRICHE)</label>
+                            <input type="number" id="game-max-placement" name="max_placement" value="2" min="1"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-row-grid">
+                        <div class="form-group">
+                            <label for="game-sec-label">NOM STAT SECONDAIRE (OPTIONNEL)</label>
+                            <input type="text" id="game-sec-label" name="secondary_stat_label"
+                                   placeholder="Ex: Kills, Vies restantes (laisser vide si aucune)">
+                        </div>
+                        <div class="form-group">
+                            <label for="game-sec-pts">POINTS PAR UNITÉ</label>
+                            <input type="number" id="game-sec-pts" name="points_per_secondary_stat" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="game-max-sec">MAX STAT (ANTI-TRICHE)</label>
+                            <input type="number" id="game-max-sec" name="max_secondary_stat" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="game-rules">CONSIGNES & RÈGLES DU JEU</label>
+                        <textarea id="game-rules" name="rules" rows="3"
+                                  placeholder="Maps autorisées, réglages de serveur, consignes de lobby..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">Enregistrer le Jeu</button>
                 </form>
             </div>
-        </div>
 
-        <div class="tab-pane" id="tab-admins">
-            <div class="admin-split">
-                <div class="admin-panel">
-                    <h3>AJOUTER UN MEMBRE DU STAFF</h3>
-                    <form id="create-admin-form" class="admin-form" method="POST" action="/admin/admins">
-                        <div class="form-group">
-                            <label for="new-admin-username">PSEUDO ADMINISTRATEUR</label>
-                            <input type="text" id="new-admin-username" name="username" required placeholder="Ex: arbitre_2">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="new-admin-password">MOT DE PASSE</label>
-                            <input type="password" id="new-admin-password" name="password" required placeholder="••••••••••••">
-                        </div>
-
-                        <button type="submit" class="btn-primary btn-block">Créer le Compte Staff</button>
-                    </form>
+            <div class="admin-panel">
+                <h3>JEUX ACTUELLEMENT CONFIGURÉS</h3>
+                <div id="games-table-wrapper" class="table-frame" style="margin-top: 1rem;">
+                    <table class="standings-table">
+                        <thead>
+                        <tr>
+                            <th>JEU</th>
+                            <th>FORMAT</th>
+                            <th>BARÈME</th>
+                            <th>ACTION</th>
+                        </tr>
+                        </thead>
+                        <tbody id="admin-games-tbody">
+                        {% if games.is_empty() %}
+                        <tr>
+                            <td colspan="4" class="cell-loading">Aucun jeu configuré. Ajoutez une épreuve ci-contre.
+                            </td>
+                        </tr>
+                        {% else %}
+                        {% for game in games %}
+                        <tr>
+                            <td><strong>{{ game.name }}</strong></td>
+                            <td><span class="badge-format">{{ game.format }}</span></td>
+                            <td><code>{{ game.rules }}</code></td>
+                            <td>
+                                <form method="POST" action="/admin/games/{{ game.id }}/delete"
+                                      onsubmit="return confirm('Supprimer ce jeu du catalogue ?');"
+                                      style="display:inline;">
+                                    <button type="submit" class="btn-text" style="color: var(--red);">
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="admin-panel">
-                    <h3>STAFF &amp; ARBITRES ENREGISTRÉS</h3>
-                    <div class="table-frame" style="margin-top: 1rem;">
-                        <table class="standings-table">
-                            <thead>
-                                <tr>
-                                    <th>PSEUDO</th>
-                                    <th>ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-users-tbody">
-                                {% if admins.is_empty() %}
-                                    <tr><td colspan="2" class="cell-loading">Aucun administrateur trouvé.</td></tr>
-                                {% else %}
-                                    {% for a in admins %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ a.username }}</strong>
-                                                {% if a.username == admin_username %}
-                                                    <span class="badge-code">[VOUS]</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                {% if a.username == admin_username %}
-                                                    <span class="field-hint">Actif</span>
-                                                {% else %}
-                                                    <form method="POST" action="/admin/admins/{{ a.id }}/delete" onsubmit="return confirm('Révoquer cet administrateur ?');" style="display:inline;">
-                                                        <button type="submit" class="btn-text" style="color: var(--red);">
-                                                            Révoquer
-                                                        </button>
-                                                    </form>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
+    <div class="tab-pane" id="tab-matches">
+        <div class="admin-split">
+
+            <div class="admin-panel">
+                <h3>LANCER UN NOUVEAU MATCH</h3>
+                <form id="create-match-form" class="admin-form" method="POST" action="/admin/matches">
+                    <div class="form-group">
+                        <label for="match-game-select">DISCIPLINE DU JEU</label>
+                        <select id="match-game-select" name="game_id" required>
+                            <option value="">Sélectionnez un jeu...</option>
+                            {% for g in games %}
+                            <option value="{{ g.id }}">{{ g.name }} ({{ g.format }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ÉQUIPES PARTICIPANTES</label>
+                        <div id="match-teams-selector" class="teams-checkbox-grid">
+                            {% if teams.is_empty() %}
+                            <span class="field-hint">Inscrivez d'abord des équipes dans l'onglet Équipes.</span>
+                            {% else %}
+                            {% for t in teams %}
+                            <label class="team-checkbox-label">
+                                <input type="checkbox" name="match_teams" value="{{ t.id }}">
+                                <span>{{ t.name }}</span>
+                            </label>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="match-instructions">ACCÈS LOBBY / SERVEUR</label>
+                        <input type="text" id="match-instructions" name="instructions"
+                               placeholder="Ex: Code Lobby #4192 / Serveur EU-West / MDP: lan2026">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">Créer et Déployer le Match</button>
+                </form>
+            </div>
+
+            <div class="admin-panel">
+                <h3>MATCHS PROGRAMMÉS</h3>
+                <div id="matches-admin-list" class="matches-admin-container">
+                    {% if matches.is_empty() %}
+                    <div class="empty-state">Aucun match programmé. Utilisez le formulaire pour ouvrir une session.
+                    </div>
+                    {% else %}
+                    {% for m in matches %}
+                    <div class="match-admin-card {% if m.is_open %}is-open{% else %}is-closed{% endif %}">
+                        <div class="match-admin-header">
+                            <div>
+                                <span class="badge-format">{{ m.title }}</span>
+                                <h4 style="display: inline-block; margin-left: 0.5rem;">{{ m.game_name }}</h4>
+                            </div>
+                            <span class="pulse-indicator"
+                                  style="{% if !m.is_open %}background: rgba(113, 113, 122, 0.2); color: var(--text-muted);{% endif %}">
+                                            {% if m.is_open %}OUVERT{% else %}FERMÉ{% endif %}
+                                        </span>
+                        </div>
+
+                        <div class="match-admin-body">
+                            <p><strong>Lobby :</strong> {% if m.instructions.trim().is_empty() %}Aucune consigne{% else
+                                %}{{ m.instructions }}{% endif %}</p>
+                            <p><small>{{ m.assigned_teams_count }} équipe(s) assignée(s)</small></p>
+                        </div>
+
+                        <div class="match-admin-actions">
+                            <form method="POST" action="/admin/matches/{{ m.id }}/toggle" style="display:inline;">
+                                <button type="submit" class="btn-outline">
+                                    {% if m.is_open %}Clôturer le Match{% else %}Ouvrir aux Joueurs{% endif %}
+                                </button>
+                            </form>
+                            <button type="button" class="btn-text btn-edit-instructions" data-id="{{ m.id }}"
+                                    data-instructions="{{ m.instructions }}">
+                                Modifier Accès
+                            </button>
+                            <button type="button" class="btn-primary btn-bulk-scores" data-id="{{ m.id }}">
+                                Saisie Immédiate (Arbitre)
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane" id="tab-teams">
+        <div class="admin-split">
+
+            <div class="admin-panel">
+                <h3>AJOUTER UNE ÉQUIPE</h3>
+                <p class="panel-desc">Génère les identifiants de connexion pour le capitaine de l'équipe.</p>
+
+                <form id="create-team-form" class="admin-form" method="POST" action="/admin/teams">
+                    <div class="form-group">
+                        <label for="team-name">NOM DE L'ÉQUIPE</label>
+                        <input type="text" id="team-name" name="name" required
+                               placeholder="Ex: Les Faucons, Team Vitality...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="team-captain-username">PSEUDO DU CAPITAINE</label>
+                        <input type="text" id="team-captain-username" name="captain_username" required
+                               placeholder="Ex: Apex, Faker...">
+                    </div>
+
+                    <div class="form-group">
+                        <lpassabel for="team-password">MOT DE PASSE DU CAPITAINE</lpassabel>
+                        <input type="password" id="team-password" name="captain_password" required
+                               placeholder="••••••••••••" minlength="8" maxlength="72">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">Créer l'Équipe</button>
+                </form>
+            </div>
+
+            <div class="admin-panel">
+                <h3>LISTE DES ÉQUIPES &amp; GESTION DES POINTS</h3>
+                <div class="table-frame" style="margin-top: 1rem;">
+                    <table class="standings-table">
+                        <thead>
+                        <tr>
+                            <th>NOM D'ÉQUIPE</th>
+                            <th>POINTS</th>
+                            <th>AJUSTEMENT</th>
+                            <th>ACTION</th>
+                        </tr>
+                        </thead>
+                        <tbody id="admin-teams-tbody">
+                        {% if teams.is_empty() %}
+                        <tr>
+                            <td colspan="4" class="cell-loading">Aucune équipe inscrite.</td>
+                        </tr>
+                        {% else %}
+                        {% for t in teams %}
+                        <tr>
+                            <td>
+                                <strong>{{ t.name }}</strong>
+                                {% if !t.captain_username.is_empty() %}
+                                <br><small style="color: var(--text-muted);">Capitaine : {{ t.captain_username
+                                }}</small>
                                 {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
+                            </td>
+                            <td class="col-points">{{ t.total_points }} PTS</td>
+                            <td>
+                                <button type="button" class="btn-text btn-adjust-pts" data-id="{{ t.id }}"
+                                        data-name="{{ t.name }}">
+                                    +/- Ajuster
+                                </button>
+                            </td>
+                            <td>
+                                <form method="POST" action="/admin/teams/{{ t.id }}/delete"
+                                      onsubmit="return confirm('Supprimer définitivement cette équipe et son compte capitaine ?');"
+                                      style="display:inline;">
+                                    <button type="submit" class="btn-text" style="color: var(--red);">
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <div class="tab-pane" id="tab-danger">
-            <div class="danger-box schedule-box">
-                <div class="danger-header">
-                    <span class="badge-planning">PLANNING & HORAIRES</span>
-                    <h2>CYCLE DE VIE DU TOURNOI</h2>
-                    <p>Définissez les dates de début et de fin de la LAN pour activer le compte à rebours interactif sur la page d'accueil.</p>
+        <div class="admin-panel" style="margin-top: 1.5rem;">
+            <h3>BARÈME DU TOURNOI GÉNÉRAL</h3>
+            <p class="panel-desc">Points généraux attribués aux équipes selon leur classement final à chaque
+                épreuve.</p>
+            <form id="settings-points-form" class="admin-form" style="max-width: 650px;">
+                <div class="form-group">
+                    <label for="tournament-placement-points">POINTS PAR RANG (SÉPARÉS PAR DES VIRGULES)</label>
+                    <input type="text" id="tournament-placement-points" name="global_placement_points" required
+                           placeholder="Ex: 25, 18, 15, 12, 10, 8, 6, 4, 2, 1">
+                    <small class="field-hint">Rang 1 = 1er point (ex: 25), Rang 2 = 2e point (ex: 18), etc.</small>
                 </div>
-
-                <form id="tournament-schedule-form" class="admin-form" style="max-width: 680px; margin-top: 1.5rem;">
-                    <div class="schedule-presets-bar">
-                        <button type="button" class="btn-preset-pill" id="schedule-preset-weekend">
-                            Prochain week-end (Ven 18h → Dim 18h)
-                        </button>
-                        <button type="button" class="btn-preset-pill" id="schedule-preset-48h">
-                            Fin = Début + 48h
-                        </button>
-                        <button type="button" class="btn-preset-pill" id="schedule-preset-clear" style="color: var(--red);">
-                            Effacer les dates
-                        </button>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
-                        <div class="form-group">
-                            <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">LANCEMENT DE LA LAN</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <input type="date" id="schedule-start-date" class="input" style="flex: 2;">
-                                <input type="time" id="schedule-start-time" class="input" value="18:00" style="flex: 1;">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">CLÔTURE DU TOURNOI</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <input type="date" id="schedule-end-date" class="input" style="flex: 2;">
-                                <input type="time" id="schedule-end-time" class="input" value="18:00" style="flex: 1;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label style="display: inline-flex; align-items: center; gap: 0.6rem; cursor: pointer; text-transform: none; font-size: 0.85rem;">
-                            <input type="checkbox" id="schedule-is-paused" style="width: 1.1rem; height: 1.1rem; accent-color: var(--red);">
-                            <span><strong>Mettre le tournoi en pause</strong> (interrompt le décompte et affiche "TOURNOI EN PAUSE")</span>
-                        </label>
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; align-items: center;">
-                        <button type="submit" class="btn-primary" id="btn-save-schedule">
-                            Enregistrer le planning
-                        </button>
-                        <span id="schedule-status-msg" style="font-family: var(--font-mono); font-size: 0.85rem;"></span>
-                    </div>
-                </form>
-            </div>
-
-            <div class="danger-box">
-                <div class="danger-header">
-                    <span class="badge-format" style="background: var(--red); color: #fff;">ZONE CRITIQUE</span>
-                    <h2>RÉINITIALISATION DU TOURNOI</h2>
-                    <p>Ces opérations sont irréversibles. Choisissez soigneusement le périmètre de réinitialisation.</p>
+                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                    <button type="submit" class="btn-primary" id="save-settings-btn">Enregistrer le Barème</button>
+                    <button type="button" id="btn-default-points" class="btn-outline">Barème Standard (10 équipes)
+                    </button>
+                    <span id="settings-status-msg" style="font-size: 0.88rem; font-weight: 500;"></span>
                 </div>
-
-                <div class="danger-actions-grid">
-                    <div class="danger-card">
-                        <h4>1. Remise à zéro des scores</h4>
-                        <p>Conserve l'ensemble des équipes, des comptes et du catalogue de jeux. Remet tous les compteurs de points à 0 et efface les soumissions.</p>
-                        <button type="button" class="btn-outline btn-block" data-reset-scope="ScoresOnly">
-                            Réinitialiser les Scores
-                        </button>
-                    </div>
-
-                    <div class="danger-card">
-                        <h4>2. Réinitialisation Équipes &amp; Capitaines</h4>
-                        <p>Supprime toutes les équipes inscrites et leurs comptes capitaines. Conserve le catalogue de jeux et les administrateurs.</p>
-                        <button type="button" class="btn-outline btn-block" data-reset-scope="UsersAndTeams">
-                            Réinitialiser Équipes &amp; Joueurs
-                        </button>
-                    </div>
-
-                    <div class="danger-card danger-card-extreme">
-                        <h4>3. Réinitialisation Complète du Tournoi</h4>
-                        <p>Vide l'intégralité de la base de données (jeux, équipes, matchs, scores). Conserve uniquement le premier compte administrateur.</p>
-                        <button type="button" class="btn-primary btn-block" data-reset-scope="FullTournament">
-                            Reset Total du Tournoi
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <div id="modal-image-zoom" class="modal-overlay">
-        <div class="modal-card modal-card-lg">
-            <div class="modal-header">
-                <span id="zoom-title" class="brand-title">INSPECTION DE LA CAPTURE</span>
-                <button type="button" class="btn-text" data-close-modal="modal-image-zoom">Fermer [Échap]</button>
-            </div>
-            <div class="modal-body modal-image-body">
-                <img id="zoom-image-src" alt="Capture d'écran pleine résolution">
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-bulk-scores" class="modal-overlay">
-        <div class="modal-card modal-card-lg">
-            <div class="modal-header">
-                <div>
-                    <span class="badge-format">SAISIE ARBITRE IMMÉDIATE</span>
-                    <h3 id="bulk-match-title" style="margin-top: 0.25rem;">Saisie groupée des scores</h3>
-                </div>
-                <button type="button" class="btn-text" data-close-modal="modal-bulk-scores">Fermer</button>
-            </div>
-            <div class="modal-body">
-                <p class="panel-desc">Entrez les classements et stats de chaque équipe. Les points seront automatiquement calculés selon le barème et validés instantanément sans exiger de capture.</p>
-                <form id="bulk-scores-form">
-                    <input type="hidden" id="bulk-match-id">
-                    <div class="table-frame" style="margin: 1rem 0;">
-                        <table class="standings-table">
-                            <thead>
-                                <tr>
-                                    <th>ÉQUIPE</th>
-                                    <th>CLASSEMENT (PLACE)</th>
-                                    <th id="bulk-sec-header">STAT SECONDAIRE</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bulk-scores-tbody">
-
-                            </tbody>
-                        </table>
-                    </div>
-                    <button type="submit" class="btn-primary btn-block btn-lg">Valider & Enregistrer Tous les Scores</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-confirm-reset" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <span class="brand-tag">DANGER</span>
-                <h3 id="reset-scope-title">Confirmation Requise</h3>
-                <button type="button" class="btn-text" data-close-modal="modal-confirm-reset">Annuler</button>
-            </div>
-            <form method="POST" action="/admin/reset" id="reset-confirm-form" class="modal-body">
-                <input type="hidden" name="scope" id="reset-scope-input">
-                <p id="reset-scope-desc" class="panel-desc" style="color: var(--red);"></p>
-                <div class="form-group" style="margin: 1.25rem 0;">
-                    <label for="reset-confirm-input">Tapez le mot <strong>RESET</strong> pour confirmer :</label>
-                    <input type="text" id="reset-confirm-input" placeholder="RESET" autocomplete="off">
-                </div>
-                <button type="submit" class="btn-primary btn-block" id="confirm-reset-execute-btn" disabled>
-                    Exécuter la Réinitialisation
-                </button>
             </form>
         </div>
     </div>
 
-    
+    <div class="tab-pane" id="tab-admins">
+        <div class="admin-split">
+            <div class="admin-panel">
+                <h3>AJOUTER UN MEMBRE DU STAFF</h3>
+                <form id="create-admin-form" class="admin-form" method="POST" action="/admin/admins">
+                    <div class="form-group">
+                        <label for="new-admin-username">PSEUDO ADMINISTRATEUR</label>
+                        <input type="text" id="new-admin-username" name="username" required placeholder="Ex: arbitre_2">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-admin-password">MOT DE PASSE</label>
+                        <input type="password" id="new-admin-password" name="password" required
+                               placeholder="••••••••••••">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-block">Créer le Compte Staff</button>
+                </form>
+            </div>
+
+            <div class="admin-panel">
+                <h3>STAFF &amp; ARBITRES ENREGISTRÉS</h3>
+                <div class="table-frame" style="margin-top: 1rem;">
+                    <table class="standings-table">
+                        <thead>
+                        <tr>
+                            <th>PSEUDO</th>
+                            <th>ACTION</th>
+                        </tr>
+                        </thead>
+                        <tbody id="admin-users-tbody">
+                        {% if admins.is_empty() %}
+                        <tr>
+                            <td colspan="2" class="cell-loading">Aucun administrateur trouvé.</td>
+                        </tr>
+                        {% else %}
+                        {% for a in admins %}
+                        <tr>
+                            <td>
+                                <strong>{{ a.username }}</strong>
+                                {% if a.username == admin_username %}
+                                <span class="badge-code">[VOUS]</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if a.username == admin_username %}
+                                <span class="field-hint">Actif</span>
+                                {% else %}
+                                <form method="POST" action="/admin/admins/{{ a.id }}/delete"
+                                      onsubmit="return confirm('Révoquer cet administrateur ?');"
+                                      style="display:inline;">
+                                    <button type="submit" class="btn-text" style="color: var(--red);">
+                                        Révoquer
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane" id="tab-danger">
+        <div class="danger-box schedule-box">
+            <div class="danger-header">
+                <span class="badge-planning">PLANNING & HORAIRES</span>
+                <h2>CYCLE DE VIE DU TOURNOI</h2>
+                <p>Définissez les dates de début et de fin de la LAN pour activer le compte à rebours interactif sur la
+                    page d'accueil.</p>
+            </div>
+
+            <form id="tournament-schedule-form" class="admin-form" style="max-width: 680px; margin-top: 1.5rem;">
+                <div class="schedule-presets-bar">
+                    <button type="button" class="btn-preset-pill" id="schedule-preset-weekend">
+                        Prochain week-end (Ven 18h → Dim 18h)
+                    </button>
+                    <button type="button" class="btn-preset-pill" id="schedule-preset-48h">
+                        Fin = Début + 48h
+                    </button>
+                    <button type="button" class="btn-preset-pill" id="schedule-preset-clear" style="color: var(--red);">
+                        Effacer les dates
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+                    <div class="form-group">
+                        <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">LANCEMENT DE LA
+                            LAN</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="date" id="schedule-start-date" class="input" style="flex: 2;">
+                            <input type="time" id="schedule-start-time" class="input" value="18:00" style="flex: 1;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">CLÔTURE DU
+                            TOURNOI</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="date" id="schedule-end-date" class="input" style="flex: 2;">
+                            <input type="time" id="schedule-end-time" class="input" value="18:00" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: inline-flex; align-items: center; gap: 0.6rem; cursor: pointer; text-transform: none; font-size: 0.85rem;">
+                        <input type="checkbox" id="schedule-is-paused"
+                               style="width: 1.1rem; height: 1.1rem; accent-color: var(--red);">
+                        <span><strong>Mettre le tournoi en pause</strong> (interrompt le décompte et affiche "TOURNOI EN PAUSE")</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button type="submit" class="btn-primary" id="btn-save-schedule">
+                        Enregistrer le planning
+                    </button>
+                    <span id="schedule-status-msg" style="font-family: var(--font-mono); font-size: 0.85rem;"></span>
+                </div>
+            </form>
+        </div>
+
+        <div class="danger-box">
+            <div class="danger-header">
+                <span class="badge-format" style="background: var(--red); color: #fff;">ZONE CRITIQUE</span>
+                <h2>RÉINITIALISATION DU TOURNOI</h2>
+                <p>Ces opérations sont irréversibles. Choisissez soigneusement le périmètre de réinitialisation.</p>
+            </div>
+
+            <div class="danger-actions-grid">
+                <div class="danger-card">
+                    <h4>1. Remise à zéro des scores</h4>
+                    <p>Conserve l'ensemble des équipes, des comptes et du catalogue de jeux. Remet tous les compteurs de
+                        points à 0 et efface les soumissions.</p>
+                    <button type="button" class="btn-outline btn-block" data-reset-scope="ScoresOnly">
+                        Réinitialiser les Scores
+                    </button>
+                </div>
+
+                <div class="danger-card">
+                    <h4>2. Réinitialisation Équipes &amp; Capitaines</h4>
+                    <p>Supprime toutes les équipes inscrites et leurs comptes capitaines. Conserve le catalogue de jeux
+                        et les administrateurs.</p>
+                    <button type="button" class="btn-outline btn-block" data-reset-scope="UsersAndTeams">
+                        Réinitialiser Équipes &amp; Joueurs
+                    </button>
+                </div>
+
+                <div class="danger-card danger-card-extreme">
+                    <h4>3. Réinitialisation Complète du Tournoi</h4>
+                    <p>Vide l'intégralité de la base de données (jeux, équipes, matchs, scores). Conserve uniquement le
+                        premier compte administrateur.</p>
+                    <button type="button" class="btn-primary btn-block" data-reset-scope="FullTournament">
+                        Reset Total du Tournoi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<div id="modal-image-zoom" class="modal-overlay">
+    <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+            <span id="zoom-title" class="brand-title">INSPECTION DE LA CAPTURE</span>
+            <button type="button" class="btn-text" data-close-modal="modal-image-zoom">Fermer [Échap]</button>
+        </div>
+        <div class="modal-body modal-image-body">
+            <img id="zoom-image-src" alt="Capture d'écran pleine résolution">
+        </div>
+    </div>
+</div>
+
+<div id="modal-bulk-scores" class="modal-overlay">
+    <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+            <div>
+                <span class="badge-format">SAISIE ARBITRE IMMÉDIATE</span>
+                <h3 id="bulk-match-title" style="margin-top: 0.25rem;">Saisie groupée des scores</h3>
+            </div>
+            <button type="button" class="btn-text" data-close-modal="modal-bulk-scores">Fermer</button>
+        </div>
+        <div class="modal-body">
+            <p class="panel-desc">Entrez les classements et stats de chaque équipe. Les points seront automatiquement
+                calculés selon le barème et validés instantanément sans exiger de capture.</p>
+            <form id="bulk-scores-form">
+                <input type="hidden" id="bulk-match-id">
+                <div class="table-frame" style="margin: 1rem 0;">
+                    <table class="standings-table">
+                        <thead>
+                        <tr>
+                            <th>ÉQUIPE</th>
+                            <th>CLASSEMENT (PLACE)</th>
+                            <th id="bulk-sec-header">STAT SECONDAIRE</th>
+                        </tr>
+                        </thead>
+                        <tbody id="bulk-scores-tbody">
+
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn-primary btn-block btn-lg">Valider & Enregistrer Tous les Scores
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modal-confirm-reset" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <span class="brand-tag">DANGER</span>
+            <h3 id="reset-scope-title">Confirmation Requise</h3>
+            <button type="button" class="btn-text" data-close-modal="modal-confirm-reset">Annuler</button>
+        </div>
+        <form method="POST" action="/admin/reset" id="reset-confirm-form" class="modal-body">
+            <input type="hidden" name="scope" id="reset-scope-input">
+            <p id="reset-scope-desc" class="panel-desc" style="color: var(--red);"></p>
+            <div class="form-group" style="margin: 1.25rem 0;">
+                <label for="reset-confirm-input">Tapez le mot <strong>RESET</strong> pour confirmer :</label>
+                <input type="text" id="reset-confirm-input" placeholder="RESET" autocomplete="off">
+            </div>
+            <button type="submit" class="btn-primary btn-block" id="confirm-reset-execute-btn" disabled>
+                Exécuter la Réinitialisation
+            </button>
+        </form>
+    </div>
+</div>
+
+
 {% endblock %}
 
 {% block scripts %}

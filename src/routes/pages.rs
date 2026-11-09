@@ -1,8 +1,9 @@
 use crate::auth::{
-    build_auth_cookie, create_jwt, hash_password, verify_jwt, verify_password, AdminUser,
-    CaptainUser, UserRole,
+    AdminUser, CaptainUser, UserRole, build_auth_cookie, create_jwt, hash_password, verify_jwt,
+    verify_password,
 };
 use crate::db;
+use crate::errors::Errors;
 use crate::models::{
     AppState, Game, GameFormat, GameLeaderboardView, Match, PublicTeam, ResetScope,
     SubmissionScore, SubmissionStatus,
@@ -15,7 +16,6 @@ use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::{CookieJar, Form};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-
 use std::sync::Arc;
 
 pub struct HtmlTemplate<T>(pub T);
@@ -140,8 +140,12 @@ pub async fn get_tournament_status_view(db: &mongodb::Database) -> TournamentSta
             chrono::DateTime::parse_from_rfc3339(s)
                 .map(|dt| dt.with_timezone(&chrono::Utc))
                 .or_else(|_| {
-                    chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M")
-                        .map(|naive| chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(naive, chrono::Utc))
+                    chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M").map(|naive| {
+                        chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+                            naive,
+                            chrono::Utc,
+                        )
+                    })
                 })
                 .ok()
         };
@@ -309,7 +313,9 @@ pub async fn serve_leaderboard_page(
 ) -> Response {
     let teams = db::get_leaderboard(&state.db).await.unwrap_or_default();
     let live_matches = db::get_open_matches(&state.db).await.unwrap_or_default();
-    let game_leaderboards = db::get_game_leaderboards(&state.db).await.unwrap_or_default();
+    let game_leaderboards = db::get_game_leaderboards(&state.db)
+        .await
+        .unwrap_or_default();
     let auth = NavAuth::from_jar(&jar, &state.jwt_secret);
 
     HtmlTemplate(LeaderboardTemplate {
@@ -377,7 +383,7 @@ pub async fn serve_login_page(
         }
     }
 
-    let is_first_setup = db::count_admins(&state.db).await.unwrap_or(1) == 0;
+    let is_first_setup = db::is_setup_required(&state.db).await.unwrap_or(false);
 
     HtmlTemplate(LoginTemplate {
         is_first_setup,
@@ -393,7 +399,9 @@ pub async fn handle_login_form(
     Form(form): Form<LoginForm>,
 ) -> Response {
     let client_ip = extract_client_ip(&headers);
-    if !state.rate_limiter.check(&client_ip) {
+    let username = form.username.trim();
+    let key_rate = format!("{}:{}", client_ip, username);
+    if !state.rate_limiter.check(&key_rate) {
         return Redirect::to("/login?error=rate_limited").into_response();
     }
 
@@ -402,43 +410,51 @@ pub async fn handle_login_form(
     let password = &form.password;
     let exp = (chrono::Utc::now().timestamp() + 24 * 3600) as usize;
 
-    if let Ok(admin) = db::find_admin_by_username(db, username).await {
-        if verify_password(password, &admin.password_hash).unwrap_or(false) {
-            if let Some(admin_id) = admin.id {
-                if let Ok(token) = create_jwt(
-                    admin_id,
-                    admin.username,
-                    UserRole::Admin,
-                    admin.token_version,
-                    exp,
-                    &state.jwt_secret,
-                ) {
-                    let new_jar = jar.add(build_auth_cookie(token));
-                    return (new_jar, Redirect::to("/admin")).into_response();
-                }
-            }
-        }
+    let (target_hash, auth_info) = if let Ok(admin) = db::find_admin_by_username(db, username).await
+    {
+        let info = admin
+            .id
+            .map(|id| (id, admin.username, UserRole::Admin, admin.token_version));
+        (Some(admin.password_hash), info)
     } else if let Ok(team) = db::find_team_by_captain_username(db, username).await {
-        if verify_password(password, &team.captain_password_hash).unwrap_or(false) {
-            if let Some(team_id) = team.id {
-                if let Ok(token) = create_jwt(
-                    team_id,
-                    team.captain_username,
-                    UserRole::Captain {
-                        team_id: team_id.to_hex(),
-                    },
-                    team.token_version,
-                    exp,
-                    &state.jwt_secret,
-                ) {
-                    let new_jar = jar.add(build_auth_cookie(token));
-                    return (new_jar, Redirect::to("/captain")).into_response();
-                }
+        let info = team.id.map(|id| {
+            (
+                id,
+                team.captain_username,
+                UserRole::Captain {
+                    team_id: id.to_hex(),
+                },
+                team.token_version,
+            )
+        });
+        (Some(team.captain_password_hash), info)
+    } else {
+        (None, None)
+    };
+
+    let hash_to_verify = target_hash.as_deref().unwrap_or(crate::auth::DUMMY_HASH);
+    let is_valid = verify_password(password, hash_to_verify).unwrap_or(false);
+
+    if is_valid {
+        if let Some((user_id, user_name, role, token_version)) = auth_info {
+            let target_url = match role {
+                UserRole::Admin => "/admin",
+                UserRole::Captain { .. } => "/captain",
+            };
+            if let Ok(token) = create_jwt(
+                user_id,
+                user_name,
+                role,
+                token_version,
+                exp,
+                &state.jwt_secret,
+            ) {
+                let new_jar = jar.add(build_auth_cookie(token));
+                return (new_jar, Redirect::to(target_url)).into_response();
             }
         }
     }
 
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     Redirect::to("/login?error=invalid_credentials").into_response()
 }
 
@@ -448,8 +464,7 @@ pub async fn handle_setup_form(
     Form(form): Form<SetupForm>,
 ) -> Response {
     let db = &state.db;
-    let nb_admins = db::count_admins(db).await.unwrap_or(1);
-    if nb_admins != 0 {
+    if !db::is_setup_required(db).await.unwrap_or(false) {
         return Redirect::to("/login?error=setup_forbidden").into_response();
     }
 
@@ -470,8 +485,11 @@ pub async fn handle_setup_form(
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
 
-    let admin = match db::create_admin(db, username, &h_pswd).await {
+    let admin = match db::create_initial_admin(db, username, &h_pswd).await {
         Ok(a) => a,
+        Err(Errors::Error403Forbidden(_)) => {
+            return Redirect::to("/login?error=setup_forbidden").into_response();
+        }
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
 
@@ -810,23 +828,35 @@ pub async fn admin_approve_submission(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
+    let submission = match db::find_submission_by_id(&state.db, id).await {
+        Ok(s) => s,
+        Err(_) => return Redirect::to("/admin?tab=arbitrage").into_response(),
+    };
+    if submission.status != SubmissionStatus::Pending {
+        return Redirect::to("/admin?tab=arbitrage").into_response();
+    }
     if db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Approved)
         .await
         .is_ok()
     {
+        let _ = db::recalculate_tournament_scores(&state.db).await;
         let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     }
     Redirect::to("/admin?tab=arbitrage").into_response()
 }
-
 pub async fn admin_reject_submission(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ =
-        db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Rejected)
-            .await;
+    let submission = match db::find_submission_by_id(&state.db, id).await {
+        Ok(s) => s,
+        Err(_) => return Redirect::to("/admin?tab=arbitrage").into_response(),
+    };
+    if submission.status != SubmissionStatus::Pending {
+        return Redirect::to("/admin?tab=arbitrage").into_response();
+    }
+    let _ = db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Rejected).await;
     Redirect::to("/admin?tab=arbitrage").into_response()
 }
 
@@ -861,9 +891,14 @@ pub async fn admin_delete_team(
 pub async fn admin_delete_admin(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,
-    _admin: AdminUser,
+    admin: AdminUser,
 ) -> Response {
-    let _ = db::delete_admin(&state.db, id).await;
+    if admin.id == id {
+        return Redirect::to("/admin?tab=admins&error=self_delete").into_response();
+    }
+    if db::delete_admin(&state.db, id).await.is_err() {
+        return Redirect::to("/admin?tab=admins&error=cannot_delete_admin").into_response();
+    }
     Redirect::to("/admin?tab=admins").into_response()
 }
 

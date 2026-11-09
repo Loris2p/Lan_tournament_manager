@@ -26,7 +26,7 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .route("/setup", post(pages::handle_setup_form))
         .route(
             "/logout",
-            get(pages::handle_logout).post(pages::handle_logout),
+            post(pages::handle_logout),
         )
         .route("/admin", get(pages::serve_admin_page))
         .route("/admin.html", get(pages::serve_admin_page))
@@ -108,5 +108,5 @@ fn create_public_routes() -> Router<Arc<AppState>> {
         .route("/leaderboard", get(public::get_leaderboard))
         .route("/games", get(public::list_games))
         .route("/health", get(public::health_check))
-        .route("/matches", get(public::list_open_matches))
+        
 }

@@ -104,14 +104,7 @@
                                         <span class="match-game-title">{{ m.game_name }}</span>
                                         <span class="match-live-status">EN COURS</span>
                                     </div>
-                                    <div class="match-instructions-box">
-                                        <strong>LOBBY / CONSIGNES :</strong>
-                                        {% if m.instructions.trim().is_empty() %}
-                                            En attente des consignes d'arbitrage
-                                        {% else %}
-                                            {{ m.instructions }}
-                                        {% endif %}
-                                    </div>
+                                    
                                 </div>
                             {% endfor %}
                         {% endif %}

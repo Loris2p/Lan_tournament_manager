@@ -12,6 +12,52 @@ pub async fn count_admins(db: &Database) -> Result<u64, Errors> {
         .await?;
     Ok(count)
 }
+
+pub async fn is_setup_required(db: &Database) -> Result<bool, Errors> {
+    if count_admins(db).await? > 0 {
+        return Ok(false);
+    }
+    let has_lock = db
+        .collection::<mongodb::bson::Document>("system_config")
+        .find_one(doc! { "_id": "setup_done" })
+        .await?
+        .is_some();
+    Ok(!has_lock)
+}
+
+pub async fn create_initial_admin(
+    db: &Database,
+    username: &str,
+    password_hash: &str,
+) -> Result<Admin, Errors> {
+    if !is_setup_required(db).await? {
+        return Err(Errors::Error403Forbidden(
+            "L'initialisation a déjà été effectuée".to_string(),
+        ));
+    }
+
+    let lock_res = db
+        .collection::<mongodb::bson::Document>("system_config")
+        .insert_one(doc! { "_id": "setup_done" })
+        .await;
+
+    if lock_res.is_err() {
+        return Err(Errors::Error403Forbidden(
+            "L'initialisation a déjà été effectuée ou est en cours".to_string(),
+        ));
+    }
+
+    match create_admin(db, username, password_hash).await {
+        Ok(admin) => Ok(admin),
+        Err(e) => {
+            let _ = db
+                .collection::<mongodb::bson::Document>("system_config")
+                .delete_one(doc! { "_id": "setup_done" })
+                .await;
+            Err(e)
+        }
+    }
+}
 pub async fn find_admin_by_username(
     db: &Database,
     username: &str,
@@ -51,19 +97,55 @@ pub async fn create_admin(
         .insert_one(&new_admin)
         .await?;
     new_admin.id = res.inserted_id.as_object_id();
+
+    let _ = db
+        .collection::<mongodb::bson::Document>("system_config")
+        .update_one(
+            doc! { "_id": "admin_count" },
+            doc! { "$inc": { "count": 1 } },
+        )
+        .upsert(true)
+        .await;
+
     Ok(new_admin)
 }
 pub async fn delete_admin(db: &Database, admin_id: ObjectId) -> Result<(), Errors> {
-    if count_admins(db).await? <= 1 {
+    let count = count_admins(db).await?;
+    if count <= 1 {
         return Err(Errors::Error400BadRequest(
             "Impossible de supprimer le dernier administrateur !".to_string(),
         ));
     }
+
+    // Décrément atomique avec condition count > 1
+    let dec_res = db
+        .collection::<mongodb::bson::Document>("system_config")
+        .find_one_and_update(
+            doc! { "_id": "admin_count", "count": { "$gt": 1 } },
+            doc! { "$inc": { "count": -1 } },
+        )
+        .await?;
+
+    if dec_res.is_none() {
+        return Err(Errors::Error400BadRequest(
+            "Impossible de supprimer le dernier administrateur !".to_string(),
+        ));
+    }
+
     let res = db
         .collection::<Admin>("admins")
         .delete_one(doc! {"_id":admin_id})
         .await?;
+
     if res.deleted_count == 0 {
+        // Restaurer le compteur si aucun document n'a été supprimé
+        let _ = db
+            .collection::<mongodb::bson::Document>("system_config")
+            .update_one(
+                doc! { "_id": "admin_count" },
+                doc! { "$inc": { "count": 1 } },
+            )
+            .await;
         return Err(Errors::Error404NotFound("Admin introuvable".to_string()));
     }
     Ok(())

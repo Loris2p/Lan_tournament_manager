@@ -6,233 +6,248 @@
 {% block brand_url %}/captain{% endblock %}
 
 {% block nav %}
-            <a href="/" class="nav-link">Accueil</a>
-            <a href="/leaderboard.html" target="_blank" class="nav-link">Classement ↗</a>
+<a href="/" class="nav-link">Accueil</a>
+<a href="/leaderboard.html" target="_blank" class="nav-link">Classement ↗</a>
 {% endblock %}
 
 {% block topbar_right %}
-            <div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
-                <span class="status-dot"></span>
-                <span class="status-label" id="ws-status-text">CONNECTÉ</span>
-            </div>
+<div class="status-indicator" id="ws-indicator" title="Synchronisation temps réel">
+    <span class="status-dot"></span>
+    <span class="status-label" id="ws-status-text">CONNECTÉ</span>
+</div>
 
-            <div class="status-indicator">
-                <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
-            </div>
+<div class="status-indicator">
+    <span class="status-label" id="captain-team-badge">ÉQUIPE : {{ team_name }}</span>
+</div>
 
-            <a href="/logout" class="btn-text" id="logout-btn">
-                Déconnexion
-            </a>
+<form method="POST" action="/logout" style="display:inline;">
+    <button type="submit" class="btn-text" id="logout-btn">
+        Déconnexion
+    </button>
+</form>
 {% endblock %}
 
 {% block content %}
-    <main class="ar-main ar-captain-main">
+<main class="ar-main ar-captain-main">
 
-        <section class="ar-hero ar-hero-team">
-            <div class="ar-hero-ghost" aria-hidden="true">COCKPIT</div>
-            <p class="ar-kicker" id="tournament-kicker"
-               data-start="{{ tournament_status.start_at.as_deref().unwrap_or("") }}"
-               data-end="{{ tournament_status.end_at.as_deref().unwrap_or("") }}"
-               data-paused="{{ tournament_status.is_paused }}"
-               data-games="{{ matches.len() }}"
-               data-suffix=" · ESPACE CAPITAINE">
-                <span class="status-dot" id="tournament-kicker-dot" style="background-color: {{ tournament_status.dot_color }}; box-shadow: 0 0 8px {{ tournament_status.dot_color }};"></span>
-                <span id="tournament-kicker-text">{{ tournament_status.label }} · ESPACE CAPITAINE</span>
-            </p>
-            <div class="ar-team-hero-grid">
+    <section class="ar-hero ar-hero-team">
+        <div class="ar-hero-ghost" aria-hidden="true">COCKPIT</div>
+        <p class="ar-kicker" id="tournament-kicker"
+           data-start="{{ tournament_status.start_at.as_deref().unwrap_or("") }}"
+        data-end="{{ tournament_status.end_at.as_deref().unwrap_or("") }}"
+        data-paused="{{ tournament_status.is_paused }}"
+        data-games="{{ matches.len() }}"
+        data-suffix=" · ESPACE CAPITAINE">
+        <span class="status-dot" id="tournament-kicker-dot"
+              style="background-color: {{ tournament_status.dot_color }}; box-shadow: 0 0 8px {{ tournament_status.dot_color }};"></span>
+        <span id="tournament-kicker-text">{{ tournament_status.label }} · ESPACE CAPITAINE</span>
+        </p>
+        <div class="ar-team-hero-grid">
+            <div>
+                <h1 class="ar-title ar-title-sm">
+                    <span>ÉQUIPE</span> <span class="ar-accent" id="captain-team-name">{{ team_name }}</span>
+                </h1>
+                <p class="ar-lead">
+                    Consultez vos matchs ouverts, rejoignez les lobbies et envoyez votre capture de fin de partie.
+                </p>
+            </div>
+            <div class="ar-team-score-card">
+                <span class="ar-score-label">POINTS AU CLASSEMENT</span>
+                <span class="ar-score-val" id="captain-team-points">{{ total_points }} <small>PTS</small></span>
+                <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct ↗</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="ar-captain-layout">
+
+        <section class="ar-card-panel">
+            <header class="ar-sec-head">
                 <div>
-                    <h1 class="ar-title ar-title-sm">
-                        <span>ÉQUIPE</span> <span class="ar-accent" id="captain-team-name">{{ team_name }}</span>
-                    </h1>
-                    <p class="ar-lead">
-                        Consultez vos matchs ouverts, rejoignez les lobbies et envoyez votre capture de fin de partie.
-                    </p>
+                    <p class="ar-eyebrow">Round en cours</p>
+                    <h2>Vos Matchs</h2>
                 </div>
-                <div class="ar-team-score-card">
-                    <span class="ar-score-label">POINTS AU CLASSEMENT</span>
-                    <span class="ar-score-val" id="captain-team-points">{{ total_points }} <small>PTS</small></span>
-                    <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct ↗</a>
+                <span class="ar-badge-pill" id="open-matches-count">{{ matches.len() }} ACTIF{% if matches.len() > 1 %}S{% endif %}</span>
+            </header>
+
+            <div id="matches-list" class="matches-select-list">
+                {% if matches.is_empty() %}
+                <div class="empty-state">Aucun match ouvert pour votre équipe. Attendez le lancement du prochain round
+                    par les organisateurs.
+                </div>
+                {% else %}
+                {% for m in matches %}
+                <div class="match-item{% if loop.first %} selected{% endif %}"
+                     data-match-id="{{ m.id }}"
+                     data-title="{{ m.match_data.title }}"
+                     data-game="{{ m.match_data.game_name }}"
+                     data-instructions="{{ m.match_data.instructions }}"
+                     data-rules="{{ m.game.rules }}"
+                     data-format="{{ m.game.format }}"
+                     data-secondary-label="{% if let Some(lbl) = m.game.secondary_stat_label %}{{ lbl }}{% endif %}"
+                     data-secondary-points="{{ m.game.points_per_secondary_stat }}"
+                     data-max-placement="{{ m.game.max_placement }}"
+                     data-max-secondary="{{ m.game.max_secondary_stat }}">
+                    <div class="match-item-header">
+                        <span class="badge-format">{{ m.match_data.title }}</span>
+                        <strong>{{ m.match_data.game_name }}</strong>
+                    </div>
+                    <p class="match-item-sub">{{ m.match_data.instructions }}</p>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div id="selected-match-details" class="match-details-panel" style="display: none;">
+                <div class="match-details-header">
+                    <span class="badge-format" id="selected-match-format">FORMAT</span>
+                    <h4 id="selected-match-game">Jeu</h4>
+                </div>
+                <div class="match-details-body">
+                    <div class="detail-row">
+                        <span class="detail-k">ACCÈS LOBBY / SERVEUR :</span>
+                        <span class="detail-v" id="selected-match-instructions">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-k">RÈGLES DU JEU :</span>
+                        <span class="detail-v" id="selected-match-rules">--</span>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <div class="ar-captain-layout">
-
-            <section class="ar-card-panel">
-                <header class="ar-sec-head">
-                    <div>
-                        <p class="ar-eyebrow">Round en cours</p>
-                        <h2>Vos Matchs</h2>
-                    </div>
-                    <span class="ar-badge-pill" id="open-matches-count">{{ matches.len() }} ACTIF{% if matches.len() > 1 %}S{% endif %}</span>
-                </header>
-
-                <div id="matches-list" class="matches-select-list">
-                    {% if matches.is_empty() %}
-                        <div class="empty-state">Aucun match ouvert pour votre équipe. Attendez le lancement du prochain round par les organisateurs.</div>
-                    {% else %}
-                        {% for m in matches %}
-                            <div class="match-item{% if loop.first %} selected{% endif %}"
-                                 data-match-id="{{ m.id }}"
-                                 data-title="{{ m.match_data.title }}"
-                                 data-game="{{ m.match_data.game_name }}"
-                                 data-instructions="{{ m.match_data.instructions }}"
-                                 data-rules="{{ m.game.rules }}"
-                                 data-format="{{ m.game.format }}"
-                                 data-secondary-label="{% if let Some(lbl) = m.game.secondary_stat_label %}{{ lbl }}{% endif %}"
-                                 data-secondary-points="{{ m.game.points_per_secondary_stat }}"
-                                 data-max-placement="{{ m.game.max_placement }}"
-                                 data-max-secondary="{{ m.game.max_secondary_stat }}">
-                                <div class="match-item-header">
-                                    <span class="badge-format">{{ m.match_data.title }}</span>
-                                    <strong>{{ m.match_data.game_name }}</strong>
-                                </div>
-                                <p class="match-item-sub">{{ m.match_data.instructions }}</p>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+        <section class="ar-card-panel">
+            <header class="ar-sec-head">
+                <div>
+                    <p class="ar-eyebrow">Preuve de match</p>
+                    <h2>Déclarer un Résultat</h2>
                 </div>
+            </header>
 
-                <div id="selected-match-details" class="match-details-panel" style="display: none;">
-                    <div class="match-details-header">
-                        <span class="badge-format" id="selected-match-format">FORMAT</span>
-                        <h4 id="selected-match-game">Jeu</h4>
-                    </div>
-                    <div class="match-details-body">
-                        <div class="detail-row">
-                            <span class="detail-k">ACCÈS LOBBY / SERVEUR :</span>
-                            <span class="detail-v" id="selected-match-instructions">--</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-k">RÈGLES DU JEU :</span>
-                            <span class="detail-v" id="selected-match-rules">--</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="ar-card-panel">
-                <header class="ar-sec-head">
-                    <div>
-                        <p class="ar-eyebrow">Preuve de match</p>
-                        <h2>Déclarer un Résultat</h2>
-                    </div>
-                </header>
-
-                {% if is_success() %}
-                <div id="submission-success" class="submission-success-box" style="display: block; margin-bottom: 1.5rem;">
-                    <div class="success-icon">✓</div>
-                    <h4>SCORE ENREGISTRÉ</h4>
-                    <p>Votre capture et vos points ont été transmis aux arbitres pour validation.</p>
-                    <a href="/captain" class="ar-btn ar-btn-solid ar-btn-block" style="margin-top: 1rem; text-decoration: none;">
-                        Déclarer un autre match
-                    </a>
-                </div>
-                {% endif %}
-
-                {% if let Some(err) = error_message() %}
-                <div class="empty-state" style="color: var(--red); border-color: var(--red); margin-bottom: 1.5rem; background: rgba(239, 68, 68, 0.1);">
-                    <strong>Erreur :</strong> {{ err }}
-                </div>
-                {% endif %}
-
-                <div id="no-match-alert" class="empty-state" {% if is_success() %}style="display: none;"{% endif %}>
-                    Sélectionnez un match ouvert ci-contre pour transmettre votre score.
-                </div>
-
-                <form id="submission-form" class="submission-form" method="POST" action="/captain/submissions" style="display: none;">
-                    <input type="hidden" name="match_id" id="sub-match-id">
-                    <input type="hidden" name="proof_base64" id="sub-proof-base64">
-
-                    <div class="form-row-grid">
-                        <div class="form-group">
-                            <label for="sub-placement">CLASSEMENT FINAL (PLACE)</label>
-                            <input type="number" name="placement" id="sub-placement" min="1" max="64" required placeholder="Ex: 1 (Victoire / Top 1), 2...">
-                            <small class="field-hint" id="placement-hint">1 = Vainqueur</small>
-                        </div>
-
-                        <div class="form-group" id="secondary-stat-group" style="display: none;">
-                            <label for="sub-secondary" id="secondary-stat-label">STATISTIQUE SECONDAIRE</label>
-                            <input type="number" name="secondary_stat" id="sub-secondary" min="0" value="0">
-                            <small class="field-hint" id="secondary-stat-hint">Optionnel</small>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>CAPTURE D'ÉCRAN (PREUVE DE VICTOIRE / SCORE)</label>
-                        <div id="dropzone" class="dropzone-area" tabindex="0">
-                            <div class="dropzone-content" id="dropzone-prompt">
-                                <span class="dropzone-tag">COLLEZ DIRECTEMENT ICI (CTRL + V)</span>
-                                <p>ou glissez-déposez votre capture d'écran</p>
-                                <div class="dropzone-actions">
-                                    <label for="file-input" class="btn-text" style="display: inline-block; cursor: pointer;">
-                                        Parcourir les fichiers
-                                    </label>
-                                    <label for="camera-input" class="btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
-                                        📷 Prendre en photo (Mobile)
-                                    </label>
-                                </div>
-                                <input type="file" id="file-input" accept="image/*" style="display: none;">
-                                <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
-                                <p class="dropzone-notice">Compression Canvas automatique en 1080p JPEG haute vitesse</p>
-                            </div>
-
-                            <div id="preview-wrapper" class="preview-wrapper" style="display: none;">
-                                <img id="preview-img" alt="Capture d'écran">
-                                <div class="preview-actions">
-                                    <span id="preview-size-badge" class="badge-code">0 Ko</span>
-                                    <button type="button" class="btn-text" id="clear-image-btn">Remplacer</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="ar-btn ar-btn-solid ar-btn-block ar-btn-lg" id="submit-score-btn">
-                        Valider et Transmettre le Score →
-                    </button>
-                </form>
-            </section>
-
-        </div>
-
-    </main>
-
-    <div id="modal-confirm-submission" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <span class="brand-tag">RÉCAPITULATIF</span>
-                <h3>Vérification du Score</h3>
-                <button type="button" class="btn-text" data-close-modal="modal-confirm-submission">Modifier</button>
+            {% if is_success() %}
+            <div id="submission-success" class="submission-success-box" style="display: block; margin-bottom: 1.5rem;">
+                <div class="success-icon">✓</div>
+                <h4>SCORE ENREGISTRÉ</h4>
+                <p>Votre capture et vos points ont été transmis aux arbitres pour validation.</p>
+                <a href="/captain" class="ar-btn ar-btn-solid ar-btn-block"
+                   style="margin-top: 1rem; text-decoration: none;">
+                    Déclarer un autre match
+                </a>
             </div>
-            <div class="modal-body">
-                <p class="panel-desc">Vérifiez vos données avant l'envoi final aux arbitres :</p>
-                <div class="confirm-recap-box">
-                    <div style="margin-bottom: 0.65rem;">
-                        <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">ÉPREUVE / MATCH</span>
-                        <strong id="confirm-game" style="font-size: 1.05rem;">--</strong>
+            {% endif %}
+
+            {% if let Some(err) = error_message() %}
+            <div class="empty-state"
+                 style="color: var(--red); border-color: var(--red); margin-bottom: 1.5rem; background: rgba(239, 68, 68, 0.1);">
+                <strong>Erreur :</strong> {{ err }}
+            </div>
+            {% endif %}
+
+            <div id="no-match-alert" class="empty-state" {% if is_success() %}style="display: none;" {% endif %}>
+                Sélectionnez un match ouvert ci-contre pour transmettre votre score.
+            </div>
+
+            <form id="submission-form" class="submission-form" method="POST" action="/captain/submissions"
+                  style="display: none;">
+                <input type="hidden" name="match_id" id="sub-match-id">
+                <input type="hidden" name="proof_base64" id="sub-proof-base64">
+
+                <div class="form-row-grid">
+                    <div class="form-group">
+                        <label for="sub-placement">CLASSEMENT FINAL (PLACE)</label>
+                        <input type="number" name="placement" id="sub-placement" min="1" max="64" required
+                               placeholder="Ex: 1 (Victoire / Top 1), 2...">
+                        <small class="field-hint" id="placement-hint">1 = Vainqueur</small>
                     </div>
-                    <div style="margin-bottom: 0.65rem;">
-                        <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">RANG OBTENU</span>
-                        <strong id="confirm-placement" style="font-size: 1.15rem; color: var(--accent, #e53e3e);">--</strong>
-                    </div>
-                    <div id="confirm-sec-row" style="margin-bottom: 0.65rem; display: none;">
-                        <span id="confirm-sec-label" style="font-size: 0.8rem; color: var(--text-muted); display: block;">STATISTIQUE</span>
-                        <strong id="confirm-sec-value" style="font-size: 1.05rem;">--</strong>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">PREUVE (CAPTURE)</span>
-                        <span style="color: var(--green, #22c55e); font-weight: 600;">Capture compressée prête ✓</span>
+
+                    <div class="form-group" id="secondary-stat-group" style="display: none;">
+                        <label for="sub-secondary" id="secondary-stat-label">STATISTIQUE SECONDAIRE</label>
+                        <input type="number" name="secondary_stat" id="sub-secondary" min="0" value="0">
+                        <small class="field-hint" id="secondary-stat-hint">Optionnel</small>
                     </div>
                 </div>
-                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
-                    <button type="button" class="btn-outline" data-close-modal="modal-confirm-submission">Corriger la saisie</button>
-                    <button type="button" class="btn-primary" id="btn-final-confirm-submit">Confirmer & Envoyer</button>
+
+                <div class="form-group">
+                    <label>CAPTURE D'ÉCRAN (PREUVE DE VICTOIRE / SCORE)</label>
+                    <div id="dropzone" class="dropzone-area" tabindex="0">
+                        <div class="dropzone-content" id="dropzone-prompt">
+                            <span class="dropzone-tag">COLLEZ DIRECTEMENT ICI (CTRL + V)</span>
+                            <p>ou glissez-déposez votre capture d'écran</p>
+                            <div class="dropzone-actions">
+                                <label for="file-input" class="btn-text"
+                                       style="display: inline-block; cursor: pointer;">
+                                    Parcourir les fichiers
+                                </label>
+                                <label for="camera-input" class="btn-outline btn-sm"
+                                       style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                                    📷 Prendre en photo (Mobile)
+                                </label>
+                            </div>
+                            <input type="file" id="file-input" accept="image/*" style="display: none;">
+                            <input type="file" id="camera-input" accept="image/*" capture="environment"
+                                   style="display: none;">
+                            <p class="dropzone-notice">Compression Canvas automatique en 1080p JPEG haute vitesse</p>
+                        </div>
+
+                        <div id="preview-wrapper" class="preview-wrapper" style="display: none;">
+                            <img id="preview-img" alt="Capture d'écran">
+                            <div class="preview-actions">
+                                <span id="preview-size-badge" class="badge-code">0 Ko</span>
+                                <button type="button" class="btn-text" id="clear-image-btn">Remplacer</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <button type="submit" class="ar-btn ar-btn-solid ar-btn-block ar-btn-lg" id="submit-score-btn">
+                    Valider et Transmettre le Score →
+                </button>
+            </form>
+        </section>
+
+    </div>
+
+</main>
+
+<div id="modal-confirm-submission" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <span class="brand-tag">RÉCAPITULATIF</span>
+            <h3>Vérification du Score</h3>
+            <button type="button" class="btn-text" data-close-modal="modal-confirm-submission">Modifier</button>
+        </div>
+        <div class="modal-body">
+            <p class="panel-desc">Vérifiez vos données avant l'envoi final aux arbitres :</p>
+            <div class="confirm-recap-box">
+                <div style="margin-bottom: 0.65rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">ÉPREUVE / MATCH</span>
+                    <strong id="confirm-game" style="font-size: 1.05rem;">--</strong>
+                </div>
+                <div style="margin-bottom: 0.65rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">RANG OBTENU</span>
+                    <strong id="confirm-placement"
+                            style="font-size: 1.15rem; color: var(--accent, #e53e3e);">--</strong>
+                </div>
+                <div id="confirm-sec-row" style="margin-bottom: 0.65rem; display: none;">
+                    <span id="confirm-sec-label" style="font-size: 0.8rem; color: var(--text-muted); display: block;">STATISTIQUE</span>
+                    <strong id="confirm-sec-value" style="font-size: 1.05rem;">--</strong>
+                </div>
+                <div>
+                    <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">PREUVE (CAPTURE)</span>
+                    <span style="color: var(--green, #22c55e); font-weight: 600;">Capture compressée prête ✓</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn-outline" data-close-modal="modal-confirm-submission">Corriger la
+                    saisie
+                </button>
+                <button type="button" class="btn-primary" id="btn-final-confirm-submit">Confirmer & Envoyer</button>
             </div>
         </div>
     </div>
+</div>
 
-    
+
 {% endblock %}
 
 {% block scripts %}
