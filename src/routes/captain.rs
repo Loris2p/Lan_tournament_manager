@@ -11,6 +11,7 @@ use crate::models::{
 use axum::Json;
 use axum::extract::State;
 
+use crate::db;
 use std::sync::Arc;
 
 pub async fn list_open_matches(
@@ -45,9 +46,17 @@ pub async fn create_submission(
             "Le preuve doit être un image".to_string(),
         ));
     }
-    let proof_url=state.s3.upload_base_image(&req.proof_base64, "submissions").await?;
     game.validate_score(&req.score)?;
     let calculated_points = game.calculate_points(&req.score);
+    if db::has_submission_for_match(db, req.match_id, user.team_id).await? {
+        return Err(Errors::Error409Conflict(
+            "Votre équipe a déjà soumis un score pour ce match".to_string(),
+        ));
+    };
+    let proof_url = state
+        .s3
+        .upload_base_image(&req.proof_base64, "submissions")
+        .await?;
 
     let res = insert_submission(
         db,

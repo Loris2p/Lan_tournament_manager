@@ -1,11 +1,11 @@
 use crate::errors::Errors;
-use aws_sdk_s3::config::{BehaviorVersion, Region};
 use aws_sdk_s3::Client;
 use aws_sdk_s3::config::Credentials;
+use aws_sdk_s3::config::{BehaviorVersion, Region};
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::ObjectCannedAcl;
+use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use base64::{Engine};
 
 #[derive(Clone)]
 pub struct S3Service {
@@ -53,30 +53,50 @@ impl S3Service {
             .await?;
         Ok(format!("https://{}.{}/{}", self.bucket, self.host, key))
     }
-
+    fn detect_image_type(bytes: &[u8]) -> Result<(&'static str, &'static str), Errors> {
+        if bytes.len() < 12 {
+            return Err(Errors::Error400BadRequest(
+                "Fichier non compatible détecté".to_string(),
+            ));
+        } else if bytes.starts_with(&[0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A]) {
+            return Ok(("png", "image/png"));
+        } else if bytes.starts_with(&[0xFF, 0xD8, 0xFF]) {
+            return Ok(("jpeg", "image/jpeg"));
+        } else if &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WEBP" {
+            return Ok(("webp", "image/webp"));
+        }
+        return Err(Errors::Error400BadRequest(
+            "Fichier non compatible détecté".to_string(),
+        ));
+    }
     pub async fn upload_base_image(&self, data_url: &str, folder: &str) -> Result<String, Errors> {
         let (header, base64_data) = data_url
             .split_once(";base64,")
             .ok_or_else(|| Errors::Error400BadRequest("Format url invalide".to_string()))?;
 
-        let mime_type = header
+        let declared_mime = header
             .strip_prefix("data:")
             .ok_or_else(|| Errors::Error400BadRequest("Format d'image invalide".to_string()))?;
-        let extension = match mime_type {
-            "image/jpeg" | "image/jpg" => "jpg",
-            "image/png" => "png",
-            "image/webp" => "webp",
-            _ => {
-                return Err(Errors::Error400BadRequest(
-                    "Format d'image non supporté".to_string(),
-                ));
-            }
-        };
+
         let bytes = BASE64_STANDARD
             .decode(base64_data)
             .map_err(|_| Errors::Error400BadRequest("Base 64 Invalide".to_string()))?;
+        let (detected_ext, detected_mime) = Self::detect_image_type(&bytes)?;
+        let is_matching = match (declared_mime, detected_mime) {
+            ("image/png", "image/png") => true,
+            ("image/jpeg" | "image/jpg", "image/jpeg") => true,
+            ("image/webp", "image/webp") => true,
+            _ => false,
+        };
+
+        if !is_matching {
+            return Err(Errors::Error400BadRequest(
+                "Le contenu binaire du fichier ne correspond pas au format déclaré".to_string(),
+            ));
+        }
+
         Ok(self
-            .upload_file(bytes, extension, mime_type, folder)
+            .upload_file(bytes, detected_ext, detected_mime, folder)
             .await?)
     }
 }

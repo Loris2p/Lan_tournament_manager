@@ -14,7 +14,7 @@ use mongodb::{
 
 pub async fn find_team_by_captain_username(
     db: &Database,
-    captain_username: &str,
+    captain_username:  &str,
 ) -> Result<Team, Errors> {
     let team = db
         .collection::<Team>("teams")
@@ -102,7 +102,6 @@ pub async fn adjust_team_points(
     adjustment: i32,
 ) -> Result<u32, Errors> {
     let coll = db.collection::<Team>("teams");
-
     if adjustment >= 0 {
         let updated = coll
             .find_one_and_update(

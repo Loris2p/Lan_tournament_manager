@@ -528,13 +528,13 @@ function initGamePresets() {
             name: "GeoGuessr",
             format: "brawl",
             cover: "",
-            placement: "0",
+            placement: "25, 18, 15, 12, 10, 8, 6, 4, 2, 1",
             defPoints: 0,
-            maxPlacement: 1,
-            secLabel: "Score total en points",
-            secPts: 1,
+            maxPlacement: 10,
+            secLabel: "Score brut de la manche (départage)",
+            secPts: 0,
             maxSec: 75000,
-            rules: "Challenge d'équipe coopératif (3 joueurs). 15 rounds sur chaque carte (World, A Community World, France, F1, etc.). Mode No Move 1m15/round. Cumul des points bruts."
+            rules: "Challenge d'équipe coopératif (3 joueurs). Mode No Move 1m15/round. Classement par manche selon le score brut GeoGuessr avec attribution des points du barème général (25, 18, 15...). Cumul des points de placement sur toutes les cartes jouées."
         },
         ssbu: {
             name: "Super Smash Bros Ultimate",
