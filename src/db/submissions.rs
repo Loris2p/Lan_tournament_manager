@@ -65,4 +65,9 @@ pub async fn find_submission_by_id(db: &Database, submission_id: ObjectId)-> Res
         Some(m) => Ok(m),
         None => Err(Errors::Error404NotFound("Submission introuvable".to_string())),
     }
+}pub async fn has_submission_for_match(
+    db :&Database, match_id : ObjectId, team_id : ObjectId
+) -> Result<bool, Errors>{
+    let count = db.collection::<Submission>("submissions").count_documents(doc! {"match_id":match_id, "team_id":team_id}).await?;
+    Ok(count>0)
 }

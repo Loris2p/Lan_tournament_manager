@@ -787,7 +787,9 @@ pub async fn submit_captain_score(
     if game.validate_score(&score).is_err() {
         return Redirect::to("/captain?status=invalid_score").into_response();
     }
-
+    if db::has_submission_for_match(&state.db, match_oid, captain.team_id).await.unwrap_or(false) {
+        return Redirect::to("/captain?status=already_submitted").into_response();
+    }
     let proof_url = match state
         .s3
         .upload_base_image(&form.proof_base64, "submissions")
