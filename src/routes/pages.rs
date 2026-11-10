@@ -1082,7 +1082,7 @@ pub async fn admin_reset_tournament_form(
         "UsersAndTeams" => ResetScope::UsersAndTeams,
         _ => ResetScope::FullTournament,
     };
-    let _ = db::reset_tournament(&state.db, scope).await;
+    let _ = db::reset_tournament(&state.db, &state.s3, scope).await;
     let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Redirect::to("/admin?tab=danger").into_response()
 }

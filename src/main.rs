@@ -130,7 +130,7 @@ async fn main() {
     println!("Hello, world!");
     dotenvy::dotenv().ok(); // Charge les variables du .env en local
     if let Err(err) = run().await {
-        eprintln!("❌ Erreur fatale au démarrage : {err}");
+        eprintln!("Erreur fatale au démarrage : {err}");
         std::process::exit(1);
     }
 }

@@ -99,4 +99,41 @@ impl S3Service {
             .upload_file(bytes, detected_ext, detected_mime, folder)
             .await?)
     }
+    pub async fn delete_folder(&self, folder: &str) -> Result<(), Errors> {
+        let prefix = format!("{}/", folder.trim_end_matches('/'));
+        let mut continuation_token: Option<String> = None;
+
+        loop {
+            let mut req = self.client.list_objects_v2()
+                .bucket(&self.bucket)
+                .prefix(&prefix);
+
+            if let Some(ref token) = continuation_token {
+                req = req.continuation_token(token);
+            }
+
+            let resp = req.send().await?;
+
+            if let Some(contents) = resp.contents {
+                for obj in contents {
+                    if let Some(key) = obj.key {
+                        let _ = self.client
+                            .delete_object()
+                            .bucket(&self.bucket)
+                            .key(key)
+                            .send()
+                            .await;
+                    }
+                }
+            }
+
+            if resp.is_truncated.unwrap_or(false) {
+                continuation_token = resp.next_continuation_token;
+            } else {
+                break;
+            }
+        }
+        Ok(())
+    }
+
 }

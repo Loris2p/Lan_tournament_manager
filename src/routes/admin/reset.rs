@@ -12,7 +12,7 @@ pub async fn reset_tournament(
     _admin: AdminUser,
     Json(req): Json<ResetTournamentRequest>,
 ) -> Result<Json<Value>, Errors> {
-    db::reset_tournament(&state.db, req.scope).await?;
+    db::reset_tournament(&state.db, &state.s3, req.scope).await?;
     let _ =&state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }
