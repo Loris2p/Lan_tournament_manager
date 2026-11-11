@@ -73,9 +73,9 @@ pub async fn serve_login_page(
 ) -> Response {
     if let Some(c) = jar.get("lan_session") {
         if let Ok(claims) = verify_jwt(c.value(), &state.jwt_secret) {
-            match claims.role {
-                UserRole::Admin => return Redirect::to("/admin").into_response(),
-                UserRole::Captain { .. } => return Redirect::to("/captain").into_response(),
+            return match claims.role {
+                UserRole::Admin => Redirect::to("/admin").into_response(),
+                UserRole::Captain { .. } => Redirect::to("/captain").into_response(),
             }
         }
     }

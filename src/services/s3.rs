@@ -65,9 +65,9 @@ impl S3Service {
         } else if &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WEBP" {
             return Ok(("webp", "image/webp"));
         }
-        return Err(Errors::Error400BadRequest(
+        Err(Errors::Error400BadRequest(
             "Fichier non compatible détecté".to_string(),
-        ));
+        ))
     }
     pub async fn upload_base_image(&self, data_url: &str, folder: &str) -> Result<String, Errors> {
         let (header, base64_data) = data_url

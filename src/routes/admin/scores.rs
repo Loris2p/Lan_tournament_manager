@@ -1,6 +1,5 @@
 use crate::auth::AdminUser;
 use crate::db;
-use crate::db::find_team_by_id;
 use crate::errors::Errors;
 use crate::models::{AdminBatchScoresRequest, AppState, Submission, SubmissionStatus};
 use axum::Json;
@@ -56,7 +55,7 @@ pub async fn submit_match_scores(
     }
     for e in req.results {
         let pts = game.calculate_points(&e.score);
-        let team_name = find_team_by_id(&state.db, e.team_id).await?.name;
+        let team_name = db::find_team_by_id(&state.db, e.team_id).await?.name;
         db::insert_submission(
             &state.db,
             match_id,

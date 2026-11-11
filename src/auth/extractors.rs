@@ -1,4 +1,3 @@
-use crate::auth::UserRole::Captain;
 use crate::auth::claims::Claims;
 use crate::auth::{UserRole, verify_jwt};
 use crate::db;
@@ -55,7 +54,6 @@ impl FromRequestParts<Arc<AppState>> for AuthenticatedUser {
 }
 #[derive(Debug, Clone)]
 pub struct CaptainUser {
-
     pub team_id: ObjectId,
 }
 impl FromRequestParts<Arc<AppState>> for CaptainUser {
@@ -66,7 +64,7 @@ impl FromRequestParts<Arc<AppState>> for CaptainUser {
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthenticatedUser::from_request_parts(parts, state).await?;
         match auth_user.claims.role {
-            Captain { ref team_id } => {
+            UserRole::Captain { ref team_id } => {
                 let team_oid = match ObjectId::parse_str(team_id) {
                     Ok(id) => id,
                     _ => {
@@ -75,10 +73,7 @@ impl FromRequestParts<Arc<AppState>> for CaptainUser {
                         ));
                     }
                 };
-                Ok(CaptainUser {
-
-                    team_id: team_oid,
-                })
+                Ok(CaptainUser { team_id: team_oid })
             }
             _ => Err(Self::Rejection::Error403Forbidden(
                 "Accès réservé aux capitaines".to_string(),
