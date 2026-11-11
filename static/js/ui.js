@@ -14,7 +14,11 @@ export function showToast(message, type = 'info', duration = 4000) {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
 
-    const icon = type === 'success' ? '✓' : (type === 'error' ? '✕' : 'ℹ');
+    const icon = type === 'success'
+        ? '<span class="papicon icon-check" aria-hidden="true"></span>'
+        : (type === 'error'
+            ? '<span class="papicon icon-cross" aria-hidden="true"></span>'
+            : '<span class="papicon icon-info" aria-hidden="true"></span>');
 
     toast.innerHTML = `
         <span class="toast-icon">${icon}</span>

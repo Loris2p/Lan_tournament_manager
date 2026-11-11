@@ -238,7 +238,7 @@ function processAndCompressImage(file) {
             if (previewBadge) {
                 if (originalSizeKb > sizeKb) {
                     const ratio = Math.round((1 - sizeKb / originalSizeKb) * 100);
-                    previewBadge.textContent = `✓ Optimisée : ${originalSizeKb} Ko ➔ ${sizeKb} Ko (-${ratio}%)`;
+                    previewBadge.innerHTML = `<span class="papicon icon-check" aria-hidden="true"></span> Optimisée : ${originalSizeKb} Ko → ${sizeKb} Ko (-${ratio}%)`;
                 } else {
                     previewBadge.textContent = `${sizeKb} Ko [Compressé]`;
                 }

@@ -63,13 +63,13 @@ function initAutoKiosk(activateTab) {
         if (kioskInterval) {
             clearInterval(kioskInterval);
             kioskInterval = null;
-            kioskBtn.textContent = '⏱️ Défilement Auto : OFF';
+            kioskBtn.innerHTML = '<span class="papicon icon-clock" aria-hidden="true"></span> Défilement Auto : OFF';
             kioskBtn.classList.remove('btn-primary');
             kioskBtn.classList.add('btn-outline');
         } else {
             rotateNext();
             kioskInterval = setInterval(rotateNext, DURATION);
-            kioskBtn.textContent = '⏱️ Défilement Auto : ON (15s)';
+            kioskBtn.innerHTML = '<span class="papicon icon-clock" aria-hidden="true"></span> Défilement Auto : ON (15s)';
             kioskBtn.classList.remove('btn-outline');
             kioskBtn.classList.add('btn-primary');
         }

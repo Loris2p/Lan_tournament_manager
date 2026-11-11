@@ -363,7 +363,7 @@ function initTournamentSettings() {
             await api.post('/api/admin/settings', { global_placement_points: rawValues });
             showToast("Barème général du tournoi enregistré avec succès !", "success");
             if (statusMsg) {
-                statusMsg.textContent = "✓ Enregistré";
+                statusMsg.innerHTML = '<span class="papicon icon-check" aria-hidden="true"></span> Enregistré';
                 statusMsg.style.color = "var(--green, #22c55e)";
                 setTimeout(() => { statusMsg.textContent = ""; }, 3000);
             }
@@ -476,7 +476,7 @@ function initTournamentSchedule() {
             });
             showToast("Planning et cycle de vie du tournoi enregistrés !", "success");
             if (statusMsg) {
-                statusMsg.textContent = "✓ Enregistré";
+                statusMsg.innerHTML = '<span class="papicon icon-check" aria-hidden="true"></span> Enregistré';
                 statusMsg.style.color = "var(--green, #22c55e)";
                 setTimeout(() => { statusMsg.textContent = ""; }, 3000);
             }

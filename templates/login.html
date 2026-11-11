@@ -35,7 +35,7 @@
 
             {% if let Some(err) = error_message() %}
             <div id="auth-alert" class="ar-auth-alert">
-                <span class="ar-alert-icon">⚠</span>
+                <span class="ar-alert-icon"><span class="papicon icon-alert" aria-hidden="true"></span></span>
                 <span>{{ err }}</span>
             </div>
             {% endif %}

@@ -6,12 +6,12 @@
             <h1 class="ar-title ar-title-sm"><span>Classement</span> <span class="ar-outline">live</span></h1>
         </div>
         <button type="button" id="auto-kiosk-btn" class="btn-outline btn-sm" title="Alterner automatiquement entre les onglets pour vidéoprojecteur">
-            ⏱️ Défilement Auto : OFF
+            <span class="papicon icon-clock" aria-hidden="true"></span> Défilement Auto : OFF
         </button>
     </header>
 
     <nav class="admin-tabs ar-tabs" id="leaderboard-tabs-nav">
-        <button type="button" class="tab-btn active" data-tab="general">🏆 Général</button>
+        <button type="button" class="tab-btn active" data-tab="general"><span class="papicon icon-crown" aria-hidden="true"></span> Général</button>
         {% for g in game_leaderboards %}
         <button type="button" class="tab-btn" data-tab="game-{{ g.game_id }}">{{ g.game_name }}</button>
         {% endfor %}

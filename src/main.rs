@@ -30,7 +30,7 @@ fn get_env(key: &str) -> String {
     match std::env::var(key) {
         Ok(val) => val,
         Err(_) => {
-            eprintln!("❌ Variable d'environnement obligatoire manquante : '{key}'");
+            eprintln!("!!! Variable d'environnement obligatoire manquante : '{key}'");
             std::process::exit(1);
         }
     }
@@ -50,7 +50,7 @@ impl Config {
             Ok(p) => match p.parse::<u16>() {
                 Ok(val) => val,
                 Err(_) => {
-                    eprintln!("❌ La variable 'PORT' doit être un nombre valide (reçu : '{p}')");
+                    eprintln!("!!! La variable 'PORT' doit être un nombre valide (reçu : '{p}')");
                     std::process::exit(1);
                 }
             },
@@ -132,7 +132,7 @@ async fn main() {
     println!("Hello, world!");
     dotenvy::dotenv().ok(); // Charge les variables du .env en local
     if let Err(err) = run().await {
-        eprintln!("Erreur fatale au démarrage : {err}");
+        eprintln!("!!! Erreur fatale au démarrage : {err}");
         std::process::exit(1);
     }
 }

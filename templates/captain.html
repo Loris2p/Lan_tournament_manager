@@ -126,7 +126,7 @@
 
             {% if is_success() %}
             <div id="submission-success" class="submission-success-box" style="display: block; margin-bottom: 1.5rem;">
-                <div class="success-icon">✓</div>
+                <div class="success-icon"><span class="papicon icon-check" aria-hidden="true"></span></div>
                 <h4>SCORE ENREGISTRÉ</h4>
                 <p>Votre capture et vos points ont été transmis aux arbitres pour validation.</p>
                 <a href="/captain" class="ar-btn ar-btn-solid ar-btn-block"
@@ -180,7 +180,7 @@
                                 </label>
                                 <label for="camera-input" class="btn-outline btn-sm"
                                        style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
-                                    📷 Prendre en photo (Mobile)
+                                    <span class="papicon icon-camera" aria-hidden="true"></span> Prendre en photo (Mobile)
                                 </label>
                             </div>
                             <input type="file" id="file-input" accept="image/*" style="display: none;">
@@ -234,7 +234,7 @@
                 </div>
                 <div>
                     <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">PREUVE (CAPTURE)</span>
-                    <span style="color: var(--green, #22c55e); font-weight: 600;">Capture compressée prête ✓</span>
+                    <span style="color: var(--green, #22c55e); font-weight: 600;">Capture compressée prête <span class="papicon icon-check" aria-hidden="true"></span></span>
                 </div>
             </div>
             <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">

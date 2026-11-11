@@ -1945,6 +1945,41 @@ input:focus, select:focus, textarea:focus {
     mask-image: url('/vendor/papicons/icons/grid.svg');
 }
 
+.icon-check {
+    -webkit-mask-image: url('/vendor/papicons/icons/check.svg');
+    mask-image: url('/vendor/papicons/icons/check.svg');
+}
+
+.icon-cross {
+    -webkit-mask-image: url('/vendor/papicons/icons/cross.svg');
+    mask-image: url('/vendor/papicons/icons/cross.svg');
+}
+
+.icon-alert {
+    -webkit-mask-image: url('/vendor/papicons/icons/alert.svg');
+    mask-image: url('/vendor/papicons/icons/alert.svg');
+}
+
+.icon-clock {
+    -webkit-mask-image: url('/vendor/papicons/icons/clock.svg');
+    mask-image: url('/vendor/papicons/icons/clock.svg');
+}
+
+.icon-crown {
+    -webkit-mask-image: url('/vendor/papicons/icons/crown.svg');
+    mask-image: url('/vendor/papicons/icons/crown.svg');
+}
+
+.icon-camera {
+    -webkit-mask-image: url('/vendor/papicons/icons/camera.svg');
+    mask-image: url('/vendor/papicons/icons/camera.svg');
+}
+
+.icon-info {
+    -webkit-mask-image: url('/vendor/papicons/icons/info.svg');
+    mask-image: url('/vendor/papicons/icons/info.svg');
+}
+
 .settings-menu-wrapper {
     position: relative;
     display: inline-flex;

@@ -117,12 +117,12 @@
                     <div class="sub-actions">
                         <form method="POST" action="/admin/submissions/{{ sub.id }}/approve" style="display:inline;">
                             <button type="submit" class="btn-primary">
-                                ✓ Valider & Créditer
+                                <span class="papicon icon-check" aria-hidden="true"></span> Valider & Créditer
                             </button>
                         </form>
                         <form method="POST" action="/admin/submissions/{{ sub.id }}/reject" style="display:inline;">
                             <button type="submit" class="btn-outline">
-                                ✕ Rejeter
+                                <span class="papicon icon-cross" aria-hidden="true"></span> Rejeter
                             </button>
                         </form>
                     </div>
