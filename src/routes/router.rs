@@ -24,6 +24,7 @@ pub fn create_router() -> Router<Arc<AppState>> {
             get(pages::serve_login_page).post(pages::handle_login_form),
         )
         .route("/setup", post(pages::handle_setup_form))
+        .route("/register", post(pages::handle_register_form))
         .route(
             "/logout",
             post(pages::handle_logout),
@@ -41,6 +42,7 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .route("/admin/games", post(pages::admin_create_game_form))
         .route("/admin/games/{id}/delete", post(pages::admin_delete_game))
         .route("/admin/teams", post(pages::admin_create_team_form))
+        .route("/admin/teams/{id}/approve", post(pages::admin_approve_team))
         .route("/admin/teams/{id}/delete", post(pages::admin_delete_team))
         .route("/admin/teams/{id}/points", post(pages::admin_adjust_points))
         .route("/admin/matches", post(pages::admin_create_match_form))
@@ -72,6 +74,8 @@ fn create_admin_nest_router() -> Router<Arc<AppState>> {
         .route("/games", post(admin::create_game))
         .route("/games/{id}", delete(admin::delete_game))
         .route("/teams", post(admin::create_team))
+        .route("/teams/pending", get(admin::get_pending_teams))
+        .route("/teams/{id}/approve", post(admin::approve_team))
         .route("/teams/{id}", delete(admin::delete_team))
         .route("/teams/{id}/points", patch(admin::update_teams_points))
         .route("/matches", post(admin::create_match).get(list_matches))
@@ -99,6 +103,7 @@ fn create_auth_nest_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/setup-status", get(auth::setup_status))
         .route("/setup", post(auth::setup_first_admin))
+        .route("/register", post(auth::register))
         .route("/login", post(auth::login))
         .route("/me", get(auth::get_me))
         .route("/logout", post(auth::logout))

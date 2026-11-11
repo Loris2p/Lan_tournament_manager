@@ -13,10 +13,11 @@ pub async fn create_team(
     _admin: AdminUser,
     Json(req): Json<CreateTeamRequest>,
 ) -> Result<Json<Value>, Errors> {
-    if db::find_team_by_captain_username(&state.db, &req.captain_username)
+    let captain_username = req.captain_username.trim().to_lowercase();
+    if db::find_team_by_captain_username(&state.db, &captain_username)
         .await
         .is_ok()
-        || db::find_admin_by_username(&state.db, &req.captain_username)
+        || db::find_admin_by_username(&state.db, &captain_username)
             .await
             .is_ok()
     {
@@ -25,7 +26,7 @@ pub async fn create_team(
         ));
     };
     let h_pwd = auth::hash_password(&req.captain_password)?;
-    db::create_team(&state.db, &req.name, &req.captain_username, &h_pwd).await?;
+    db::create_team(&state.db, &req.name, &captain_username, &h_pwd).await?;
     let _ = &state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }
@@ -48,4 +49,33 @@ pub async fn update_teams_points(
     let new_points = db::adjust_team_points(&state.db, id, req.adjustment).await?;
     let _ = &state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({ "success": true, "points": new_points })))
+}
+
+pub async fn approve_team(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Result<Json<Value>, Errors> {
+    db::approve_team(&state.db, id).await?;
+    let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    Ok(Json(json!({ "success": true })))
+}
+
+pub async fn get_pending_teams(
+    State(state): State<Arc<AppState>>,
+    _admin: AdminUser,
+) -> Result<Json<Value>, Errors> {
+    let teams = db::get_pending_teams(&state.db).await?;
+    let views: Vec<crate::models::PublicTeam> = teams
+        .into_iter()
+        .filter_map(|t| {
+            t.id.map(|id| crate::models::PublicTeam {
+                id: id.to_hex(),
+                name: t.name,
+                captain_username: t.captain_username,
+                total_points: t.total_points,
+            })
+        })
+        .collect();
+    Ok(Json(json!(views)))
 }

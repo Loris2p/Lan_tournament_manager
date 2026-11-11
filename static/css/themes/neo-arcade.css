@@ -58,12 +58,12 @@
 
 [data-theme="neo-arcade"] .brand-title {
     color: #ffffff;
-    text-shadow: 2px 2px 0px #8b0000;
+    text-shadow: 2px 2px 0 #8b0000;
 }
 
 [data-theme="neo-arcade"] .main-title {
     color: #ffffff;
-    text-shadow: 3px 3px 0px rgba(139, 0, 0, 0.8);
+    text-shadow: 3px 3px 0 rgba(139, 0, 0, 0.8);
 }
 
 /* --- Boutons et Éléments Visuels Nets --- */

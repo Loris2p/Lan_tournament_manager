@@ -87,6 +87,10 @@ pub struct Admin {
     #[serde(default)]
     pub token_version: u32,
 }
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct PublicTeam {
     pub id: String,
@@ -104,6 +108,8 @@ pub struct Team {
     pub total_points: u32,
     #[serde(default)]
     pub token_version: u32,
+    #[serde(default = "default_true")]
+    pub is_verified: bool,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Match {

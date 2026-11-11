@@ -77,3 +77,29 @@ fn test_game_validate_score() {
     let invalid_stat = SubmissionScore { placement: 1, secondary_stat: 1 };
     assert!(game.validate_score(&invalid_stat).is_err());
 }
+
+#[test]
+fn test_team_deserialization_defaults() {
+    use crate::models::Team;
+
+    // Team sans le champ `is_verified` (rétrocompatibilité MongoDB)
+    let json_legacy = r#"{
+        "name": "Old Team",
+        "captain_username": "oldcap",
+        "captain_password_hash": "hash123",
+        "total_points": 10
+    }"#;
+    let team: Team = serde_json::from_str(json_legacy).expect("Deserialization failed");
+    assert!(team.is_verified, "Une équipe existante sans is_verified doit être vérifiée par défaut");
+
+    // Team avec `is_verified: false`
+    let json_pending = r#"{
+        "name": "Pending Team",
+        "captain_username": "newcap",
+        "captain_password_hash": "hash123",
+        "total_points": 0,
+        "is_verified": false
+    }"#;
+    let pending_team: Team = serde_json::from_str(json_pending).expect("Deserialization failed");
+    assert!(!pending_team.is_verified, "Une équipe avec is_verified: false doit rester non vérifiée");
+}

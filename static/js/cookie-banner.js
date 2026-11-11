@@ -9,7 +9,7 @@ export function initCookieBanner() {
     banner.setAttribute('aria-label', 'Information sur les cookies');
     banner.innerHTML = `
         <div class="cookie-banner-content">
-            <span class="cookie-banner-icon" aria-hidden="true">🍪</span>
+            <span class="cookie-banner-icon" aria-hidden="true"><span class="papicon icon-info"></span></span>
             <p>
                 Ce site utilise uniquement un <strong>cookie de session technique</strong> (<code>lan_session</code>) 
                 strictement nécessaire à votre authentification et au bon déroulement du tournoi. 

@@ -29,21 +29,21 @@ pub async fn setup_first_admin(
     Json(req): Json<CreateAdminRequest>,
 ) -> Result<(CookieJar, Json<Value>), Errors> {
     let db = &state.db;
-    let username = &req.username;
+    let username = req.username.trim().to_lowercase();
     if !is_setup_required(db).await? {
         return Err(Errors::Error403Forbidden(
             "L'initialisation a déjà été effectuée".to_string(),
         ));
     }
 
-    if find_team_by_captain_username(db, username).await.is_ok() {
+    if find_team_by_captain_username(db, &username).await.is_ok() {
         return Err(Errors::Error409Conflict(
             "Un capitaine a déjà ce nom".to_string(),
         ));
     }
 
     let h_pswd = hash_password(&req.password)?;
-    let admin = create_initial_admin(db, username, &h_pswd).await?;
+    let admin = create_initial_admin(db, &username, &h_pswd).await?;
     let admin_id = admin
         .id
         .ok_or_else(|| Errors::Error500InternalError("ID manquant".to_string()))?;
@@ -79,7 +79,7 @@ pub async fn login(
     Json(req): Json<LoginRequest>,
 ) -> Result<(CookieJar, Json<Value>), Errors> {
     let client_ip = extract_client_ip(&headers);
-    let username = req.username.trim();
+    let username = req.username.trim().to_lowercase();
     let key_rate = format!("{}:{}", client_ip, username);
     if !state.rate_limiter.check(&key_rate) {
         return Err(Errors::Error429TooManyRequests(
@@ -88,16 +88,16 @@ pub async fn login(
     }
 
     let db = &state.db;
-    let username = req.username.trim();
     let password = &req.password;
     let exp = (chrono::Utc::now().timestamp() + 24 * 3600) as usize;
 
-    let (target_hash, auth_info) = if let Ok(admin) = find_admin_by_username(db, username).await {
+    let (target_hash, auth_info, is_verified) = if let Ok(admin) = find_admin_by_username(db, &username).await {
         let info = admin
             .id
             .map(|id| (id, admin.username, UserRole::Admin, admin.token_version));
-        (Some(admin.password_hash), info)
-    } else if let Ok(team) = find_team_by_captain_username(db, username).await {
+        (Some(admin.password_hash), info, true)
+    } else if let Ok(team) = find_team_by_captain_username(db, &username).await {
+        let verified = team.is_verified;
         let info = team.id.map(|id| {
             (
                 id,
@@ -108,15 +108,20 @@ pub async fn login(
                 team.token_version,
             )
         });
-        (Some(team.captain_password_hash), info)
+        (Some(team.captain_password_hash), info, verified)
     } else {
-        (None, None)
+        (None, None, false)
     };
 
     let hash_to_verify = target_hash.as_deref().unwrap_or(crate::auth::DUMMY_HASH);
     let is_valid = verify_password(password, hash_to_verify).unwrap_or(false);
 
     if is_valid {
+        if !is_verified {
+            return Err(Errors::Error403Forbidden(
+                "Votre compte est en attente de validation par un administrateur.".to_string(),
+            ));
+        }
         if let Some((user_id, user_name, role, token_version)) = auth_info {
             let (role_str, redirect) = match role {
                 UserRole::Admin => ("ADMIN", "/admin.html"),
@@ -171,4 +176,43 @@ pub async fn logout(
         new_jar,
         Json(json!({ "message": "Déconnecté avec succès" })),
     )
+}
+
+pub async fn register(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(req): Json<crate::models::CreateTeamRequest>,
+) -> Result<Json<Value>, Errors> {
+    let client_ip = extract_client_ip(&headers);
+    let key_rate = format!("register:{}", client_ip);
+    if !state.rate_limiter.check(&key_rate) {
+        return Err(Errors::Error429TooManyRequests(
+            "Trop de tentatives d'inscription. Veuillez patienter une minute.".to_string(),
+        ));
+    }
+
+    let team_name = req.name.trim();
+    let captain_username = req.captain_username.trim().to_lowercase();
+
+    if team_name.is_empty() || captain_username.is_empty() || req.captain_password.len() < 8 {
+        return Err(Errors::Error400BadRequest(
+            "Formulaire d'inscription incomplet ou invalide (mot de passe d'au moins 8 caractères).".to_string(),
+        ));
+    }
+
+    if find_team_by_captain_username(&state.db, &captain_username).await.is_ok()
+        || find_admin_by_username(&state.db, &captain_username).await.is_ok()
+    {
+        return Err(Errors::Error409Conflict(
+            "Ce nom de capitaine est déjà utilisé".to_string(),
+        ));
+    }
+
+    let h_pwd = hash_password(&req.captain_password)?;
+    crate::db::register_team(&state.db, team_name, &captain_username, &h_pwd).await?;
+
+    Ok(Json(json!({
+        "success": true,
+        "message": "Inscription enregistrée. Votre compte doit être validé par un administrateur."
+    })))
 }

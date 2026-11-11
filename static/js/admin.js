@@ -159,9 +159,9 @@ function initMatches() {
     });
 
     container.querySelectorAll('.btn-bulk-scores').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const id = btn.getAttribute('data-id');
-            openBulkScoresModal(id);
+            await openBulkScoresModal(id);
         });
     });
 }
@@ -269,7 +269,7 @@ function initTeams() {
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = 'adjustment';
-                    input.value = adjustment;
+                    input.value = String(adjustment);
                     form.appendChild(input);
                     document.body.appendChild(form);
                     form.submit();
@@ -294,7 +294,7 @@ function initResetZone() {
             inputEl.value = '';
             confirmBtn.disabled = true;
 
-            let scopeVal = 'scores_only';
+            let scopeVal;
             if (rawScope === 'ScoresOnly') {
                 scopeVal = 'scores_only';
                 titleEl.textContent = "Remise à zéro des Scores";
@@ -363,7 +363,7 @@ function initTournamentSettings() {
             await api.post('/api/admin/settings', { global_placement_points: rawValues });
             showToast("Barème général du tournoi enregistré avec succès !", "success");
             if (statusMsg) {
-                statusMsg.textContent = "✓ Enregistré";
+                statusMsg.innerHTML = '<span class="papicon icon-check" aria-hidden="true"></span> Enregistré';
                 statusMsg.style.color = "var(--green, #22c55e)";
                 setTimeout(() => { statusMsg.textContent = ""; }, 3000);
             }
@@ -476,7 +476,7 @@ function initTournamentSchedule() {
             });
             showToast("Planning et cycle de vie du tournoi enregistrés !", "success");
             if (statusMsg) {
-                statusMsg.textContent = "✓ Enregistré";
+                statusMsg.innerHTML = '<span class="papicon icon-check" aria-hidden="true"></span> Enregistré';
                 statusMsg.style.color = "var(--green, #22c55e)";
                 setTimeout(() => { statusMsg.textContent = ""; }, 3000);
             }

@@ -10,7 +10,7 @@ pub async fn get_tournament_settings(db: &Database) -> Result<TournamentSettings
         .find_one(doc! {})
         .await?
     {
-        Some(s) => return Ok(s),
+        Some(s) => Ok(s),
         None => {
             let mut tournament = TournamentSettings::default();
             let res = db

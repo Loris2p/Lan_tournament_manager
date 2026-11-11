@@ -16,9 +16,10 @@ pub async fn find_team_by_captain_username(
     db: &Database,
     captain_username:  &str,
 ) -> Result<Team, Errors> {
+    let cap_norm = captain_username.trim().to_lowercase();
     let team = db
         .collection::<Team>("teams")
-        .find_one(doc! {"captain_username":captain_username})
+        .find_one(doc! {"captain_username": cap_norm})
         .await?;
     match team {
         Some(g) => Ok(g),
@@ -41,7 +42,7 @@ pub async fn find_team_by_id(db: &Database, team_id: ObjectId) -> Result<Team, E
 pub async fn get_leaderboard(db: &Database) -> Result<Vec<PublicTeam>, Errors> {
     let sorted_teams: Vec<Team> = db
         .collection::<Team>("teams")
-        .find(doc! {})
+        .find(doc! {"is_verified": {"$ne": false}})
         .sort(doc! {"total_points":-1})
         .await?
         .try_collect()
@@ -66,6 +67,31 @@ pub async fn get_leaderboard(db: &Database) -> Result<Vec<PublicTeam>, Errors> {
     Ok(leaderboard)
 }
 
+pub async fn get_pending_teams(db: &Database) -> Result<Vec<Team>, Errors> {
+    let teams: Vec<Team> = db
+        .collection::<Team>("teams")
+        .find(doc! {"is_verified": false})
+        .sort(doc! {"_id": -1})
+        .await?
+        .try_collect()
+        .await?;
+    Ok(teams)
+}
+
+pub async fn approve_team(db: &Database, team_id: ObjectId) -> Result<(), Errors> {
+    let res = db
+        .collection::<Team>("teams")
+        .update_one(
+            doc! {"_id": team_id},
+            doc! {"$set": {"is_verified": true}},
+        )
+        .await?;
+    if res.matched_count == 0 {
+        return Err(Errors::Error404NotFound("Équipe introuvable".to_string()));
+    }
+    Ok(())
+}
+
 pub async fn create_team(
     db: &Database,
     name: &str,
@@ -75,10 +101,32 @@ pub async fn create_team(
     let mut equipe = Team {
         id: None,
         name: name.to_string(),
-        captain_username: captain_username.to_string(),
+        captain_username: captain_username.trim().to_lowercase(),
         captain_password_hash: captain_password_hash.to_string(),
         total_points: 0,
         token_version: 0,
+        is_verified: true,
+    };
+    let res = db.collection::<Team>("teams").insert_one(&equipe).await?;
+    equipe.id = res.inserted_id.as_object_id();
+
+    Ok(equipe)
+}
+
+pub async fn register_team(
+    db: &Database,
+    name: &str,
+    captain_username: &str,
+    captain_password_hash: &str,
+) -> Result<Team, Errors> {
+    let mut equipe = Team {
+        id: None,
+        name: name.to_string(),
+        captain_username: captain_username.trim().to_lowercase(),
+        captain_password_hash: captain_password_hash.to_string(),
+        total_points: 0,
+        token_version: 0,
+        is_verified: false,
     };
     let res = db.collection::<Team>("teams").insert_one(&equipe).await?;
     equipe.id = res.inserted_id.as_object_id();
@@ -180,7 +228,7 @@ pub async fn recalculate_tournament_scores(db: &Database) -> Result<(), Errors> 
     let settings = get_tournament_settings(db).await?;
     let teams = db
         .collection::<Team>("teams")
-        .find(doc! {})
+        .find(doc! {"is_verified": {"$ne": false}})
         .await?
         .try_collect::<Vec<Team>>()
         .await?;
@@ -233,7 +281,7 @@ pub async fn get_game_leaderboards(db: &Database) -> Result<Vec<GameLeaderboardV
     let games = db::list_games(db).await?;
     let teams = db
         .collection::<Team>("teams")
-        .find(doc! {})
+        .find(doc! {"is_verified": {"$ne": false}})
         .await?
         .try_collect::<Vec<Team>>()
         .await?;
