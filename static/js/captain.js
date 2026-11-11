@@ -127,7 +127,7 @@ function initDropzoneAndPaste() {
 
     window.addEventListener('paste', (e) => {
         if (!selectedMatch) return;
-        const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+        const items = e.clipboardData?.items;
         if (!items) return;
 
         for (const item of items) {
@@ -249,7 +249,9 @@ function processAndCompressImage(file) {
             if (prompt) prompt.style.display = 'none';
             if (wrapper) wrapper.style.display = 'block';
         };
-        img.src = event.target.result;
+        if (typeof event.target?.result === 'string') {
+            img.src = event.target.result;
+        }
     };
     reader.readAsDataURL(file);
 }

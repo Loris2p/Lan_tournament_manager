@@ -7,7 +7,7 @@
 
 {% block nav %}
 <a href="/" class="nav-link">Accueil</a>
-<a href="/leaderboard.html" target="_blank" class="nav-link">Classement ↗</a>
+<a href="/leaderboard" target="_blank" class="nav-link">Classement ↗</a>
 {% endblock %}
 
 {% block topbar_right %}
@@ -33,13 +33,12 @@
     <section class="ar-hero ar-hero-team">
         <div class="ar-hero-ghost" aria-hidden="true">COCKPIT</div>
         <p class="ar-kicker" id="tournament-kicker"
-           data-start="{{ tournament_status.start_at.as_deref().unwrap_or("") }}"
-        data-end="{{ tournament_status.end_at.as_deref().unwrap_or("") }}"
-        data-paused="{{ tournament_status.is_paused }}"
-        data-games="{{ matches.len() }}"
-        data-suffix=" · ESPACE CAPITAINE">
-        <span class="status-dot" id="tournament-kicker-dot"
-              style="background-color: {{ tournament_status.dot_color }}; box-shadow: 0 0 8px {{ tournament_status.dot_color }};"></span>
+           data-start='{{ tournament_status.start_at.as_deref().unwrap_or("") }}'
+           data-end='{{ tournament_status.end_at.as_deref().unwrap_or("") }}'
+           data-paused="{{ tournament_status.is_paused }}"
+           data-games="{{ matches.len() }}"
+           data-suffix=" · ESPACE CAPITAINE">
+        <span class="status-dot" id="tournament-kicker-dot"></span>
         <span id="tournament-kicker-text">{{ tournament_status.label }} · ESPACE CAPITAINE</span>
         </p>
         <div class="ar-team-hero-grid">
@@ -54,7 +53,7 @@
             <div class="ar-team-score-card">
                 <span class="ar-score-label">POINTS AU CLASSEMENT</span>
                 <span class="ar-score-val" id="captain-team-points">{{ total_points }} <small>PTS</small></span>
-                <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct ↗</a>
+                <a href="/leaderboard" class="ar-score-link" target="_blank">Classement en direct ↗</a>
             </div>
         </div>
     </section>
@@ -143,7 +142,7 @@
             </div>
             {% endif %}
 
-            <div id="no-match-alert" class="empty-state" {% if is_success() %}style="display: none;" {% endif %}>
+            <div id="no-match-alert" class="empty-state" {% if is_success() %}style="display: none;"{% endif %}>
                 Sélectionnez un match ouvert ci-contre pour transmettre votre score.
             </div>
 
@@ -234,7 +233,7 @@
                 </div>
                 <div>
                     <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">PREUVE (CAPTURE)</span>
-                    <span style="color: var(--green, #22c55e); font-weight: 600;">Capture compressée prête <span class="papicon icon-check" aria-hidden="true"></span></span>
+                    <span style="color: var(--green-status, #22c55e); font-weight: 600;">Capture compressée prête <span class="papicon icon-check" aria-hidden="true"></span></span>
                 </div>
             </div>
             <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">

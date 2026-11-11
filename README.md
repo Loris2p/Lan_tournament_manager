@@ -1,6 +1,6 @@
 # LAN Tournament Manager
 
-Plateforme logicielle autonome (self-hosted) pour la gestion, l'arbitrage et le suivi en temps réel de tournois lors d'événements LAN (Local Area Network).
+Plateforme logicielle autonome (auto-hébergée) pour la gestion, l'arbitrage et le suivi en temps réel de tournois lors d'événements LAN (Local Area Network).
 
 L'application est conçue pour fonctionner intégralement en réseau local fermé sans dépendance à des services tiers externes (absence d'OAuth externe, de bases managées obligatoires ou de CDN tiers requis). Elle intègre un moteur de règles et de barèmes configurable dynamiquement en base de données, permettant de réutiliser la même instance sur divers types de jeux (Duels, Battle Royale, formats par équipes) sans modification de code ni recompilation.
 
@@ -132,53 +132,53 @@ cargo build --release
 ## 5. Répertoire des Points de Terminaison d'API (Endpoints)
 
 ### Santé et Statut Système
-| Méthode | Chemin | Description | Accès |
-|---|---|---|---|
-| `GET` | `/api/health` | Vérification de l'état du serveur et connectivité MongoDB | Public |
-| `GET` | `/ws` | Canal WebSocket pour la diffusion des événements temps réel | Public |
+| Méthode | Chemin        | Description                                                 | Accès  |
+|---------|---------------|-------------------------------------------------------------|--------|
+| `GET`   | `/api/health` | Vérification de l'état du serveur et connectivité MongoDB   | Public |
+| `GET`   | `/ws`         | Canal WebSocket pour la diffusion des événements temps réel | Public |
 
 ### Authentification et Sessions
-| Méthode | Chemin | Description | Accès |
-|---|---|---|---|
-| `GET` | `/api/auth/setup-status` | Indique si le premier compte administrateur doit être créé | Public |
-| `POST` | `/api/auth/setup` | Création du premier compte administrateur | Public (verrouillé après 1er usage) |
-| `POST` | `/api/auth/login` | Authentification (Administrateur ou Capitaine) | Public |
-| `GET` | `/api/auth/me` | Récupération de l'identité et du rôle de l'utilisateur connecté | Authentifié |
-| `POST` | `/api/auth/logout` | Déconnexion et révocation du cookie de session | Authentifié |
+| Méthode | Chemin                   | Description                                                     | Accès                               |
+|---------|--------------------------|-----------------------------------------------------------------|-------------------------------------|
+| `GET`   | `/api/auth/setup-status` | Indique si le premier compte administrateur doit être créé      | Public                              |
+| `POST`  | `/api/auth/setup`        | Création du premier compte administrateur                       | Public (verrouillé après 1er usage) |
+| `POST`  | `/api/auth/login`        | Authentification (Administrateur ou Capitaine)                  | Public                              |
+| `GET`   | `/api/auth/me`           | Récupération de l'identité et du rôle de l'utilisateur connecté  | Authentifié                         |
+| `POST`  | `/api/auth/logout`       | Déconnexion et révocation du cookie de session                  | Authentifié                         |
 
 ### Consultation Publique
-| Méthode | Chemin | Description | Accès |
-|---|---|---|---|
-| `GET` | `/api/leaderboard` | Classement complet des équipes ordonné par points | Public |
-| `GET` | `/api/games` | Catalogue complet des jeux et de leurs barèmes | Public |
-| `GET` | `/api/matches` | Liste des matchs ouverts aux inscriptions/soumissions | Public |
+| Méthode | Chemin             | Description                                           | Accès  |
+|---------|--------------------|-------------------------------------------------------|--------|
+| `GET`   | `/api/leaderboard` | Classement complet des équipes ordonné par points      | Public |
+| `GET`   | `/api/games`       | Catalogue complet des jeux et de leurs barèmes        | Public |
+| `GET`   | `/api/matches`     | Liste des matchs ouverts aux inscriptions/soumissions  | Public |
 
 ### Espace Capitaine
-| Méthode | Chemin | Description | Accès |
-|---|---|---|---|
-| `GET` | `/api/captain/matches` | Matchs ouverts assignés à l'équipe du capitaine | Capitaine |
-| `POST` | `/api/captain/submissions` | Soumission du résultat d'un match avec capture d'écran | Capitaine |
+| Méthode | Chemin                     | Description                                            | Accès     |
+|---------|----------------------------|--------------------------------------------------------|-----------|
+| `GET`   | `/api/captain/matches`     | Matchs ouverts assignés à l'équipe du capitaine        | Capitaine |
+| `POST`  | `/api/captain/submissions` | Soumission du résultat d'un match avec capture d'écran | Capitaine |
 
 ### Administration Générale
-| Méthode | Chemin | Description | Accès |
-|---|---|---|---|
-| `GET` | `/api/admin/admins` | Liste des administrateurs enregistrés | Administrateur |
-| `POST` | `/api/admin/admins` | Création d'un administrateur secondaire | Administrateur |
-| `DELETE` | `/api/admin/admins/{id}` | Suppression d'un administrateur (refusée s'il s'agit du dernier) | Administrateur |
-| `POST` | `/api/admin/games` | Création d'un jeu avec configuration de barème | Administrateur |
-| `DELETE` | `/api/admin/games/{id}` | Suppression d'un jeu du catalogue | Administrateur |
-| `POST` | `/api/admin/teams` | Inscription d'une équipe et génération du compte capitaine | Administrateur |
-| `DELETE` | `/api/admin/teams/{id}` | Suppression d'une équipe | Administrateur |
-| `PATCH` | `/api/admin/teams/{id}/points` | Ajustement direct du total de points d'une équipe | Administrateur |
-| `GET` | `/api/admin/matches` | Liste exhaustive de tous les matchs créés | Administrateur |
-| `POST` | `/api/admin/matches` | Création d'un match avec assignation d'équipes | Administrateur |
-| `PATCH` | `/api/admin/matches/{id}/instructions` | Mise à jour des consignes et codes de lobby en direct | Administrateur |
-| `POST` | `/api/admin/matches/{id}/toggle` | Ouverture ou fermeture d'un match aux soumissions | Administrateur |
-| `POST` | `/api/admin/matches/{id}/scores` | Saisie groupée directe des scores d'un match | Administrateur |
-| `GET` | `/api/admin/submissions` | Liste des soumissions de score en attente de validation | Administrateur |
-| `POST` | `/api/admin/submissions/{id}/approve` | Validation d'une soumission et attribution des points | Administrateur |
-| `POST` | `/api/admin/submissions/{id}/reject` | Rejet d'une soumission non conforme | Administrateur |
-| `POST` | `/api/admin/reset` | Réinitialisation du tournoi selon le périmètre spécifié | Administrateur |
+| Méthode  | Chemin                                 | Description                                                      | Accès          |
+|----------|----------------------------------------|------------------------------------------------------------------|----------------|
+| `GET`    | `/api/admin/admins`                    | Liste des administrateurs enregistrés                            | Administrateur |
+| `POST`   | `/api/admin/admins`                    | Création d'un administrateur secondaire                          | Administrateur |
+| `DELETE` | `/api/admin/admins/{id}`               | Suppression d'un administrateur (refusée s'il s'agit du dernier)  | Administrateur |
+| `POST`   | `/api/admin/games`                     | Création d'un jeu avec configuration de barème                    | Administrateur |
+| `DELETE` | `/api/admin/games/{id}`                | Suppression d'un jeu du catalogue                                | Administrateur |
+| `POST`   | `/api/admin/teams`                     | Inscription d'une équipe et génération du compte capitaine       | Administrateur |
+| `DELETE` | `/api/admin/teams/{id}`                | Suppression d'une équipe                                         | Administrateur |
+| `PATCH`  | `/api/admin/teams/{id}/points`         | Ajustement direct du total de points d'une équipe                | Administrateur |
+| `GET`    | `/api/admin/matches`                   | Liste exhaustive de tous les matchs créés                        | Administrateur |
+| `POST`   | `/api/admin/matches`                   | Création d'un match avec assignation d'équipes                    | Administrateur |
+| `PATCH`  | `/api/admin/matches/{id}/instructions` | Mise à jour des consignes et codes de lobby en direct           | Administrateur |
+| `POST`   | `/api/admin/matches/{id}/toggle`       | Ouverture ou fermeture d'un match aux soumissions                | Administrateur |
+| `POST`   | `/api/admin/matches/{id}/scores`       | Saisie groupée directe des scores d'un match                     | Administrateur |
+| `GET`    | `/api/admin/submissions`               | Liste des soumissions de score en attente de validation          | Administrateur |
+| `POST`   | `/api/admin/submissions/{id}/approve`  | Validation d'une soumission et attribution des points            | Administrateur |
+| `POST`   | `/api/admin/submissions/{id}/reject`   | Rejet d'une soumission non conforme                              | Administrateur |
+| `POST`   | `/api/admin/reset`                     | Réinitialisation du tournoi selon le périmètre spécifié          | Administrateur |
 
 ---
 

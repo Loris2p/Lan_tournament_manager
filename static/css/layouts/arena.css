@@ -811,7 +811,7 @@ html[data-layout="arena"],
 .ar-rule summary span {
     font-size: 2rem;
     color: transparent;
-    -webkit-text-stroke: 1.5px var(--red);
+    -webkit-text-stroke: 1px var(--red);
 }
 
 .ar-rule p {
@@ -858,6 +858,7 @@ html[data-layout="arena"],
         .ar-poster {
             animation: ar-rise linear both;
             animation-timeline: view();
+            /*noinspection CssInvalidPropertyValue*/
             animation-range: entry 0% entry 35%;
         }
     }
@@ -1037,7 +1038,7 @@ html[data-layout="arena"],
     font-size: 1.8rem;
     font-weight: 900;
     color: transparent;
-    -webkit-text-stroke: 1.5px var(--text-secondary);
+    -webkit-text-stroke: 1px var(--text-secondary);
 }
 
 .ar-tm {
@@ -1972,7 +1973,7 @@ html[data-layout="arena"],
     font-size: clamp(3rem, 7.5vw, 6.5rem);
     line-height: 0.9;
     color: transparent;
-    -webkit-text-stroke: 1.5px var(--line-subtle);
+    -webkit-text-stroke: 1px var(--line-subtle);
     user-select: none;
     pointer-events: none;
     z-index: 0;

@@ -3,8 +3,8 @@
     <section class="section" id="presentation">
         <div class="overview-header">
             <div class="meta-strip" id="tournament-kicker"
-                 data-start="{{ status.start_at.as_deref().unwrap_or("") }}"
-                 data-end="{{ status.end_at.as_deref().unwrap_or("") }}"
+                 data-start='{{ status.start_at.as_deref().unwrap_or("") }}'
+                 data-end='{{ status.end_at.as_deref().unwrap_or("") }}'
                  data-paused="{{ status.is_paused }}"
                  data-games="{{ games.len() }}">
                 <span class="meta-tag" id="tournament-kicker-text">{{ status.label }}</span>
@@ -17,7 +17,7 @@
                 l'événement.
             </p>
             <div class="hero-actions">
-                <a href="/leaderboard.html" class="btn-primary btn-lg">
+                <a href="/leaderboard" class="btn-primary btn-lg">
                     Consulter le Classement en Direct
                 </a>
                 <a href="#carousel-section" class="btn-outline btn-lg">
@@ -51,7 +51,7 @@
                 <span class="spec-label">ÉTAPE 04</span>
                 <span class="spec-value">Classement & Arbitres</span>
                 <span class="spec-desc">Classement synchronisé en direct. En cas de contestation, signalez-vous à la table d'arbitrage.</span>
-                <a href="/leaderboard.html" style="margin-top: auto; padding-top: 0.85rem; font-size: 0.82rem; font-weight: 600; color: var(--red); text-decoration: none;">Classement en direct &rarr;</a>
+                <a href="/leaderboard" style="margin-top: auto; padding-top: 0.85rem; font-size: 0.82rem; font-weight: 600; color: var(--red); text-decoration: none;">Classement en direct &rarr;</a>
             </div>
         </div>
     </section>

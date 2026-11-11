@@ -70,14 +70,14 @@
     font-family: var(--font-mono);
     font-weight: 800;
     text-transform: uppercase;
-    box-shadow: 3px 3px 0px #000000;
+    box-shadow: 3px 3px 0 #000000;
     border: 1px solid #000000;
     transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 [data-theme="industrial-brutalism"] .btn-primary:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px #000000;
+    box-shadow: 5px 5px 0 #000000;
     background: #ff1f1f;
 }
 
@@ -109,7 +109,7 @@
 [data-theme="industrial-brutalism"] .table-frame {
     border-radius: 0 !important;
     border: 2px solid #272730;
-    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.85);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.85);
 }
 
 [data-theme="industrial-brutalism"] .podium-slot.slot-1 {

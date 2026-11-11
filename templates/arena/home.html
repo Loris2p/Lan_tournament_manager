@@ -3,11 +3,11 @@
     <section class="ar-hero" id="presentation">
         <div class="ar-hero-ghost" aria-hidden="true">LAN</div>
         <p class="ar-kicker" id="tournament-kicker"
-           data-start="{{ status.start_at.as_deref().unwrap_or("") }}"
-           data-end="{{ status.end_at.as_deref().unwrap_or("") }}"
+           data-start='{{ status.start_at.as_deref().unwrap_or("") }}'
+           data-end='{{ status.end_at.as_deref().unwrap_or("") }}'
            data-paused="{{ status.is_paused }}"
            data-games="{{ games.len() }}">
-            <span class="status-dot" id="tournament-kicker-dot" style="background-color: {{ status.dot_color }}; box-shadow: 0 0 8px {{ status.dot_color }};"></span>
+            <span class="status-dot" id="tournament-kicker-dot"></span>
             <span id="tournament-kicker-text">{{ status.label }} · {{ games.len() }} ÉPREUVE{% if games.len() > 1 %}S{% endif %}</span>
         </p>
         <h1 class="ar-title">
@@ -20,7 +20,7 @@
             Une seule équipe repartira avec le titre.
         </p>
         <div class="ar-cta">
-            <a href="/leaderboard.html" class="ar-btn ar-btn-solid">Classement en direct <span aria-hidden="true">→</span></a>
+            <a href="/leaderboard" class="ar-btn ar-btn-solid">Classement en direct <span aria-hidden="true">→</span></a>
             <a href="#carousel-section" class="ar-btn">Découvrir les épreuves</a>
         </div>
     </section>
@@ -65,7 +65,7 @@
                 <span class="ar-step-num">04</span>
                 <h3>Classement &amp; arbitres</h3>
                 <p>Classement synchronisé en direct. En cas de contestation, rendez-vous à la table d'arbitrage.</p>
-                <a href="/leaderboard.html">Classement en direct →</a>
+                <a href="/leaderboard">Classement en direct →</a>
             </li>
         </ol>
     </section>

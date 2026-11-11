@@ -8,7 +8,7 @@
             <a href="/" class="nav-link">Accueil</a>
             <a href="/#carousel-section" class="nav-link">Épreuves</a>
             <a href="/#rules" class="nav-link">Règlement</a>
-            <a href="/leaderboard.html" class="nav-link">Classement</a>
+            <a href="/leaderboard" class="nav-link">Classement</a>
         
 {% endblock %}
 
@@ -41,8 +41,8 @@
             {% endif %}
 
             {% if is_registered %}
-            <div id="auth-success" class="ar-auth-alert" style="border-color: var(--green, #22c55e); background: rgba(34, 197, 94, 0.1); color: #86efac; box-shadow: 0 0 14px rgba(34, 197, 94, 0.2);">
-                <span class="ar-alert-icon" style="color: var(--green, #22c55e);"><span class="papicon icon-check" aria-hidden="true"></span></span>
+            <div id="auth-success" class="ar-auth-alert" style="border-color: var(--green-status, #22c55e); background: rgba(34, 197, 94, 0.1); color: #86efac; box-shadow: 0 0 14px rgba(34, 197, 94, 0.2);">
+                <span class="ar-alert-icon" style="color: var(--green-status, #22c55e);"><span class="papicon icon-check" aria-hidden="true"></span></span>
                 <span>Demande d'inscription enregistrée ! Un administrateur doit valider votre équipe avant votre première connexion.</span>
             </div>
             {% endif %}

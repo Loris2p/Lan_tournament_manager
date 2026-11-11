@@ -189,7 +189,7 @@
                             VIRGULES)</label>
                         <input type="text" id="game-placement-points" name="placement_points" required
                                placeholder="Ex Duel: 50, 0 | Ex Brawl: 12, 9, 7, 5, 4, 3">
-                        <small class="field-hint">1er point = 1ère place, 2e point = 2ème place, etc.</small>
+                        <small class="field-hint">1er point = 1re place, 2e point = 2e place, etc.</small>
                     </div>
 
                     <div class="form-row-grid">
@@ -330,8 +330,7 @@
                                 <span class="badge-format">{{ m.title }}</span>
                                 <h4 style="display: inline-block; margin-left: 0.5rem;">{{ m.game_name }}</h4>
                             </div>
-                            <span class="pulse-indicator"
-                                  style="{% if !m.is_open %}background: rgba(113, 113, 122, 0.2); color: var(--text-muted);{% endif %}">
+                            <span class="pulse-indicator" {% if !m.is_open %}style="background: rgba(113, 113, 122, 0.2); color: var(--text-muted);"{% endif %}>
                                             {% if m.is_open %}OUVERT{% else %}FERMÉ{% endif %}
                                         </span>
                         </div>
@@ -430,7 +429,7 @@
                     </div>
 
                     <div class="form-group">
-                        <lpassabel for="team-password">MOT DE PASSE DU CAPITAINE</lpassabel>
+                        <label for="team-password">MOT DE PASSE DU CAPITAINE</label>
                         <input type="password" id="team-password" name="captain_password" required
                                placeholder="••••••••••••" minlength="8" maxlength="72">
                     </div>
@@ -500,7 +499,7 @@
                     <label for="tournament-placement-points">POINTS PAR RANG (SÉPARÉS PAR DES VIRGULES)</label>
                     <input type="text" id="tournament-placement-points" name="global_placement_points" required
                            placeholder="Ex: 25, 18, 15, 12, 10, 8, 6, 4, 2, 1">
-                    <small class="field-hint">Rang 1 = 1er point (ex: 25), Rang 2 = 2e point (ex: 18), etc.</small>
+                    <small class="field-hint">Rang 1 = 1er point (par ex. 25), Rang 2 = 2e point (par ex. 18), etc.</small>
                 </div>
                 <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
                     <button type="submit" class="btn-primary" id="save-settings-btn">Enregistrer le Barème</button>
@@ -548,19 +547,19 @@
                             <td colspan="2" class="cell-loading">Aucun administrateur trouvé.</td>
                         </tr>
                         {% else %}
-                        {% for a in admins %}
+                        {% for admin_entry in admins %}
                         <tr>
                             <td>
-                                <strong>{{ a.username }}</strong>
-                                {% if a.username == admin_username %}
+                                <strong>{{ admin_entry.username }}</strong>
+                                {% if admin_entry.username == admin_username %}
                                 <span class="badge-code">[VOUS]</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if a.username == admin_username %}
+                                {% if admin_entry.username == admin_username %}
                                 <span class="field-hint">Actif</span>
                                 {% else %}
-                                <form method="POST" action="/admin/admins/{{ a.id }}/delete"
+                                <form method="POST" action="/admin/admins/{{ admin_entry.id }}/delete"
                                       onsubmit="return confirm('Révoquer cet administrateur ?');"
                                       style="display:inline;">
                                     <button type="submit" class="btn-text" style="color: var(--red);">
@@ -606,8 +605,8 @@
                         <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">LANCEMENT DE LA
                             LAN</label>
                         <div style="display: flex; gap: 0.5rem;">
-                            <input type="date" id="schedule-start-date" class="input" style="flex: 2;">
-                            <input type="time" id="schedule-start-time" class="input" value="18:00" style="flex: 1;">
+                            <input type="date" id="schedule-start-date" class="input" aria-label="Date de lancement" style="flex: 2;">
+                            <input type="time" id="schedule-start-time" class="input" aria-label="Heure de lancement" value="18:00" style="flex: 1;">
                         </div>
                     </div>
 
@@ -615,8 +614,8 @@
                         <label style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">CLÔTURE DU
                             TOURNOI</label>
                         <div style="display: flex; gap: 0.5rem;">
-                            <input type="date" id="schedule-end-date" class="input" style="flex: 2;">
-                            <input type="time" id="schedule-end-time" class="input" value="18:00" style="flex: 1;">
+                            <input type="date" id="schedule-end-date" class="input" aria-label="Date de clôture" style="flex: 2;">
+                            <input type="time" id="schedule-end-time" class="input" aria-label="Heure de clôture" value="18:00" style="flex: 1;">
                         </div>
                     </div>
                 </div>

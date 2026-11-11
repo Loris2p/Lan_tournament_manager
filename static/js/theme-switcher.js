@@ -1,13 +1,13 @@
-const STYLES = [
+export const STYLES = [
     { id: 'arena', label: 'Arena (affiche & dock)', layout: 'arena' },
     { id: 'tactical-pro', label: 'Tactical Pro (barre haute)', layout: 'tactical-deck' }
 ];
 
-const THEMES = [
+export const THEMES = [
     { id: 'tactical-broadcast', label: 'Tactical Pro' }
 ];
 
-const LAYOUTS = [
+export const LAYOUTS = [
     { id: 'arena', label: 'Arena' },
     { id: 'tactical-deck', label: 'Tactical Pro' }
 ];
