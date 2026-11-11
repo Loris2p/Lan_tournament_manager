@@ -40,6 +40,13 @@
             </div>
             {% endif %}
 
+            {% if is_registered %}
+            <div id="auth-success" class="ar-auth-alert" style="border-color: var(--green, #22c55e); background: rgba(34, 197, 94, 0.1); color: #86efac; box-shadow: 0 0 14px rgba(34, 197, 94, 0.2);">
+                <span class="ar-alert-icon" style="color: var(--green, #22c55e);"><span class="papicon icon-check" aria-hidden="true"></span></span>
+                <span>Demande d'inscription enregistrée ! Un administrateur doit valider votre équipe avant votre première connexion.</span>
+            </div>
+            {% endif %}
+
             {% if is_first_setup %}
 
             <div id="setup-form-wrapper">
@@ -74,10 +81,19 @@
             </div>
             {% else %}
 
+            <div class="auth-mode-switch" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--line-subtle); padding-bottom: 1rem;">
+                <button type="button" id="btn-show-login" class="ar-btn ar-btn-solid" style="flex: 1; font-size: 0.85rem;">
+                    Connexion
+                </button>
+                <button type="button" id="btn-show-register" class="ar-btn ar-btn-ghost" style="flex: 1; font-size: 0.85rem;">
+                    Inscrire une Équipe
+                </button>
+            </div>
+
             <div id="login-form-wrapper">
                 <form id="login-form" class="auth-form" method="POST" action="/login" autocomplete="off">
                     <div class="form-group">
-                        <label for="login-username">IDENTIFIANT</label>
+                        <label for="login-username">IDENTIFIANT (ADMIN OU CAPITAINE)</label>
                         <input type="text" name="username" id="login-username" required placeholder="Votre identifiant" autofocus>
                     </div>
 
@@ -91,6 +107,40 @@
                     </button>
                 </form>
             </div>
+
+            <div id="register-form-wrapper" style="display: none;">
+                <div style="margin-bottom: 1rem;">
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+                        Remplissez le formulaire ci-dessous. Un administrateur devra approuver votre compte avant que vous puissiez vous connecter.
+                    </p>
+                </div>
+
+                <form id="register-form" class="auth-form" method="POST" action="/register" autocomplete="off">
+                    <div class="form-group">
+                        <label for="reg-team-name">NOM DE L'ÉQUIPE</label>
+                        <input type="text" name="name" id="reg-team-name" required placeholder="Ex: Les Faucons, Vitality...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-captain-username">PSEUDO DU CAPITAINE</label>
+                        <input type="text" name="captain_username" id="reg-captain-username" required placeholder="Ex: Apex, Faker...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-password">MOT DE PASSE DU CAPITAINE</label>
+                        <input type="password" name="password" id="reg-password" required placeholder="••••••••••••" minlength="8" maxlength="72">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-password-confirm">CONFIRMER LE MOT DE PASSE</label>
+                        <input type="password" name="password_confirm" id="reg-password-confirm" required placeholder="••••••••••••" minlength="8" maxlength="72">
+                    </div>
+
+                    <button type="submit" class="ar-btn ar-btn-solid ar-btn-block ar-btn-lg" id="register-submit-btn">
+                        Envoyer l'Inscription →
+                    </button>
+                </form>
+            </div>
             {% endif %}
 
         </div>
@@ -100,4 +150,5 @@
 
 {% block scripts %}
 <script type="module" src="/js/cookie-banner.js"></script>
+<script type="module" src="/js/auth.js"></script>
 {% endblock %}

@@ -70,6 +70,9 @@
         </button>
         <button type="button" class="tab-btn" data-tab="teams">
             Équipes &amp; Points
+            {% if !pending_teams.is_empty() %}
+            <span class="tab-badge" id="pending-teams-badge">{{ pending_teams.len() }}</span>
+            {% endif %}
         </button>
         <button type="button" class="tab-btn" data-tab="admins">
             Staff &amp; Arbitres
@@ -362,6 +365,51 @@
     </div>
 
     <div class="tab-pane" id="tab-teams">
+        {% if !pending_teams.is_empty() %}
+        <div class="admin-panel" style="margin-bottom: 1.5rem; border: 1px solid var(--accent, #e11d48);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 style="margin: 0;">INSCRIPTIONS EN ATTENTE DE VALIDATION ({{ pending_teams.len() }})</h3>
+                <span class="badge-format" style="background: var(--red, #e11d48); color: #fff;">Action requise</span>
+            </div>
+            <p class="panel-desc">Ces équipes se sont auto-inscrites et attendent votre validation pour pouvoir se connecter et participer au tournoi.</p>
+            <div class="table-frame" style="margin-top: 1rem;">
+                <table class="standings-table">
+                    <thead>
+                    <tr>
+                        <th>NOM D'ÉQUIPE</th>
+                        <th>CAPITAINE</th>
+                        <th style="text-align: right;">ACTIONS</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for t in pending_teams %}
+                    <tr>
+                        <td><strong>{{ t.name }}</strong></td>
+                        <td>{{ t.captain_username }}</td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end;">
+                                <form method="POST" action="/admin/teams/{{ t.id }}/approve" style="display:inline;">
+                                    <button type="submit" class="btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+                                        <span class="papicon icon-check" aria-hidden="true"></span> Valider
+                                    </button>
+                                </form>
+                                <form method="POST" action="/admin/teams/{{ t.id }}/delete"
+                                      onsubmit="return confirm('Refuser et supprimer la demande de cette équipe ?');"
+                                      style="display:inline;">
+                                    <button type="submit" class="btn-outline" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+                                        <span class="papicon icon-cross" aria-hidden="true"></span> Refuser
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="admin-split">
 
             <div class="admin-panel">

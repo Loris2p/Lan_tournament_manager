@@ -27,7 +27,7 @@ pub async fn create_admin(
     Json(req): Json<CreateAdminRequest>,
 ) -> Result<Json<Value>, Errors> {
     let db = &state.db;
-    let username = req.username;
+    let username = req.username.trim().to_lowercase();
     let password = req.password;
     if find_team_by_captain_username(db, &username).await.is_ok()
         || find_admin_by_username(db, &username).await.is_ok()

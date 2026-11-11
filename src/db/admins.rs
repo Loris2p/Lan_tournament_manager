@@ -62,9 +62,10 @@ pub async fn find_admin_by_username(
     db: &Database,
     username: &str,
 ) -> Result<Admin, Errors> {
+    let username_norm = username.trim().to_lowercase();
     let admin = db
         .collection::<Admin>("admins")
-        .find_one(doc! {"username":username})
+        .find_one(doc! {"username": username_norm})
         .await?;
     match admin {
         Some(s) => Ok(s),
@@ -88,7 +89,7 @@ pub async fn create_admin(
 ) -> Result<Admin, Errors> {
     let mut new_admin = Admin {
         id: None,
-        username: username.to_string(),
+        username: username.trim().to_lowercase(),
         password_hash: password_hash.to_string(),
         token_version: 0,
     };

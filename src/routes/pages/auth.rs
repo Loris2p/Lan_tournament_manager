@@ -18,6 +18,7 @@ use std::sync::Arc;
 #[derive(Deserialize, Default)]
 pub struct LoginPageQuery {
     pub error: Option<String>,
+    pub registered: Option<String>,
 }
 
 #[derive(Template)]
@@ -25,17 +26,26 @@ pub struct LoginPageQuery {
 pub struct LoginTemplate {
     pub is_first_setup: bool,
     pub error: Option<String>,
+    pub is_registered: bool,
 }
 
 impl LoginTemplate {
     pub fn error_message(&self) -> Option<&'static str> {
         match self.error.as_deref() {
             Some("invalid_credentials") => Some("Identifiant ou mot de passe incorrect."),
+            Some("account_pending") => {
+                Some("Votre compte est en attente de validation par un administrateur.")
+            }
             Some("rate_limited") => {
-                Some("Trop de tentatives de connexion. Veuillez patienter une minute.")
+                Some("Trop de tentatives. Veuillez patienter une minute.")
             }
             Some("passwords_dont_match") => Some("Les mots de passe saisis ne correspondent pas."),
             Some("username_taken") => Some("Ce pseudo d'administrateur est déjà utilisé."),
+            Some("captain_name_taken") => Some("Ce pseudo de capitaine est déjà utilisé."),
+            Some("team_name_taken") => Some("Ce nom d'équipe est déjà utilisé."),
+            Some("invalid_register") => {
+                Some("Veuillez remplir tous les champs (mot de passe d'au moins 8 caractères).")
+            }
             Some("setup_forbidden") => Some("L'initialisation a déjà été effectuée."),
             Some("server_error") => Some("Une erreur interne est survenue. Réessayez."),
             _ => None,
@@ -72,11 +82,66 @@ pub async fn serve_login_page(
 
     let is_first_setup = db::is_setup_required(&state.db).await.unwrap_or(false);
 
+    let is_registered = query.registered.is_some();
+
     HtmlTemplate(LoginTemplate {
         is_first_setup,
         error: query.error,
+        is_registered,
     })
     .into_response()
+}
+
+#[derive(Deserialize)]
+pub struct RegisterForm {
+    pub name: String,
+    pub captain_username: String,
+    pub password: String,
+    pub password_confirm: String,
+}
+
+pub async fn handle_register_form(
+    State(state): State<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+    Form(form): Form<RegisterForm>,
+) -> Response {
+    let client_ip = extract_client_ip(&headers);
+    let key_rate = format!("register:{}", client_ip);
+    if !state.rate_limiter.check(&key_rate) {
+        return Redirect::to("/login?error=rate_limited").into_response();
+    }
+
+    let team_name = form.name.trim();
+    let captain_username = form.captain_username.trim().to_lowercase();
+
+    if team_name.is_empty() || captain_username.is_empty() || form.password.len() < 8 {
+        return Redirect::to("/login?error=invalid_register").into_response();
+    }
+
+    if form.password != form.password_confirm {
+        return Redirect::to("/login?error=passwords_dont_match").into_response();
+    }
+
+    let db = &state.db;
+
+    if db::find_admin_by_username(db, &captain_username).await.is_ok()
+        || db::find_team_by_captain_username(db, &captain_username).await.is_ok()
+    {
+        return Redirect::to("/login?error=captain_name_taken").into_response();
+    }
+
+    let h_pwd = match hash_password(&form.password) {
+        Ok(h) => h,
+        Err(_) => return Redirect::to("/login?error=server_error").into_response(),
+    };
+
+    match db::register_team(db, team_name, &captain_username, &h_pwd).await {
+        Ok(_) => Redirect::to("/login?registered=1").into_response(),
+        Err(Errors::Error409Conflict(_)) => {
+            Redirect::to("/login?error=team_name_taken").into_response()
+        }
+        Err(_) => Redirect::to("/login?error=server_error").into_response(),
+    }
 }
 
 pub async fn handle_login_form(
@@ -86,24 +151,24 @@ pub async fn handle_login_form(
     Form(form): Form<LoginForm>,
 ) -> Response {
     let client_ip = extract_client_ip(&headers);
-    let username = form.username.trim();
+    let username = form.username.trim().to_lowercase();
     let key_rate = format!("{}:{}", client_ip, username);
     if !state.rate_limiter.check(&key_rate) {
         return Redirect::to("/login?error=rate_limited").into_response();
     }
 
     let db = &state.db;
-    let username = form.username.trim();
     let password = &form.password;
     let exp = (chrono::Utc::now().timestamp() + 24 * 3600) as usize;
 
-    let (target_hash, auth_info) = if let Ok(admin) = db::find_admin_by_username(db, username).await
+    let (target_hash, auth_info, is_verified) = if let Ok(admin) = db::find_admin_by_username(db, &username).await
     {
         let info = admin
             .id
             .map(|id| (id, admin.username, UserRole::Admin, admin.token_version));
-        (Some(admin.password_hash), info)
-    } else if let Ok(team) = db::find_team_by_captain_username(db, username).await {
+        (Some(admin.password_hash), info, true)
+    } else if let Ok(team) = db::find_team_by_captain_username(db, &username).await {
+        let verified = team.is_verified;
         let info = team.id.map(|id| {
             (
                 id,
@@ -114,15 +179,18 @@ pub async fn handle_login_form(
                 team.token_version,
             )
         });
-        (Some(team.captain_password_hash), info)
+        (Some(team.captain_password_hash), info, verified)
     } else {
-        (None, None)
+        (None, None, false)
     };
 
     let hash_to_verify = target_hash.as_deref().unwrap_or(DUMMY_HASH);
     let is_valid = verify_password(password, hash_to_verify).unwrap_or(false);
 
     if is_valid {
+        if !is_verified {
+            return Redirect::to("/login?error=account_pending").into_response();
+        }
         if let Some((user_id, user_name, role, token_version)) = auth_info {
             let target_url = match role {
                 UserRole::Admin => "/admin",
@@ -159,8 +227,8 @@ pub async fn handle_setup_form(
         return Redirect::to("/login?error=passwords_dont_match").into_response();
     }
 
-    let username = form.username.trim();
-    if db::find_team_by_captain_username(db, username)
+    let username = form.username.trim().to_lowercase();
+    if db::find_team_by_captain_username(db, &username)
         .await
         .is_ok()
     {
@@ -172,7 +240,7 @@ pub async fn handle_setup_form(
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
 
-    let admin = match db::create_initial_admin(db, username, &h_pswd).await {
+    let admin = match db::create_initial_admin(db, &username, &h_pswd).await {
         Ok(a) => a,
         Err(Errors::Error403Forbidden(_)) => {
             return Redirect::to("/login?error=setup_forbidden").into_response();

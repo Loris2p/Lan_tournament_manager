@@ -50,6 +50,7 @@ pub struct AdminTemplate {
     pub games: Vec<AdminGameView>,
     pub matches: Vec<AdminMatchView>,
     pub teams: Vec<PublicTeam>,
+    pub pending_teams: Vec<PublicTeam>,
     pub admins: Vec<AdminUserView>,
 }
 
@@ -89,6 +90,7 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
     let matches_db = db::get_all_matches(&state.db).await.unwrap_or_default();
     let teams_db = db::get_leaderboard(&state.db).await.unwrap_or_default();
     let admins_db = db::list_admins(&state.db).await.unwrap_or_default();
+    let pending_teams_db = db::get_pending_teams(&state.db).await.unwrap_or_default();
 
     let submissions_view: Vec<AdminSubmissionView> = submissions_db
         .into_iter()
@@ -136,12 +138,25 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
         })
         .collect();
 
+    let pending_teams_view: Vec<PublicTeam> = pending_teams_db
+        .into_iter()
+        .filter_map(|t| {
+            t.id.map(|id| PublicTeam {
+                id: id.to_hex(),
+                name: t.name,
+                captain_username: t.captain_username,
+                total_points: t.total_points,
+            })
+        })
+        .collect();
+
     let template = AdminTemplate {
         admin_username,
         submissions: submissions_view,
         games: games_view,
         matches: matches_view,
         teams: teams_db,
+        pending_teams: pending_teams_view,
         admins: admins_view,
     };
 
@@ -202,6 +217,16 @@ pub async fn admin_delete_game(
 ) -> Response {
     let _ = db::delete_game(&state.db, id).await;
     Redirect::to("/admin?tab=games").into_response()
+}
+
+pub async fn admin_approve_team(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    let _ = db::approve_team(&state.db, id).await;
+    let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
+    Redirect::to("/admin?tab=teams").into_response()
 }
 
 pub async fn admin_delete_team(
