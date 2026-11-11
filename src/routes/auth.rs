@@ -66,7 +66,7 @@ pub(crate) fn extract_client_ip(headers: &HeaderMap) -> String {
     headers
         .get("x-forwarded-for")
         .and_then(|v| v.to_str().ok())
-        .and_then(|s| s.split(',').last())
+        .and_then(|s| s.split(',').next_back())
         .map(|s| s.trim().to_string())
         .filter(|s| s.parse::<IpAddr>().is_ok())
         .unwrap_or_else(|| "127.0.0.1".to_string())

@@ -1,4 +1,3 @@
-use aws_sdk_s3;
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
