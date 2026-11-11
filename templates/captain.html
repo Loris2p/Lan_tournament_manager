@@ -7,7 +7,7 @@
 
 {% block nav %}
 <a href="/" class="nav-link">Accueil</a>
-<a href="/leaderboard" target="_blank" class="nav-link">Classement ↗</a>
+<a href="/leaderboard.html" target="_blank" class="nav-link">Classement ↗</a>
 {% endblock %}
 
 {% block topbar_right %}
@@ -53,7 +53,7 @@
             <div class="ar-team-score-card">
                 <span class="ar-score-label">POINTS AU CLASSEMENT</span>
                 <span class="ar-score-val" id="captain-team-points">{{ total_points }} <small>PTS</small></span>
-                <a href="/leaderboard" class="ar-score-link" target="_blank">Classement en direct ↗</a>
+                <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct ↗</a>
             </div>
         </div>
     </section>
@@ -125,7 +125,7 @@
 
             {% if is_success() %}
             <div id="submission-success" class="submission-success-box" style="display: block; margin-bottom: 1.5rem;">
-                <div class="success-icon"><span class="papicon icon-check" aria-hidden="true"></span></div>
+                <div class="success-icon">✓</div>
                 <h4>SCORE ENREGISTRÉ</h4>
                 <p>Votre capture et vos points ont été transmis aux arbitres pour validation.</p>
                 <a href="/captain" class="ar-btn ar-btn-solid ar-btn-block"
@@ -142,7 +142,7 @@
             </div>
             {% endif %}
 
-            <div id="no-match-alert" class="empty-state" {% if is_success() %}style="display: none;"{% endif %}>
+            <div id="no-match-alert" class="empty-state" {% if is_success() %}style="display: none;" {% endif %}>
                 Sélectionnez un match ouvert ci-contre pour transmettre votre score.
             </div>
 
@@ -179,7 +179,7 @@
                                 </label>
                                 <label for="camera-input" class="btn-outline btn-sm"
                                        style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
-                                    <span class="papicon icon-camera" aria-hidden="true"></span> Prendre en photo (Mobile)
+                                    📷 Prendre en photo (Mobile)
                                 </label>
                             </div>
                             <input type="file" id="file-input" accept="image/*" style="display: none;">
@@ -233,7 +233,7 @@
                 </div>
                 <div>
                     <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">PREUVE (CAPTURE)</span>
-                    <span style="color: var(--green-status, #22c55e); font-weight: 600;">Capture compressée prête <span class="papicon icon-check" aria-hidden="true"></span></span>
+                    <span style="color: var(--green, #22c55e); font-weight: 600;">Capture compressée prête ✓</span>
                 </div>
             </div>
             <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">

@@ -65,6 +65,7 @@ pub async fn submit_match_scores(
             None,
             pts,
             SubmissionStatus::Approved,
+            None,
         )
         .await?;
     }

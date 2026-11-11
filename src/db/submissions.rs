@@ -1,5 +1,5 @@
 use crate::errors::Errors;
-use crate::models::{Submission, SubmissionScore, SubmissionStatus};
+use crate::models::{PlayerSubmission, Submission, SubmissionScore, SubmissionStatus};
 use futures::TryStreamExt;
 use mongodb::{
     Database,
@@ -15,6 +15,7 @@ pub async fn insert_submission(
     proof_base64: Option<String>,
     calculated_points: u32,
     status: SubmissionStatus,
+    player_submissions: Option<Vec<PlayerSubmission>>,
 ) -> Result<Submission, Errors> {
     let mut s = Submission {
         id: None,
@@ -25,6 +26,7 @@ pub async fn insert_submission(
         proof_base64,
         calculated_points,
         status,
+        player_submissions,
     };
     let res = db
         .collection::<Submission>("submissions")

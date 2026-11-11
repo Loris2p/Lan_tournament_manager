@@ -40,6 +40,7 @@ pub struct GameResponse {
     pub points_per_secondary_stat: u32,
     pub max_placement: u8,
     pub max_secondary_stat: u32,
+    pub team_player_count: Option<u8>,
 }
 
 impl From<Game> for GameResponse {
@@ -56,6 +57,7 @@ impl From<Game> for GameResponse {
             points_per_secondary_stat: g.points_per_secondary_stat,
             max_placement: g.max_placement,
             max_secondary_stat: g.max_secondary_stat,
+            team_player_count: g.team_player_count,
         }
     }
 }
@@ -89,6 +91,8 @@ pub struct CreateGameRequest {
     pub points_per_secondary_stat: u32,
     pub max_placement: u8,
     pub max_secondary_stat: u32,
+    #[serde(default)]
+    pub team_player_count: Option<u8>,
 }
 #[derive(Deserialize)]
 pub struct CreateMatchRequest {
@@ -99,11 +103,21 @@ pub struct CreateMatchRequest {
     pub is_open: bool,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct PlayerSubmissionInput {
+    pub player_number: u8,
+    pub score: u32,
+    pub proof_base64: String,
+}
+
 #[derive(Deserialize)]
 pub struct CreateSubmissionRequest {
     pub match_id: ObjectId,
     pub score: SubmissionScore,
-    pub proof_base64: String,
+    #[serde(default)]
+    pub proof_base64: Option<String>,
+    #[serde(default)]
+    pub player_submissions: Option<Vec<PlayerSubmissionInput>>,
 }
 #[derive(Deserialize)]
 pub struct AdminTeamScoreEntry {

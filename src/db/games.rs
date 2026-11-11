@@ -37,6 +37,7 @@ pub async fn create_game(
     max_placement: u8,
     max_secondary_stat: u32,
     rules: &str,
+    team_player_count: Option<u8>,
 ) -> Result<Game, Errors> {
     let mut new_game = Game {
         id: None,
@@ -50,6 +51,7 @@ pub async fn create_game(
         max_placement,
         max_secondary_stat,
         rules: rules.to_string(),
+        team_player_count,
     };
     let res = db.collection::<Game>("games").insert_one(&new_game).await?;
     new_game.id = res.inserted_id.as_object_id();

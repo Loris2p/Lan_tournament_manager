@@ -522,6 +522,7 @@ function initGamePresets() {
             secLabel: "Manches franchies (cumul 3 joueurs)",
             secPts: 1,
             maxSec: 15,
+            teamPlayers: 3,
             rules: "Salon personnalisé Solo (3 joueurs/équipe). +1 pt par manche franchie par joueur. Prime de victoire de 3 pts en cas de victoire du show (place 1)."
         },
         geoguessr: {
@@ -534,7 +535,8 @@ function initGamePresets() {
             secLabel: "Score brut de la manche (départage)",
             secPts: 0,
             maxSec: 75000,
-            rules: "Challenge d'équipe coopératif (3 joueurs). Mode No Move 1m15/round. Classement par manche selon le score brut GeoGuessr avec attribution des points du barème général (25, 18, 15...). Cumul des points de placement sur toutes les cartes jouées."
+            teamPlayers: 3,
+            rules: "Challenge individuel 3 joueurs/équipe. Mode No Move 1m15/round. Cumul des 3 scores bruts GeoGuessr pour déterminer le classement de la manche. Attribution des points de placement du barème général (25, 18, 15...)."
         },
         ssbu: {
             name: "Super Smash Bros Ultimate",
@@ -558,6 +560,7 @@ function initGamePresets() {
             secLabel: "Points de course cumulés (3 joueurs)",
             secPts: 1,
             maxSec: 200,
+            teamPlayers: 3,
             rules: "Lobbies LAN 12 joueurs (pseudo-solo, 3 joueurs/équipe). Sessions de 4 courses 150cc sans IA. Cumul des points de course in-game des 3 joueurs."
         }
     };
@@ -577,6 +580,7 @@ function initGamePresets() {
             const secLabelEl = document.getElementById('game-sec-label');
             const secPtsEl = document.getElementById('game-sec-pts');
             const maxSecEl = document.getElementById('game-max-sec');
+            const teamPlayersEl = document.getElementById('game-team-players');
             const rulesEl = document.getElementById('game-rules');
 
             if (nameEl) nameEl.value = data.name;
@@ -588,6 +592,7 @@ function initGamePresets() {
             if (secLabelEl) secLabelEl.value = data.secLabel;
             if (secPtsEl) secPtsEl.value = data.secPts;
             if (maxSecEl) maxSecEl.value = data.maxSec;
+            if (teamPlayersEl) teamPlayersEl.value = data.teamPlayers || '';
             if (rulesEl) rulesEl.value = data.rules;
 
             showToast(`Préréglage "${data.name}" chargé dans le formulaire !`, "info");

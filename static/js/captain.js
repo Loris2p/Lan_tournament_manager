@@ -2,6 +2,9 @@ import { wsClient } from './ws.js';
 import { showToast, openModal, closeModal } from './ui.js';
 
 let selectedMatch = null;
+let playerSubmissionsData = [];
+let activePlayerIndex = 1;
+let currentTeamPlayerCount = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
     initMatches();
@@ -61,6 +64,7 @@ function selectMatchElement(el) {
     const secondaryPoints = parseInt(el.getAttribute('data-secondary-points') || '0', 10);
     const maxPlacement = parseInt(el.getAttribute('data-max-placement') || '64', 10);
     const maxSecondary = parseInt(el.getAttribute('data-max-secondary') || '100', 10);
+    currentTeamPlayerCount = parseInt(el.getAttribute('data-team-player-count') || '1', 10);
 
     selectedMatch = { id: matchId, title, game_name: game, instructions };
 
@@ -116,6 +120,242 @@ function selectMatchElement(el) {
         if (secGroup) secGroup.style.display = 'none';
         if (secInput) secInput.value = '0';
     }
+
+    const multiContainer = document.getElementById('multi-players-container');
+    const singleDropzone = document.getElementById('single-dropzone-group');
+
+    if (currentTeamPlayerCount > 1) {
+        if (multiContainer) multiContainer.style.display = 'block';
+        if (singleDropzone) singleDropzone.style.display = 'none';
+        playerSubmissionsData = Array.from({ length: currentTeamPlayerCount }, (_, i) => ({
+            player_number: i + 1,
+            score: 0,
+            proof_base64: ''
+        }));
+        renderMultiPlayerCards();
+        if (secInput) {
+            secInput.readOnly = true;
+            secInput.value = '0';
+        }
+        if (secHint) {
+            secHint.textContent = `Calcul automatique (${currentTeamPlayerCount} joueurs)`;
+        }
+    } else {
+        if (multiContainer) multiContainer.style.display = 'none';
+        if (singleDropzone) singleDropzone.style.display = 'block';
+        playerSubmissionsData = [];
+        const jsonInput = document.getElementById('sub-player-submissions-json');
+        if (jsonInput) jsonInput.value = '';
+        if (secInput) secInput.readOnly = false;
+    }
+}
+
+function compressImageFile(file) {
+    return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith('image/')) {
+            return reject(new Error("Le fichier doit être une image valide."));
+        }
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const MAX_WIDTH = 1920;
+                const MAX_HEIGHT = 1080;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height = Math.round(height * (MAX_WIDTH / width));
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width = Math.round(width * (MAX_HEIGHT / height));
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+                resolve(dataUrl);
+            };
+            if (typeof event.target?.result === 'string') {
+                img.src = event.target.result;
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderMultiPlayerCards() {
+    const listEl = document.getElementById('multi-players-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = playerSubmissionsData.map(p => `
+        <div class="player-card" data-player="${p.player_number}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, #334155); border-radius: 6px; padding: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <strong style="color: var(--text-main, #f8fafc); font-size: 0.95rem;">Joueur ${p.player_number}</strong>
+                <span class="player-status-badge badge-code" id="player-status-${p.player_number}" style="color: var(--text-muted, #94a3b8); font-size: 0.75rem;">${p.proof_base64 ? '✓ Photo prête' : 'En attente de photo'}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 0.75rem; align-items: start;">
+                <div>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">SCORE DU JOUEUR</label>
+                    <input type="number" class="player-score-input" data-player="${p.player_number}" min="0" value="${p.score || 0}" required style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">CAPTURE / PHOTO DE PREUVE</label>
+                    <div class="player-dropzone" data-player="${p.player_number}" tabindex="0" style="border: 1px dashed var(--border-color, #475569); border-radius: 4px; padding: 0.5rem; text-align: center; background: rgba(0,0,0,0.15); cursor: pointer;">
+                        <div id="player-prompt-${p.player_number}" ${p.proof_base64 ? 'style="display:none;"' : ''}>
+                            <div style="display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap;">
+                                <label for="player-cam-${p.player_number}" class="btn-outline btn-sm" style="cursor: pointer; font-size: 0.75rem; padding: 0.2rem 0.4rem;">📷 Photo Mobile</label>
+                                <label for="player-file-${p.player_number}" class="btn-text btn-sm" style="cursor: pointer; font-size: 0.75rem; padding: 0.2rem 0.4rem;">Fichier</label>
+                            </div>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">ou coller (Ctrl+V)</span>
+                            <input type="file" id="player-file-${p.player_number}" accept="image/*" style="display: none;">
+                            <input type="file" id="player-cam-${p.player_number}" accept="image/*" capture="environment" style="display: none;">
+                        </div>
+                        <div id="player-preview-${p.player_number}" style="${p.proof_base64 ? 'display:block;' : 'display:none;'}">
+                            <img src="${p.proof_base64 || ''}" id="player-img-${p.player_number}" alt="Capture J${p.player_number}" style="max-height: 80px; width: 100%; object-fit: contain; border-radius: 3px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
+                                <span class="badge-code" style="font-size: 0.7rem; color: var(--green, #22c55e);"><span class="papicon icon-check" aria-hidden="true"></span> Prête</span>
+                                <button type="button" class="btn-text btn-sm btn-clear-player" data-player="${p.player_number}" style="font-size: 0.7rem; color: var(--red, #ef4444);">Remplacer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    wireMultiPlayerEvents();
+}
+
+function wireMultiPlayerEvents() {
+    const listEl = document.getElementById('multi-players-list');
+    if (!listEl) return;
+
+    listEl.querySelectorAll('.player-score-input').forEach(input => {
+        input.addEventListener('input', () => {
+            const num = parseInt(input.getAttribute('data-player'), 10);
+            const val = parseInt(input.value, 10) || 0;
+            const target = playerSubmissionsData.find(p => p.player_number === num);
+            if (target) target.score = val;
+            updateMultiPlayerSum();
+        });
+    });
+
+    listEl.querySelectorAll('.player-dropzone').forEach(zone => {
+        const num = parseInt(zone.getAttribute('data-player'), 10);
+        zone.addEventListener('click', () => {
+            activePlayerIndex = num;
+        });
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.style.borderColor = 'var(--accent, #e53e3e)';
+        });
+        zone.addEventListener('dragleave', () => {
+            zone.style.borderColor = 'var(--border-color, #475569)';
+        });
+        zone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            zone.style.borderColor = 'var(--border-color, #475569)';
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                await handlePlayerFile(num, e.dataTransfer.files[0]);
+            }
+        });
+    });
+
+    playerSubmissionsData.forEach(p => {
+        const fileInput = document.getElementById(`player-file-${p.player_number}`);
+        const camInput = document.getElementById(`player-cam-${p.player_number}`);
+        fileInput?.addEventListener('change', async (e) => {
+            if (e.target.files && e.target.files[0]) {
+                await handlePlayerFile(p.player_number, e.target.files[0]);
+            }
+        });
+        camInput?.addEventListener('change', async (e) => {
+            if (e.target.files && e.target.files[0]) {
+                await handlePlayerFile(p.player_number, e.target.files[0]);
+            }
+        });
+    });
+
+    listEl.querySelectorAll('.btn-clear-player').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const num = parseInt(btn.getAttribute('data-player'), 10);
+            clearPlayerImage(num);
+        });
+    });
+
+    updateMultiPlayerSum();
+}
+
+function updateMultiPlayerSum() {
+    const sum = playerSubmissionsData.reduce((acc, p) => acc + (p.score || 0), 0);
+    const badge = document.getElementById('multi-players-calc-badge');
+    const secInput = document.getElementById('sub-secondary');
+    if (badge) badge.textContent = `CUMUL : ${sum}`;
+    if (secInput) secInput.value = sum;
+}
+
+async function handlePlayerFile(playerNumber, file) {
+    if (!file || !file.type.startsWith('image/')) {
+        showToast("Le fichier sélectionné doit être une image.", "error");
+        return;
+    }
+    try {
+        const dataUrl = await compressImageFile(file);
+        const target = playerSubmissionsData.find(p => p.player_number === playerNumber);
+        if (target) target.proof_base64 = dataUrl;
+
+        const prompt = document.getElementById(`player-prompt-${playerNumber}`);
+        const preview = document.getElementById(`player-preview-${playerNumber}`);
+        const img = document.getElementById(`player-img-${playerNumber}`);
+        const status = document.getElementById(`player-status-${playerNumber}`);
+
+        if (prompt) prompt.style.display = 'none';
+        if (preview) preview.style.display = 'block';
+        if (img) img.src = dataUrl;
+        if (status) {
+            status.innerHTML = `<span class="papicon icon-check" aria-hidden="true"></span> Photo prête`;
+            status.style.color = "var(--green, #22c55e)";
+        }
+        showToast(`Capture du Joueur ${playerNumber} enregistrée !`, "info");
+    } catch (err) {
+        showToast("Erreur lors de la compression de la capture : " + err.message, "error");
+    }
+}
+
+function clearPlayerImage(playerNumber) {
+    const target = playerSubmissionsData.find(p => p.player_number === playerNumber);
+    if (target) target.proof_base64 = '';
+
+    const prompt = document.getElementById(`player-prompt-${playerNumber}`);
+    const preview = document.getElementById(`player-preview-${playerNumber}`);
+    const img = document.getElementById(`player-img-${playerNumber}`);
+    const status = document.getElementById(`player-status-${playerNumber}`);
+    const fileInput = document.getElementById(`player-file-${playerNumber}`);
+    const camInput = document.getElementById(`player-cam-${playerNumber}`);
+
+    if (prompt) prompt.style.display = 'block';
+    if (preview) preview.style.display = 'none';
+    if (img) img.src = '';
+    if (status) {
+        status.textContent = "En attente de photo";
+        status.style.color = "var(--text-muted, #94a3b8)";
+    }
+    if (fileInput) fileInput.value = '';
+    if (camInput) camInput.value = '';
 }
 
 function initDropzoneAndPaste() {
@@ -125,7 +365,7 @@ function initDropzoneAndPaste() {
 
     if (!dropzone || !fileInput) return;
 
-    window.addEventListener('paste', (e) => {
+    window.addEventListener('paste', async (e) => {
         if (!selectedMatch) return;
         const items = e.clipboardData?.items;
         if (!items) return;
@@ -133,8 +373,13 @@ function initDropzoneAndPaste() {
         for (const item of items) {
             if (item.type.includes('image')) {
                 const file = item.getAsFile();
-                processAndCompressImage(file);
-                showToast("Capture d'écran collée depuis le presse-papier !", "info");
+                if (currentTeamPlayerCount > 1) {
+                    const targetPlayer = activePlayerIndex || 1;
+                    await handlePlayerFile(targetPlayer, file);
+                } else {
+                    processAndCompressImage(file);
+                    showToast("Capture d'écran collée depuis le presse-papier !", "info");
+                }
                 break;
             }
         }
@@ -191,69 +436,39 @@ function resetImage() {
     if (dropzonePrompt) dropzonePrompt.style.display = 'block';
 }
 
-function processAndCompressImage(file) {
+async function processAndCompressImage(file) {
     if (!file || !file.type.startsWith('image/')) {
         showToast("Le fichier sélectionné n'est pas une image valide.", "error");
         return;
     }
 
     const originalSizeKb = Math.round(file.size / 1024);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+    try {
+        const dataUrl = await compressImageFile(file);
+        const proofInput = document.getElementById('sub-proof-base64');
+        if (proofInput) proofInput.value = dataUrl;
 
-            const MAX_WIDTH = 1920;
-            const MAX_HEIGHT = 1080;
-            let width = img.width;
-            let height = img.height;
+        const sizeKb = Math.round((dataUrl.length * 3 / 4) / 1024);
+        const previewImg = document.getElementById('preview-img');
+        const previewBadge = document.getElementById('preview-size-badge');
 
-            if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height = Math.round(height * (MAX_WIDTH / width));
-                    width = MAX_WIDTH;
-                }
+        if (previewImg) previewImg.src = dataUrl;
+        if (previewBadge) {
+            if (originalSizeKb > sizeKb) {
+                const ratio = Math.round((1 - sizeKb / originalSizeKb) * 100);
+                previewBadge.innerHTML = `<span class="papicon icon-check" aria-hidden="true"></span> Optimisée : ${originalSizeKb} Ko → ${sizeKb} Ko (-${ratio}%)`;
             } else {
-                if (height > MAX_HEIGHT) {
-                    width = Math.round(width * (MAX_HEIGHT / height));
-                    height = MAX_HEIGHT;
-                }
+                previewBadge.textContent = `${sizeKb} Ko [Compressé]`;
             }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
-            const proofInput = document.getElementById('sub-proof-base64');
-            if (proofInput) proofInput.value = dataUrl;
-
-            const sizeKb = Math.round((dataUrl.length * 3 / 4) / 1024);
-            const previewImg = document.getElementById('preview-img');
-            const previewBadge = document.getElementById('preview-size-badge');
-
-            if (previewImg) previewImg.src = dataUrl;
-            if (previewBadge) {
-                if (originalSizeKb > sizeKb) {
-                    const ratio = Math.round((1 - sizeKb / originalSizeKb) * 100);
-                    previewBadge.innerHTML = `<span class="papicon icon-check" aria-hidden="true"></span> Optimisée : ${originalSizeKb} Ko → ${sizeKb} Ko (-${ratio}%)`;
-                } else {
-                    previewBadge.textContent = `${sizeKb} Ko [Compressé]`;
-                }
-            }
-
-            const prompt = document.getElementById('dropzone-prompt');
-            const wrapper = document.getElementById('preview-wrapper');
-            if (prompt) prompt.style.display = 'none';
-            if (wrapper) wrapper.style.display = 'block';
-        };
-        if (typeof event.target?.result === 'string') {
-            img.src = event.target.result;
         }
-    };
-    reader.readAsDataURL(file);
+
+        const prompt = document.getElementById('dropzone-prompt');
+        const wrapper = document.getElementById('preview-wrapper');
+        if (prompt) prompt.style.display = 'none';
+        if (wrapper) wrapper.style.display = 'block';
+    } catch (err) {
+        showToast("Erreur lors de la compression de l'image : " + err.message, "error");
+    }
 }
 
 function initFormSubmit() {
@@ -286,9 +501,22 @@ function initFormSubmit() {
         }
 
         const proofInput = document.getElementById('sub-proof-base64');
-        if (!proofInput || !proofInput.value) {
-            showToast("Veuillez joindre une capture d'écran faisant foi (Ctrl + V).", "error");
-            return;
+        if (currentTeamPlayerCount > 1) {
+            const missing = playerSubmissionsData.find(p => !p.proof_base64);
+            if (missing) {
+                showToast(`Veuillez joindre la capture d'écran pour le Joueur ${missing.player_number}.`, "error");
+                return;
+            }
+            const jsonInput = document.getElementById('sub-player-submissions-json');
+            if (jsonInput) jsonInput.value = JSON.stringify(playerSubmissionsData);
+            if (proofInput) proofInput.value = playerSubmissionsData[0]?.proof_base64 || '';
+        } else {
+            if (!proofInput || !proofInput.value) {
+                showToast("Veuillez joindre une capture d'écran faisant foi (Ctrl + V).", "error");
+                return;
+            }
+            const jsonInput = document.getElementById('sub-player-submissions-json');
+            if (jsonInput) jsonInput.value = '';
         }
 
         const confGame = document.getElementById('confirm-game');
@@ -296,6 +524,9 @@ function initFormSubmit() {
         const confSecRow = document.getElementById('confirm-sec-row');
         const confSecLabel = document.getElementById('confirm-sec-label');
         const confSecValue = document.getElementById('confirm-sec-value');
+        const confPlayersRow = document.getElementById('confirm-players-row');
+        const confPlayersList = document.getElementById('confirm-players-list');
+        const confProofStatus = document.getElementById('confirm-proof-status');
 
         if (confGame) confGame.textContent = `${selectedMatch.game_name} — ${selectedMatch.title}`;
         if (confPlacement) {
@@ -310,6 +541,22 @@ function initFormSubmit() {
             if (confSecValue) confSecValue.textContent = secInput.value;
         } else if (confSecRow) {
             confSecRow.style.display = 'none';
+        }
+
+        if (currentTeamPlayerCount > 1) {
+            if (confPlayersRow) confPlayersRow.style.display = 'block';
+            if (confPlayersList) {
+                confPlayersList.innerHTML = playerSubmissionsData.map(p => `
+                    <div style="display: flex; justify-content: space-between; padding: 0.15rem 0;">
+                        <span>Joueur ${p.player_number} : <strong>${p.score}</strong></span>
+                        <span style="color: var(--green, #22c55e);"><span class="papicon icon-check" aria-hidden="true"></span> Photo</span>
+                    </div>
+                `).join('');
+            }
+            if (confProofStatus) confProofStatus.textContent = `${currentTeamPlayerCount} captures prêtes ✓`;
+        } else {
+            if (confPlayersRow) confPlayersRow.style.display = 'none';
+            if (confProofStatus) confProofStatus.textContent = 'Capture compressée prête ✓';
         }
 
         openModal('modal-confirm-submission');
@@ -333,7 +580,8 @@ function isFormDirty() {
     const hasProof = Boolean(proofInput && proofInput.value && proofInput.value.trim().length > 0);
     const hasPlacement = Boolean(placementInput && placementInput.value.trim().length > 0);
     const hasSec = Boolean(secInput && secInput.value.trim().length > 0);
-    return hasProof || hasPlacement || hasSec;
+    const hasPlayersData = playerSubmissionsData.some(p => p.score > 0 || Boolean(p.proof_base64));
+    return hasProof || hasPlacement || hasSec || hasPlayersData;
 }
 
 async function updateCaptainPointsSilently() {

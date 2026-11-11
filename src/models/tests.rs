@@ -33,6 +33,7 @@ fn test_game_calculate_points() {
         secondary_stat_label: Some("Frags".to_string()),
         max_placement: 20,
         max_secondary_stat: 60,
+        team_player_count: None,
     };
 
     // Top 1 avec 10 frags = 12 + 10 = 22
@@ -66,6 +67,7 @@ fn test_game_validate_score() {
         secondary_stat_label: None,
         max_placement: 2,
         max_secondary_stat: 0,
+        team_player_count: None,
     };
 
     let valid_win = SubmissionScore { placement: 1, secondary_stat: 0 };
@@ -76,6 +78,41 @@ fn test_game_validate_score() {
 
     let invalid_stat = SubmissionScore { placement: 1, secondary_stat: 1 };
     assert!(game.validate_score(&invalid_stat).is_err());
+}
+
+#[test]
+fn test_game_with_multi_players_serde() {
+    use crate::models::PlayerSubmission;
+
+    let game = Game {
+        id: None,
+        name: "Fall Guys".to_string(),
+        cover_image: String::new(),
+        format: GameFormat::Brawl,
+        rules: "Solo 3 players".to_string(),
+        placement_points: vec![3, 0],
+        default_placement_points: 0,
+        points_per_secondary_stat: 1,
+        secondary_stat_label: Some("Manches".to_string()),
+        max_placement: 2,
+        max_secondary_stat: 15,
+        team_player_count: Some(3),
+    };
+
+    assert_eq!(game.team_player_count, Some(3));
+
+    let players = vec![
+        PlayerSubmission { player_number: 1, score: 3, proof_url: "s3://proof1.jpg".to_string() },
+        PlayerSubmission { player_number: 2, score: 2, proof_url: "s3://proof2.jpg".to_string() },
+        PlayerSubmission { player_number: 3, score: 4, proof_url: "s3://proof3.jpg".to_string() },
+    ];
+    let computed_sec: u32 = players.iter().map(|p| p.score).sum();
+    assert_eq!(computed_sec, 9);
+
+    let score = SubmissionScore { placement: 1, secondary_stat: computed_sec };
+    assert!(game.validate_score(&score).is_ok());
+    // 3 (Top 1) + 9 (manches) = 12
+    assert_eq!(game.calculate_points(&score), 12);
 }
 
 #[test]

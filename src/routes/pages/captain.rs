@@ -1,6 +1,9 @@
 use crate::auth::{verify_jwt, CaptainUser, UserRole};
 use crate::db;
-use crate::models::{AppState, Game, Match, SubmissionScore, SubmissionStatus};
+use crate::models::{
+    AppState, Game, Match, PlayerSubmission, PlayerSubmissionInput, SubmissionScore,
+    SubmissionStatus,
+};
 use crate::routes::pages::common::{
     get_tournament_status_view, HtmlTemplate, TournamentStatusView,
 };
@@ -40,7 +43,10 @@ pub struct SubmissionForm {
     pub placement: u8,
     #[serde(default)]
     pub secondary_stat: u32,
-    pub proof_base64: String,
+    #[serde(default)]
+    pub proof_base64: Option<String>,
+    #[serde(default)]
+    pub player_submissions_json: Option<String>,
 }
 
 #[derive(Template)]
@@ -180,13 +186,70 @@ pub async fn submit_captain_score(
         return Redirect::to("/captain?status=not_assigned").into_response();
     }
 
-    if !form.proof_base64.starts_with("data:image/") {
-        return Redirect::to("/captain?status=invalid_image").into_response();
-    }
+    let parsed_player_inputs: Option<Vec<PlayerSubmissionInput>> = form
+        .player_submissions_json
+        .as_deref()
+        .filter(|s| !s.trim().is_empty())
+        .and_then(|s| serde_json::from_str(s).ok());
+
+    let mut secondary_stat = form.secondary_stat;
+    let (proof_url, player_submissions) = if let Some(player_inputs) = parsed_player_inputs {
+        if !player_inputs.is_empty() {
+            let mut uploaded = Vec::with_capacity(player_inputs.len());
+            for p in &player_inputs {
+                if !p.proof_base64.starts_with("data:image/") {
+                    return Redirect::to("/captain?status=invalid_image").into_response();
+                }
+                let url = match state.s3.upload_base_image(&p.proof_base64, "submissions").await {
+                    Ok(u) => u,
+                    Err(err) => {
+                        eprintln!("problème avec l'envoi de la preuve joueur : {err}");
+                        return Redirect::to("/captain?status=upload_failed").into_response();
+                    }
+                };
+                uploaded.push(PlayerSubmission {
+                    player_number: p.player_number,
+                    score: p.score,
+                    proof_url: url,
+                });
+            }
+            if secondary_stat == 0 {
+                secondary_stat = uploaded.iter().map(|p| p.score).sum();
+            }
+            let first_url = uploaded.first().map(|p| p.proof_url.clone());
+            (first_url, Some(uploaded))
+        } else {
+            let single_proof = form.proof_base64.as_deref().unwrap_or("");
+            if !single_proof.starts_with("data:image/") {
+                return Redirect::to("/captain?status=invalid_image").into_response();
+            }
+            let url = match state.s3.upload_base_image(single_proof, "submissions").await {
+                Ok(u) => u,
+                Err(err) => {
+                    eprintln!("problème avec l'envoi de la preuve : {err}");
+                    return Redirect::to("/captain?status=upload_failed").into_response();
+                }
+            };
+            (Some(url), None)
+        }
+    } else {
+        let single_proof = form.proof_base64.as_deref().unwrap_or("");
+        if !single_proof.starts_with("data:image/") {
+            return Redirect::to("/captain?status=invalid_image").into_response();
+        }
+        let url = match state.s3.upload_base_image(single_proof, "submissions").await {
+            Ok(u) => u,
+            Err(err) => {
+                eprintln!("problème avec l'envoi de la preuve : {err}");
+                return Redirect::to("/captain?status=upload_failed").into_response();
+            }
+        };
+        (Some(url), None)
+    };
 
     let score = SubmissionScore {
         placement: form.placement,
-        secondary_stat: form.secondary_stat,
+        secondary_stat,
     };
 
     if game.validate_score(&score).is_err() {
@@ -198,17 +261,6 @@ pub async fn submit_captain_score(
     {
         return Redirect::to("/captain?status=already_submitted").into_response();
     }
-    let proof_url = match state
-        .s3
-        .upload_base_image(&form.proof_base64, "submissions")
-        .await
-    {
-        Ok(url) => url,
-        Err(err) => {
-            eprintln!("problème avec l'envoi de la preuve : {err}");
-            return Redirect::to("/captain?status=upload_failed").into_response();
-        }
-    };
 
     let calculated_points = game.calculate_points(&score);
 
@@ -218,9 +270,10 @@ pub async fn submit_captain_score(
         captain.team_id,
         team.name,
         score,
-        Some(proof_url),
+        proof_url,
         calculated_points,
         SubmissionStatus::Pending,
+        player_submissions,
     )
     .await
     .is_err()

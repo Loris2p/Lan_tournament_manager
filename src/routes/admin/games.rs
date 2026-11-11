@@ -34,6 +34,7 @@ pub async fn create_game(
         req.max_placement,
         req.max_secondary_stat,
         &req.rules,
+        req.team_player_count,
     )
     .await?;
     Ok(Json(json!({"success":true})))

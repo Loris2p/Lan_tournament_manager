@@ -1,6 +1,8 @@
 use crate::auth::{hash_password, verify_jwt, AdminUser, UserRole};
 use crate::db;
-use crate::models::{AppState, GameFormat, PublicTeam, ResetScope, SubmissionStatus};
+use crate::models::{
+    AppState, GameFormat, PlayerSubmission, PublicTeam, ResetScope, SubmissionStatus,
+};
 use crate::routes::pages::common::HtmlTemplate;
 use askama::Template;
 use axum::extract::{Path, State};
@@ -17,6 +19,7 @@ pub struct AdminSubmissionView {
     pub secondary_stat: u32,
     pub calculated_points: u32,
     pub proof_url: String,
+    pub player_submissions: Vec<PlayerSubmission>,
 }
 
 #[allow(dead_code)]
@@ -101,6 +104,7 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
             secondary_stat: s.score.secondary_stat,
             calculated_points: s.calculated_points,
             proof_url: s.proof_base64.unwrap_or_default(),
+            player_submissions: s.player_submissions.unwrap_or_default(),
         })
         .collect();
 
@@ -287,6 +291,8 @@ pub struct CreateGameForm {
     pub max_secondary_stat: u32,
     #[serde(default)]
     pub rules: String,
+    #[serde(default)]
+    pub team_player_count: Option<u8>,
 }
 
 fn default_two() -> u8 {
@@ -308,6 +314,7 @@ pub async fn admin_create_game_form(
         .filter_map(|s| s.trim().parse::<u32>().ok())
         .collect();
     let sec_label = form.secondary_stat_label.filter(|s| !s.trim().is_empty());
+    let team_player_count = form.team_player_count.filter(|&c| c > 1);
 
     let _ = db::create_game(
         &state.db,
@@ -321,6 +328,7 @@ pub async fn admin_create_game_form(
         form.max_placement,
         form.max_secondary_stat,
         &form.rules,
+        team_player_count,
     )
     .await;
 

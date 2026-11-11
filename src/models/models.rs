@@ -48,6 +48,8 @@ pub struct Game {
     pub points_per_secondary_stat: u32,
     pub max_placement: u8,
     pub max_secondary_stat: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_player_count: Option<u8>,
 }
 impl Game {
     pub fn validate_score(&self, score: &SubmissionScore) -> Result<(), Errors> {
@@ -129,6 +131,13 @@ pub enum SubmissionStatus {
     Rejected,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerSubmission {
+    pub player_number: u8,
+    pub score: u32,
+    pub proof_url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Submission {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
@@ -139,6 +148,8 @@ pub struct Submission {
     pub proof_base64: Option<String>,
     pub calculated_points: u32,
     pub status: SubmissionStatus,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub player_submissions: Option<Vec<PlayerSubmission>>,
 }
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
