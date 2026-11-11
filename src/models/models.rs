@@ -1,4 +1,5 @@
 use std::fmt::Formatter;
+use std::sync::atomic::AtomicUsize;
 use crate::auth::RateLimiter;
 use crate::errors::Errors;
 use crate::services::S3Service;
@@ -11,6 +12,7 @@ pub struct AppState {
     pub ws_tx: tokio::sync::broadcast::Sender<String>,
     pub s3: S3Service,
     pub rate_limiter: RateLimiter,
+    pub active_ws_connections : AtomicUsize,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

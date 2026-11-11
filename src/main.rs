@@ -4,6 +4,7 @@ use axum::extract::{DefaultBodyLimit, Request};
 use axum::http::{HeaderName, HeaderValue};
 use axum::middleware::Next;
 use axum::response::Response;
+use std::sync::atomic::AtomicUsize;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 
@@ -110,6 +111,7 @@ async fn run() -> Result<(), Errors> {
         ws_tx,
         s3,
         rate_limiter,
+        active_ws_connections: AtomicUsize::new(0),
     });
 
     let routeur = create_router()
