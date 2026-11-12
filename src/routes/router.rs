@@ -51,6 +51,10 @@ pub fn create_router() -> Router<Arc<AppState>> {
             post(pages::admin_toggle_match),
         )
         .route(
+            "/admin/matches/{id}/delete",
+            post(pages::admin_delete_match),
+        )
+        .route(
             "/admin/matches/{id}/instructions",
             post(pages::admin_update_instructions_form),
         )
@@ -84,6 +88,7 @@ fn create_admin_nest_router() -> Router<Arc<AppState>> {
             patch(admin::update_match_instructions),
         )
         .route("/matches/{id}/toggle", post(admin::toggle_match))
+        .route("/matches/{id}", delete(admin::delete_match))
         .route("/matches/{id}/scores", post(admin::submit_match_scores))
         .route("/submissions", get(admin::list_pending_submissions))
         .route("/submissions/{id}/approve", post(admin::approve_submission))

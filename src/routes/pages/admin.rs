@@ -210,7 +210,20 @@ pub async fn admin_toggle_match(
     Path(id): Path<ObjectId>,
     _admin: AdminUser,
 ) -> Response {
-    let _ = db::toggle_match_status(&state.db, id).await;
+    if let Ok(_) = db::toggle_match_status(&state.db, id).await {
+        let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
+    }
+    Redirect::to("/admin?tab=matches").into_response()
+}
+
+pub async fn admin_delete_match(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Response {
+    if let Ok(_) = db::delete_match(&state.db, id).await {
+        let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
+    }
     Redirect::to("/admin?tab=matches").into_response()
 }
 

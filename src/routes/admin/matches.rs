@@ -44,6 +44,17 @@ pub async fn toggle_match(
     _admin: AdminUser,
 ) -> Result<Json<Value>, Errors> {
     db::toggle_match_status(&state.db, id).await?;
+    let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
+    Ok(Json(json!({"success":true})))
+}
+
+pub async fn delete_match(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+) -> Result<Json<Value>, Errors> {
+    db::delete_match(&state.db, id).await?;
+    let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }
 pub async fn list_matches(

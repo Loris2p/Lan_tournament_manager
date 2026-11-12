@@ -59,15 +59,28 @@ pub async fn create_match(
 }
 
 pub async fn toggle_match_status(db: &Database, match_id: ObjectId) -> Result<(), Errors> {
+    let m = find_match_by_id(db, match_id).await?;
+    let new_status = !m.is_open;
     let res = db
         .collection::<Match>("matches")
         .update_one(
             doc! { "_id": match_id },
-            vec![doc! {"$set": {"is_open": {"$not": ["$is_open"]}}}],
+            doc! { "$set": { "is_open": new_status } },
             None,
         )
         .await?;
     if res.matched_count == 0 {
+        return Err(Errors::Error404NotFound("Match introuvable".to_string()));
+    }
+    Ok(())
+}
+
+pub async fn delete_match(db: &Database, match_id: ObjectId) -> Result<(), Errors> {
+    let res = db
+        .collection::<Match>("matches")
+        .delete_one(doc! { "_id": match_id }, None)
+        .await?;
+    if res.deleted_count == 0 {
         return Err(Errors::Error404NotFound("Match introuvable".to_string()));
     }
     Ok(())
