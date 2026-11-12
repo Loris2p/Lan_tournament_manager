@@ -1,6 +1,7 @@
 use crate::errors::Errors;
 use crate::routes::create_router;
 use axum::extract::{DefaultBodyLimit, Request};
+use axum::handler::HandlerWithoutStateExt;
 use axum::http::{HeaderName, HeaderValue};
 use axum::middleware::Next;
 use axum::response::Response;
@@ -117,7 +118,9 @@ async fn run() -> Result<(), Errors> {
     let routeur = create_router()
         .with_state(state)
         .layer(DefaultBodyLimit::max(5 * 1024 * 1024))
-        .fallback_service(ServeDir::new("static"))
+        .fallback_service(
+            ServeDir::new("static").fallback(routes::pages::handle_404.into_service()),
+        )
         .layer(axum::middleware::from_fn(security_headers_middleware));
 
     let addr = format!("0.0.0.0:{}", config.port);

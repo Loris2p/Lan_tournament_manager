@@ -8,5 +8,6 @@ pub mod leaderboard;
 pub use admin::*;
 pub use auth::*;
 pub use captain::*;
+pub use common::*;
 pub use home::*;
 pub use leaderboard::*;

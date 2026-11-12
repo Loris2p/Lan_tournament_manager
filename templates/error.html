@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Erreur {{ code }} — {{ title }}{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block brand_title %}LAN TOURNAMENT MANAGER{% endblock %}
+
+{% block nav %}
+    <a href="/" class="nav-link">Accueil</a>
+    <a href="/leaderboard" class="nav-link">Classement</a>
+{% endblock %}
+
+{% block topbar_right %}
+    <a href="/" class="btn-primary" id="auth-btn">
+        Accueil
+    </a>
+{% endblock %}
+
+{% block content %}
+<main class="ar-main ar-auth-main">
+    <div class="ar-auth-ghost" aria-hidden="true">{{ code }}</div>
+
+    <div class="ar-card-panel ar-auth-card" style="text-align: center; max-width: 540px; margin: 0 auto; padding: 2.5rem 2rem;">
+        <div style="font-size: 4rem; font-weight: 800; line-height: 1; margin-bottom: 0.5rem; color: var(--accent, #e50914); letter-spacing: 2px;">
+            {{ code }}
+        </div>
+
+        <h1 class="ar-title ar-title-sm" style="text-align: center; margin-bottom: 1rem;">
+            <span>{{ title }}</span>
+        </h1>
+
+        <p style="color: var(--text-secondary, #94a3b8); margin-bottom: 2rem; font-size: 1.05rem; line-height: 1.6;">
+            {{ message }}
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/" class="btn-primary" style="padding: 0.75rem 1.5rem; text-decoration: none;">
+                Retour à l'accueil
+            </a>
+            <a href="/leaderboard" class="btn-secondary" style="padding: 0.75rem 1.5rem; text-decoration: none;">
+                Voir le classement
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

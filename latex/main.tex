@@ -1,0 +1,300 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Encodage & Langue ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage[french]{babel}
+
+% Renommage manuel en français (si babel n'est pas activé)
+\renewcommand{\contentsname}{Table des matières}
+
+% --- Mise en page & Typographie ---
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{parskip} % Espacement entre paragraphes sans alinéa
+\setlength{\headheight}{15pt}
+
+% Polices optionnelles (décommenter si texlive-fontsrecommended est installé) :
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Couleurs & Liens hypertextes ---
+\usepackage{xcolor}
+\usepackage{hyperref}
+\definecolor{linkblue}{RGB}{0, 50, 180}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=linkblue,
+    urlcolor=linkblue
+}
+
+% --- En-têtes et pieds de page ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{LAN Corpauration -- Consignes \& Règlement}
+\rhead{\leftmark}
+\cfoot{\thepage}
+
+% --- Informations du document ---
+\title{\textbf{LAN -- Consignes \& Informations Générales}}
+\author{Corpauration}
+% \date{\today}
+
+\begin{document}
+
+    \maketitle
+    \thispagestyle{fancy}
+
+    \tableofcontents
+    \vspace{1.5em}
+    %\hrule
+    %\vspace{1.5em}
+    \newpage
+
+
+    \section{Informations Pratiques}
+    \subsection{Contacts}
+    \begin{itemize}
+        \item Discord : \url{https://discord.gg/Z9cnuuChjc}
+        \item Mail : \url{asso.corpauration@gmail.com}
+    \end{itemize}
+
+
+    \section{Matériel}
+
+    \subsection{Équipement Obligatoire}
+    \begin{itemize}
+        \item Ordinateur et 1 seul écran
+        \item Périphériques (clavier, souris, câbles, etc.)
+        \item Casque audio et/ou écouteurs (\textit{enceintes interdites})
+        \item Câble Ethernet RJ45
+        \item Multiprise
+    \end{itemize}
+
+    \subsection{Préparation en amont}
+    \begin{itemize}
+        \item Effectuer les mises à jour système
+        \item Télécharger et mettre à jour \textbf{TOUS} les jeux du tournoi à l'avance
+    \end{itemize}
+
+    \section{Réseau \& Connexion}
+
+    \subsection{Configuration réseau}
+    \begin{itemize}
+        \item Se connecter en filaire à une prise réseau.
+        \item Se rendre à l'adresse \url{https://lan.corpauration.fr}.
+        \item Aller voir les DSI en salle 213 pour confirmer la connexion.
+
+    \end{itemize}
+
+    \subsection{Pas de téléchargements massifs durant les tournois}
+    Afin de préserver la bande passante et la stabilité du réseau local pour tous les participants, tout téléchargement lourd, streaming personnel ou mise à jour non planifiée pendant les épreuves est strictement interdit.
+    Bien penser à télécharger tous les jeux avant la LAN\@.
+
+
+    \section{Plateforme Web du Tournoi}
+
+    Une plateforme web locale dédiée au tournoi sera disponible pendant l'évènement.
+
+    \subsection{Classement en Direct}
+    Les participants peuvent suivre en temps réel l'évolution des scores, des classements par épreuve et du classement général grâce à une synchronisation instantanée.
+
+    \subsection{Espace Capitaine \& Remontée des Scores}
+    Chaque capitaine d'équipe dispose d'un accès dédié pour gérer les rencontres de son équipe :
+    \begin{itemize}
+        \item \textbf{Connexion :} Authentification avec les identifiants remis lors de l'accueil.
+        \item \textbf{Canal exclusif :} La plateforme constitue le \textbf{seul et unique moyen officiel} de transmettre les résultats.
+        Aucune déclaration à l'oral, sur Discord ou par messagerie ne sera prise en compte.
+        \item \textbf{Preuve obligatoire :} Le capitaine doit obligatoirement joindre une capture d'écran nette du tableau de fin de partie (import de fichier ou collage direct via le raccourci \texttt{Ctrl+V}).
+        \item \textbf{Résultats non conformes :} Tout résultat absent, transmis hors délai ou incomplet (absence de capture, image tronquée ou illisible) sera automatiquement sanctionné par un \textbf{score de 0 point}.
+        \item \textbf{Arbitrage :} Les organisateurs et arbitres vérifient les preuves avant validation définitive au classement général.
+    \end{itemize}
+
+
+    \section{Déroulement des Tournois}
+
+    \subsection{Système de Points Général}
+    À l'issue de chaque jeu, un classement d'épreuve est établi.
+    Les équipes reçoivent des points pour le classement général selon un barème dégressif annoncé en début de tournoi.\\
+    Par exemple, pour 10 équipes le tableau est le suivant :
+
+    \begin{center}
+        \begin{tabular}{|c|c||c|c|}
+            \hline
+            \textbf{Rang} & \textbf{Points} & \textbf{Rang} & \textbf{Points} \\
+            \hline
+            1\ier{}       & 25 pts          & 6\ieme{}      & 8 pts           \\
+            2\ieme{}      & 18 pts          & 7\ieme{}      & 6 pts           \\
+            3\ieme{}      & 15 pts          & 8\ieme{}      & 4 pts           \\
+            4\ieme{}      & 12 pts          & 9\ieme{}      & 2 pts           \\
+            5\ieme{}      & 10 pts          & 10\ieme{}     & 1 pt            \\
+            \hline
+        \end{tabular}
+    \end{center}
+    L'équipe cumulant le plus de points sur l'ensemble des 6 épreuves remporte le tournoi.
+
+    \subsection{Règlement spécifique par jeu}
+
+    \subsubsection{Apex Legends}
+    \textbf{Mode :} Salon personnalisé en Trios.
+
+    \paragraph{Format de l'épreuve}
+    \begin{itemize}
+        \item \textbf{Durée allouée prévisionnelle :} 4 heures.
+        Les parties s'enchaînent dans le créneau imparti.
+        \item \textbf{Accès à la partie :} Le code pour rejoindre le lobby est envoyé par les administrateurs à tous les capitaines.
+        \item \textbf{Composition de l'escouade :} Chaque trio doit obligatoirement intégrer au moins une légende parmi celles disponibles par défaut pour un nouveau joueur (Bloodhound, Gibraltar, Lifeline, Pathfinder, Wraith, Bangalore).
+    \end{itemize}
+
+    \paragraph{Calcul du score}
+    Le score de chaque manche suit le barème officiel compétitif (ALGS) :
+    \begin{itemize}
+        \item \textbf{Éliminations :} +1 point par frag d'équipe.
+        \item \textbf{Points de placement par manche :}
+    \end{itemize}
+
+    \begin{center}
+        \begin{tabular}{|c|c||c|c|}
+            \hline
+            \textbf{Placement} & \textbf{Points} & \textbf{Placement} & \textbf{Points} \\
+            \hline
+            1\ier{}            & 12 pts          & 6\ieme{} à 7\ieme{}   & 3 pts           \\
+            2\ieme{}           & 9 pts           & 8\ieme{} à 10\ieme{}  & 2 pts           \\
+            3\ieme{}           & 7 pts           & 11\ieme{} à 15\ieme{} & 1 pt            \\
+            4\ieme{}           & 5 pts           & 16\ieme{} à 20\ieme{} & 0 pt            \\
+            5\ieme{}           & 4 pts           & Frag                   & 1 pt / élim.    \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    \textit{Le cumul des points (placement + frags) sur toutes les parties de la session détermine le classement de l'épreuve.}
+
+    \subsubsection{League of Legends [À vérifier]}
+    \textbf{Mode :} ARAM du chaos.
+
+    \paragraph{Déroulement}
+    \begin{itemize}
+        \item \textbf{Structure :} Affrontements 2 à 2 par rondes avec cumul de points sous forme de championnat suivi d'une finale.
+        \item \textbf{Format des matchs :} Match en 1 manche gagnante.
+        \item \textbf{Attribution des champions :} Sélection parmi les champions choisis aléatoirement par le jeu.
+        \item \textbf{Barème par match :}
+        \begin{itemize}
+            \item \textbf{Victoire :} +3 points
+            \item \textbf{Défaite :} +1 point
+            \item \textbf{Forfait / Non-présentation :} 0 point
+        \end{itemize}
+    \end{itemize}
+
+    \paragraph{Condition de victoire} Destruction du Nexus adverse.
+
+    \subsubsection{Fall Guys}
+    \textbf{Mode :} Tournoi Solo en salon personalisé.
+
+    \paragraph{Calcul du score d'équipe}
+    Le score de l'équipe est calculé par la somme des performances de ses 3 membres :
+    \begin{itemize}
+        \item \textbf{Survie :} +1 point par manche franchie par joueur.
+        \item \textbf{Prime de victoire :} Bonus accordé en cas de victoire de la partie de 3pts.
+    \end{itemize}
+
+    \paragraph{Classement final}
+    Somme des points totaux obtenus par l'équipe sur toute la durée de l'épreuve.
+
+    \subsubsection{GeoGuessr}
+    \textbf{Mode :} Challenge d'équipe.
+
+    \paragraph{Format de l'épreuve}
+    \begin{itemize}
+        \item Une série sur chacune des cartes sélectionnées.
+        \item Mode Solo, No Move, 1 min 15 par round.
+        \item Coopération des 3 membres possible, mais sans aide extérieure (\textit{Moteurs de recherche, IA, guides, etc.}, interdits).
+    \end{itemize}
+
+    \paragraph{Calcul du score}
+    À l'issue de chaque manche (carte), les équipes sont classées selon leur score brut GeoGuessr et reçoivent des points de placement selon le barème général :
+
+    \begin{center}
+        \begin{tabular}{|c|c||c|c|}
+            \hline
+            \textbf{Placement} & \textbf{Points} & \textbf{Placement} & \textbf{Points} \\
+            \hline
+            1\ier{}  & 25 pts & 6\ieme{}  & 8 pts \\
+            2\ieme{} & 18 pts & 7\ieme{}  & 6 pts \\
+            3\ieme{} & 15 pts & 8\ieme{}  & 4 pts \\
+            4\ieme{} & 12 pts & 9\ieme{}  & 2 pts \\
+            5\ieme{} & 10 pts & 10\ieme{} & 1 pt  \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    \textit{Le cumul des points de placement sur l'ensemble des manches détermine le classement final du jeu. En cas d'égalité, le score GeoGuessr brut cumulé sert de départage.}
+
+    \paragraph{Cartes possibles}
+    \begin{itemize}
+        \item \href{https://www.geoguessr.com/fr/maps/world}{World}
+        \item \href{https://www.geoguessr.com/fr/maps/62a44b22040f04bd36e8a914}{A Community World}
+        \item \href{https://www.geoguessr.com/fr/maps/famous-places}{Famous Places}
+        \item \href{https://www.geoguessr.com/fr/maps/france}{France}
+        \item \href{https://www.geoguessr.com/fr/maps/64edb149ef5a06cfe58bf922}{F1 tracks 2026}
+        \item \href{https://www.geoguessr.com/fr/maps/6554fb70c974b236f72cd734}{Pau (Intérieur de la rocade)}
+        \item \href{https://www.geoguessr.com/fr/maps/60451069abd02500012138c9}{Eiffel Tower replicas and derivatives}
+    \end{itemize}
+
+    \subsubsection{Super Smash Bros Ultimate}
+    \textbf{Mode :} Smash en bande en 3 contre 3.\\
+    \textbf{Règles :}
+    \begin{itemize}
+        \item 3 vies
+        \item Pas de smash final, d'objets, de dégâts initiaux
+        \item Carte aléatoire en mode CB parmi les suivantes :
+        \begin{itemize}
+            \item Battlefield
+            \item Small Battlefield
+            \item Final Destination
+            \item Yoshi's Story
+            \item Pokemon Stadium 2
+            \item SmashVille
+            \item Lylat Cruise
+            \item Hollow Bastion
+            \item Town and City
+        \end{itemize}
+    \end{itemize}
+
+    \paragraph{Format du tournoi}
+    Le tournoi se passe sous forme de championnat.
+    Toutes les équipes affronteront un certain nombre d'équipes et gagneront des points en fonction de leur victoire ou défaite.
+    Les deux équipes avec le plus de points s'affrontent pour déterminer le gagnant du jeu (mêmes consignes, mais sous forme de BO3).
+
+    \paragraph{Déroulement des duels}
+    Chaque duel se déroule en une manche (hors finale entre les 2 meilleures équipes en BO3).
+    Pour chaque round de ce duel :
+    \begin{itemize}
+        \item \textbf{Bannissements :} Chaque équipe bannit 3 personnages à tour de rôle (la première équipe à bannir est l'équipe perdante d'un \textit{Pierre Feuille Ciseaux} en une manche).
+        \item \textbf{Sélection de la carte :} La map est sélectionnée aléatoirement par le jeu parmi la liste autorisée.
+        \item \textbf{Ordre des affrontements :} L'ordre de passage des joueurs de chaque équipe est déterminé aléatoirement par la fonction dédiée dans le jeu (touche \texttt{X}).
+    \end{itemize}
+
+    \subsubsection{Mario Kart 8 Deluxe}
+    \textbf{Mode :} Lobbies en mode LAN (12 joueurs), courses en format \textit{pseudo-solo}.
+
+    \paragraph{Déroulement}
+    \begin{itemize}
+        \item \textbf{Configuration :} Salons créés via le mode \textit{LAN} regroupant jusqu'à 12 joueurs en simultané.
+        \item \textbf{Format des rencontres :} Chaque équipe dispute 2 à 3 sessions (lobbies) contre des adversaires différents.
+        \item \textbf{Format d'une session :} Session de 4 courses consécutives.
+        \item \textbf{Calcul du score :} Chaque joueur concourt en individuel.
+        \item \textbf{Résultats :} Les points récoltés individuellement par les 3 membres d'une équipe selon le barème du jeu sont cumulés sur l'ensemble de leurs parties pour établir le classement final de l'épreuve.
+    \end{itemize}
+
+    \paragraph{Paramètres de partie}
+    \begin{itemize}
+        \item Mode : Course VS (150cc)
+        \item Règles d'équipe : Individuel / Chacun pour soi (\textit{pseudo-solo})
+        \item Objets : Normaux
+        \item IA : Sans IA
+        \item Véhicules : Tous les véhicules autorisés
+        \item Nombre de courses : 4 courses par session
+    \end{itemize}
+
+\end{document}

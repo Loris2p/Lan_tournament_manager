@@ -8,6 +8,59 @@ use serde::Serialize;
 
 pub struct HtmlTemplate<T>(pub T);
 
+#[derive(Template)]
+#[template(path = "error.html")]
+pub struct ErrorTemplate {
+    pub code: u16,
+    pub title: String,
+    pub message: String,
+}
+
+pub fn render_error(
+    code: StatusCode,
+    title: impl Into<String>,
+    message: impl Into<String>,
+) -> (StatusCode, HtmlTemplate<ErrorTemplate>) {
+    (
+        code,
+        HtmlTemplate(ErrorTemplate {
+            code: code.as_u16(),
+            title: title.into(),
+            message: message.into(),
+        }),
+    )
+}
+
+pub async fn handle_404(
+    uri: axum::http::Uri,
+    headers: axum::http::HeaderMap,
+) -> Response {
+    let is_api = uri.path().starts_with("/api");
+    let accepts_html = headers
+        .get(axum::http::header::ACCEPT)
+        .and_then(|h| h.to_str().ok())
+        .map(|v| v.contains("text/html"))
+        .unwrap_or(false);
+
+    if is_api || !accepts_html {
+        (
+            StatusCode::NOT_FOUND,
+            axum::Json(serde_json::json!({
+                "error": "Ressource introuvable",
+                "path": uri.path()
+            })),
+        )
+            .into_response()
+    } else {
+        render_error(
+            StatusCode::NOT_FOUND,
+            "Secteur Introuvable",
+            "La page demandée n'existe pas ou a été déplacée.",
+        )
+        .into_response()
+    }
+}
+
 impl<T> IntoResponse for HtmlTemplate<T>
 where
     T: Template,
