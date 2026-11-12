@@ -54,8 +54,8 @@ pub async fn handle_404(
     } else {
         render_error(
             StatusCode::NOT_FOUND,
-            "Secteur Introuvable",
-            "La page demandée n'existe pas ou a été déplacée.",
+            "Introuvable",
+            "Cette page n'existe pas ou a été déplacée hors de la zone de jeu.",
         )
         .into_response()
     }
