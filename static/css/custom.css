@@ -2132,6 +2132,63 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 10px var(--red-subtle);
 }
 
+/* Outcome buttons for 1v1 duels (max_placement == 2) */
+.duel-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.btn-outcome {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: var(--btn-radius, 6px);
+    border: 1px solid var(--line-subtle);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-outcome .papicon {
+    font-size: 1.15rem;
+}
+
+.btn-outcome-win:hover {
+    border-color: var(--green-status);
+    color: var(--green-status);
+    background: var(--green-subtle);
+}
+
+.btn-outcome-win.active {
+    border-color: var(--green-status);
+    background: var(--green-subtle);
+    color: var(--green-status);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+}
+
+.btn-outcome-loss:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--red-subtle);
+}
+
+.btn-outcome-loss.active {
+    border-color: var(--red);
+    background: var(--red-subtle);
+    color: var(--red);
+    box-shadow: 0 0 16px rgba(229, 9, 20, 0.35);
+}
+
+
 
 
 

@@ -152,11 +152,25 @@
                 <input type="hidden" name="proof_base64" id="sub-proof-base64">
 
                 <div class="form-row-grid">
-                    <div class="form-group">
-                        <label for="sub-placement">CLASSEMENT FINAL (PLACE)</label>
-                        <input type="number" name="placement" id="sub-placement" min="1" max="64" required
-                               placeholder="Ex: 1 (Victoire / Top 1), 2...">
-                        <small class="field-hint" id="placement-hint">1 = Vainqueur</small>
+                    <div class="form-group" id="placement-group">
+                        <label for="sub-placement" id="placement-label">CLASSEMENT FINAL (PLACE)</label>
+
+                        <!-- Boutons 1v1 (affichés quand max_placement == 2) -->
+                        <div id="duel-placement-group" class="duel-buttons-grid" style="display: none;">
+                            <button type="button" class="btn-outcome btn-outcome-win" data-value="1">
+                                <span class="papicon icon-crown" aria-hidden="true"></span> Victoire
+                            </button>
+                            <button type="button" class="btn-outcome btn-outcome-loss" data-value="2">
+                                <span class="papicon icon-cross" aria-hidden="true"></span> Défaite
+                            </button>
+                        </div>
+
+                        <!-- Champ numérique pour les formats multi-joueurs (max_placement > 2) -->
+                        <div id="standard-placement-group">
+                            <input type="number" name="placement" id="sub-placement" min="1" max="64"
+                                   placeholder="Ex: 1 (Victoire / Top 1), 2...">
+                            <small class="field-hint" id="placement-hint">1 = Vainqueur</small>
+                        </div>
                     </div>
 
                     <div class="form-group" id="secondary-stat-group" style="display: none;">

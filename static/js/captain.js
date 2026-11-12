@@ -8,6 +8,7 @@ let currentTeamPlayerCount = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
     initMatches();
+    initDuelButtons();
     initDropzoneAndPaste();
     initFormSubmit();
     initTournamentCountdown();
@@ -53,6 +54,23 @@ function initMatches() {
     }
 }
 
+function initDuelButtons() {
+    const duelGroup = document.getElementById('duel-placement-group');
+    if (!duelGroup) return;
+
+    duelGroup.querySelectorAll('.btn-outcome').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = btn.getAttribute('data-value');
+            const placementInput = document.getElementById('sub-placement');
+            if (placementInput) {
+                placementInput.value = val;
+            }
+            duelGroup.querySelectorAll('.btn-outcome').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+}
+
 function selectMatchElement(el) {
     const matchId = el.getAttribute('data-match-id');
     const title = el.getAttribute('data-title') || 'FORMAT STANDARD';
@@ -66,7 +84,7 @@ function selectMatchElement(el) {
     const maxSecondary = parseInt(el.getAttribute('data-max-secondary') || '100', 10);
     currentTeamPlayerCount = parseInt(el.getAttribute('data-team-player-count') || '1', 10);
 
-    selectedMatch = { id: matchId, title, game_name: game, instructions };
+    selectedMatch = { id: matchId, title, game_name: game, instructions, maxPlacement };
 
     const detailsPanel = document.getElementById('selected-match-details');
     const noMatchAlert = document.getElementById('no-match-alert');
@@ -89,12 +107,25 @@ function selectMatchElement(el) {
 
     const placementInput = document.getElementById('sub-placement');
     const placementHint = document.getElementById('placement-hint');
-    if (placementInput) {
-        placementInput.max = maxPlacement;
-        if (format.toLowerCase() === 'duel') {
-            placementInput.placeholder = "1 (Victoire) ou 2 (Défaite)";
-            if (placementHint) placementHint.textContent = "1 = Victoire (+3 pts), 2 = Défaite (+1 pt)";
-        } else {
+    const placementLabel = document.getElementById('placement-label');
+    const duelPlacementGroup = document.getElementById('duel-placement-group');
+    const standardPlacementGroup = document.getElementById('standard-placement-group');
+
+    if (maxPlacement === 2) {
+        if (duelPlacementGroup) duelPlacementGroup.style.display = 'grid';
+        if (standardPlacementGroup) standardPlacementGroup.style.display = 'none';
+        if (placementLabel) placementLabel.textContent = "RÉSULTAT DU MATCH";
+        if (placementInput) placementInput.value = '';
+        if (duelPlacementGroup) {
+            duelPlacementGroup.querySelectorAll('.btn-outcome').forEach(b => b.classList.remove('active'));
+        }
+    } else {
+        if (duelPlacementGroup) duelPlacementGroup.style.display = 'none';
+        if (standardPlacementGroup) standardPlacementGroup.style.display = 'block';
+        if (placementLabel) placementLabel.textContent = "CLASSEMENT FINAL (PLACE)";
+        if (placementInput) {
+            placementInput.value = '';
+            placementInput.max = maxPlacement;
             placementInput.placeholder = `Ex: 1 (Top 1), 2... (max ${maxPlacement})`;
             if (placementHint) placementHint.textContent = `Place finale obtenue dans le salon (1 à ${maxPlacement})`;
         }
@@ -495,7 +526,12 @@ function initFormSubmit() {
 
         const placementInput = document.getElementById('sub-placement');
         if (!placementInput || !placementInput.value.trim()) {
-            showToast("Veuillez indiquer le classement final obtenu.", "error");
+            showToast(
+                selectedMatch?.maxPlacement === 2
+                    ? "Veuillez sélectionner le résultat (Victoire ou Défaite)."
+                    : "Veuillez indiquer le classement final obtenu.",
+                "error"
+            );
             placementInput?.focus();
             return;
         }
@@ -530,7 +566,11 @@ function initFormSubmit() {
 
         if (confGame) confGame.textContent = `${selectedMatch.game_name} — ${selectedMatch.title}`;
         if (confPlacement) {
-            confPlacement.textContent = `${placementInput.value}${placementInput.value === '1' ? 'er (Victoire / Top 1)' : 'e place'}`;
+            if (selectedMatch?.maxPlacement === 2) {
+                confPlacement.textContent = placementInput.value === '1' ? 'Victoire' : 'Défaite';
+            } else {
+                confPlacement.textContent = `${placementInput.value}${placementInput.value === '1' ? 'er (Victoire / Top 1)' : 'e place'}`;
+            }
         }
 
         const secInput = document.getElementById('sub-secondary');
