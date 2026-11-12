@@ -78,6 +78,11 @@ impl Game {
             .saturating_mul(self.points_per_secondary_stat);
         pts_rang.saturating_add(pts_secondary)
     }
+    pub fn is_score_ranked(&self) -> bool {
+        self.secondary_stat_label.is_some()
+            && self.points_per_secondary_stat == 0
+            && !self.placement_points.is_empty()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

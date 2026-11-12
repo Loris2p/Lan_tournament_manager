@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::db;
 use crate::db::get_tournament_settings;
 use crate::errors::Errors;
-use crate::models::{GameLeaderboardEntry, GameLeaderboardView, PublicTeam, Submission, Team};
+use crate::models::{Game, GameLeaderboardEntry, GameLeaderboardView, PublicTeam, Submission, Team};
 use futures::TryStreamExt;
 use mongodb::{
     Database,
@@ -236,6 +236,11 @@ pub async fn recalculate_tournament_scores(db: &Database) -> Result<(), Errors> 
         .await?
         .try_collect::<Vec<Team>>()
         .await?;
+    let games = db::list_games(db).await?;
+    let games_map: HashMap<ObjectId, Game> = games
+        .into_iter()
+        .filter_map(|g| g.id.map(|id| (id, g)))
+        .collect();
     let matches = db::get_all_matches(db).await?;
     let submissions = db
         .collection::<Submission>("submissions")
@@ -243,24 +248,82 @@ pub async fn recalculate_tournament_scores(db: &Database) -> Result<(), Errors> 
         .await?
         .try_collect::<Vec<Submission>>()
         .await?;
+
     let mut match_to_game: HashMap<ObjectId, ObjectId> = HashMap::new();
     for m in matches {
         if let Some(match_id) = m.id {
             match_to_game.insert(match_id, m.game_id);
         }
     }
-    let mut game_team_scores: HashMap<ObjectId, HashMap<ObjectId, u32>> = HashMap::new();
+
+    let mut match_submissions: HashMap<ObjectId, Vec<Submission>> = HashMap::new();
     for sub in submissions {
-        if let Some(&game_id) = match_to_game.get(&sub.match_id) {
-            let team_scores = game_team_scores.entry(game_id).or_default();
-            let current = team_scores.entry(sub.team_id).or_insert(0);
-            *current = current.saturating_add(sub.calculated_points);
+        match_submissions.entry(sub.match_id).or_default().push(sub);
+    }
+
+    // Pour les jeux à classement par manche (ex: GeoGuessr), ordonner les scores bruts
+    for (match_id, subs) in &mut match_submissions {
+        if let Some(&game_id) = match_to_game.get(match_id) {
+            if let Some(game) = games_map.get(&game_id) {
+                if game.is_score_ranked() {
+                    subs.sort_by(|a, b| b.score.secondary_stat.cmp(&a.score.secondary_stat));
+                    for (idx, sub) in subs.iter_mut().enumerate() {
+                        let rank = (idx + 1) as u8;
+                        let pts = game
+                            .placement_points
+                            .get(idx)
+                            .copied()
+                            .unwrap_or(game.default_placement_points);
+                        if sub.calculated_points != pts || sub.score.placement != rank {
+                            if let Some(sub_id) = sub.id {
+                                let _ = db
+                                    .collection::<Submission>("submissions")
+                                    .update_one(
+                                        doc! { "_id": sub_id },
+                                        doc! { "$set": { "calculated_points": pts, "score.placement": rank as i32 } },
+                                        None,
+                                    )
+                                    .await;
+                            }
+                            sub.calculated_points = pts;
+                            sub.score.placement = rank;
+                        }
+                    }
+                }
+            }
         }
     }
+
+    let mut game_team_scores: HashMap<ObjectId, HashMap<ObjectId, u32>> = HashMap::new();
+    let mut game_team_tiebreak: HashMap<ObjectId, HashMap<ObjectId, u32>> = HashMap::new();
+    for subs in match_submissions.values() {
+        for sub in subs {
+            if let Some(&game_id) = match_to_game.get(&sub.match_id) {
+                let team_scores = game_team_scores.entry(game_id).or_default();
+                let current = team_scores.entry(sub.team_id).or_insert(0);
+                *current = current.saturating_add(sub.calculated_points);
+
+                let tb_scores = game_team_tiebreak.entry(game_id).or_default();
+                let current_tb = tb_scores.entry(sub.team_id).or_insert(0);
+                *current_tb = current_tb.saturating_add(sub.score.secondary_stat);
+            }
+        }
+    }
+
     let mut tournament_points_per_team: HashMap<ObjectId, u32> = HashMap::new();
-    for (_game_id, team_scores) in game_team_scores {
-        let mut ranked_teams: Vec<(ObjectId, u32)> = team_scores.into_iter().collect();
-        ranked_teams.sort_by(|a, b| b.1.cmp(&a.1));
+    for (game_id, team_scores) in &game_team_scores {
+        let tb_map = game_team_tiebreak.get(game_id);
+        let mut ranked_teams: Vec<(ObjectId, u32)> = team_scores
+            .iter()
+            .map(|(&t_id, &score)| (t_id, score))
+            .collect();
+        ranked_teams.sort_by(|a, b| {
+            b.1.cmp(&a.1).then_with(|| {
+                let tb_a = tb_map.and_then(|m| m.get(&a.0)).copied().unwrap_or(0);
+                let tb_b = tb_map.and_then(|m| m.get(&b.0)).copied().unwrap_or(0);
+                tb_b.cmp(&tb_a)
+            })
+        });
 
         for (index, (team_id, _score)) in ranked_teams.into_iter().enumerate() {
             let rank = index + 1;
@@ -310,11 +373,16 @@ pub async fn get_game_leaderboards(db: &Database) -> Result<Vec<GameLeaderboardV
     }
 
     let mut game_team_scores: HashMap<ObjectId, HashMap<ObjectId, u32>> = HashMap::new();
+    let mut game_team_tiebreak: HashMap<ObjectId, HashMap<ObjectId, u32>> = HashMap::new();
     for sub in submissions {
         if let Some(&game_id) = match_to_game.get(&sub.match_id) {
             let team_scores = game_team_scores.entry(game_id).or_default();
             let current = team_scores.entry(sub.team_id).or_insert(0);
             *current = current.saturating_add(sub.calculated_points);
+
+            let tb_scores = game_team_tiebreak.entry(game_id).or_default();
+            let current_tb = tb_scores.entry(sub.team_id).or_insert(0);
+            *current_tb = current_tb.saturating_add(sub.score.secondary_stat);
         }
     }
 
@@ -327,11 +395,18 @@ pub async fn get_game_leaderboards(db: &Database) -> Result<Vec<GameLeaderboardV
         let mut entries = Vec::new();
         if let Some(game_oid) = game.id {
             if let Some(scores) = game_team_scores.get(&game_oid) {
+                let tb_map = game_team_tiebreak.get(&game_oid);
                 let mut ranked: Vec<(ObjectId, u32)> = scores
                     .iter()
                     .map(|(&t_id, &score)| (t_id, score))
                     .collect();
-                ranked.sort_by(|a, b| b.1.cmp(&a.1));
+                ranked.sort_by(|a, b| {
+                    b.1.cmp(&a.1).then_with(|| {
+                        let tb_a = tb_map.and_then(|m| m.get(&a.0)).copied().unwrap_or(0);
+                        let tb_b = tb_map.and_then(|m| m.get(&b.0)).copied().unwrap_or(0);
+                        tb_b.cmp(&tb_a)
+                    })
+                });
 
                 for (index, (team_id, raw_score)) in ranked.into_iter().enumerate() {
                     let rank = index + 1;

@@ -86,7 +86,8 @@
                      data-secondary-label="{% if let Some(lbl) = m.game.secondary_stat_label %}{{ lbl }}{% endif %}"
                      data-secondary-points="{{ m.game.points_per_secondary_stat }}"
                      data-max-placement="{{ m.game.max_placement }}"
-                     data-max-secondary="{{ m.game.max_secondary_stat }}">
+                     data-max-secondary="{{ m.game.max_secondary_stat }}"
+                     data-team-player-count="{% if let Some(c) = m.game.team_player_count %}{{ c }}{% else %}1{% endif %}">
                     <div class="match-item-header">
                         <span class="badge-format">{{ m.match_data.title }}</span>
                         <strong>{{ m.match_data.game_name }}</strong>
@@ -150,6 +151,7 @@
                   style="display: none;">
                 <input type="hidden" name="match_id" id="sub-match-id">
                 <input type="hidden" name="proof_base64" id="sub-proof-base64">
+                <input type="hidden" name="player_submissions_json" id="sub-player-submissions-json">
 
                 <div class="form-row-grid">
                     <div class="form-group" id="placement-group">
@@ -180,7 +182,19 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div id="multi-players-container" style="display: none; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent, #e53e3e);">
+                            Détail par joueur (Scores & Preuves)
+                        </span>
+                        <span id="multi-players-calc-badge" class="badge-code">CUMUL : 0</span>
+                    </div>
+                    <div id="multi-players-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Généré dynamiquement en JS -->
+                    </div>
+                </div>
+
+                <div class="form-group" id="single-dropzone-group">
                     <label>CAPTURE D'ÉCRAN (PREUVE DE VICTOIRE / SCORE)</label>
                     <div id="dropzone" class="dropzone-area" tabindex="0">
                         <div class="dropzone-content" id="dropzone-prompt">
@@ -244,6 +258,10 @@
                 <div id="confirm-sec-row" style="margin-bottom: 0.65rem; display: none;">
                     <span id="confirm-sec-label" style="font-size: 0.8rem; color: var(--text-muted); display: block;">STATISTIQUE</span>
                     <strong id="confirm-sec-value" style="font-size: 1.05rem;">--</strong>
+                </div>
+                <div id="confirm-players-row" style="margin-bottom: 0.65rem; display: none;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">DÉTAIL PAR JOUEUR</span>
+                    <div id="confirm-players-list" style="font-size: 0.95rem; margin-top: 0.25rem;"></div>
                 </div>
                 <div>
                     <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">PREUVE (CAPTURE)</span>

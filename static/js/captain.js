@@ -84,7 +84,8 @@ function selectMatchElement(el) {
     const maxSecondary = parseInt(el.getAttribute('data-max-secondary') || '100', 10);
     currentTeamPlayerCount = parseInt(el.getAttribute('data-team-player-count') || '1', 10);
 
-    selectedMatch = { id: matchId, title, game_name: game, instructions, maxPlacement };
+    const isScoreRanked = Boolean(secondaryLabel && secondaryLabel.trim().length > 0 && secondaryPoints === 0 && maxPlacement > 2);
+    selectedMatch = { id: matchId, title, game_name: game, instructions, maxPlacement, isScoreRanked };
 
     const detailsPanel = document.getElementById('selected-match-details');
     const noMatchAlert = document.getElementById('no-match-alert');
@@ -105,29 +106,36 @@ function selectMatchElement(el) {
     const rulesEl = document.getElementById('selected-match-rules');
     if (rulesEl) rulesEl.textContent = rules;
 
+    const placementGroup = document.getElementById('placement-group');
     const placementInput = document.getElementById('sub-placement');
     const placementHint = document.getElementById('placement-hint');
     const placementLabel = document.getElementById('placement-label');
     const duelPlacementGroup = document.getElementById('duel-placement-group');
     const standardPlacementGroup = document.getElementById('standard-placement-group');
 
-    if (maxPlacement === 2) {
-        if (duelPlacementGroup) duelPlacementGroup.style.display = 'grid';
-        if (standardPlacementGroup) standardPlacementGroup.style.display = 'none';
-        if (placementLabel) placementLabel.textContent = "RÉSULTAT DU MATCH";
-        if (placementInput) placementInput.value = '';
-        if (duelPlacementGroup) {
-            duelPlacementGroup.querySelectorAll('.btn-outcome').forEach(b => b.classList.remove('active'));
-        }
+    if (isScoreRanked) {
+        if (placementGroup) placementGroup.style.display = 'none';
+        if (placementInput) placementInput.value = '1';
     } else {
-        if (duelPlacementGroup) duelPlacementGroup.style.display = 'none';
-        if (standardPlacementGroup) standardPlacementGroup.style.display = 'block';
-        if (placementLabel) placementLabel.textContent = "CLASSEMENT FINAL (PLACE)";
-        if (placementInput) {
-            placementInput.value = '';
-            placementInput.max = maxPlacement;
-            placementInput.placeholder = `Ex: 1 (Top 1), 2... (max ${maxPlacement})`;
-            if (placementHint) placementHint.textContent = `Place finale obtenue dans le salon (1 à ${maxPlacement})`;
+        if (placementGroup) placementGroup.style.display = 'block';
+        if (maxPlacement === 2) {
+            if (duelPlacementGroup) duelPlacementGroup.style.display = 'grid';
+            if (standardPlacementGroup) standardPlacementGroup.style.display = 'none';
+            if (placementLabel) placementLabel.textContent = "RÉSULTAT DU MATCH";
+            if (placementInput) placementInput.value = '';
+            if (duelPlacementGroup) {
+                duelPlacementGroup.querySelectorAll('.btn-outcome').forEach(b => b.classList.remove('active'));
+            }
+        } else {
+            if (duelPlacementGroup) duelPlacementGroup.style.display = 'none';
+            if (standardPlacementGroup) standardPlacementGroup.style.display = 'block';
+            if (placementLabel) placementLabel.textContent = "CLASSEMENT FINAL (PLACE)";
+            if (placementInput) {
+                placementInput.value = '';
+                placementInput.max = maxPlacement;
+                placementInput.placeholder = `Ex: 1 (Top 1), 2... (max ${maxPlacement})`;
+                if (placementHint) placementHint.textContent = `Place finale obtenue dans le salon (1 à ${maxPlacement})`;
+            }
         }
     }
 
@@ -566,7 +574,9 @@ function initFormSubmit() {
 
         if (confGame) confGame.textContent = `${selectedMatch.game_name} — ${selectedMatch.title}`;
         if (confPlacement) {
-            if (selectedMatch?.maxPlacement === 2) {
+            if (selectedMatch?.isScoreRanked) {
+                confPlacement.textContent = "Calculé au score du round";
+            } else if (selectedMatch?.maxPlacement === 2) {
                 confPlacement.textContent = placementInput.value === '1' ? 'Victoire' : 'Défaite';
             } else {
                 confPlacement.textContent = `${placementInput.value}${placementInput.value === '1' ? 'er (Victoire / Top 1)' : 'e place'}`;
@@ -618,7 +628,7 @@ function isFormDirty() {
     const placementInput = document.getElementById('sub-placement');
     const secInput = document.getElementById('sub-secondary');
     const hasProof = Boolean(proofInput && proofInput.value && proofInput.value.trim().length > 0);
-    const hasPlacement = Boolean(placementInput && placementInput.value.trim().length > 0);
+    const hasPlacement = Boolean(placementInput && !selectedMatch?.isScoreRanked && placementInput.value.trim().length > 0);
     const hasSec = Boolean(secInput && secInput.value.trim().length > 0);
     const hasPlayersData = playerSubmissionsData.some(p => p.score > 0 || Boolean(p.proof_base64));
     return hasProof || hasPlacement || hasSec || hasPlayersData;

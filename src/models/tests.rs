@@ -140,3 +140,54 @@ fn test_team_deserialization_defaults() {
     let pending_team: Team = serde_json::from_str(json_pending).expect("Deserialization failed");
     assert!(!pending_team.is_verified, "Une équipe avec is_verified: false doit rester non vérifiée");
 }
+
+#[test]
+fn test_game_is_score_ranked() {
+    let geoguessr = Game {
+        id: None,
+        name: "GeoGuessr".to_string(),
+        cover_image: String::new(),
+        format: GameFormat::Brawl,
+        rules: "Rules".to_string(),
+        placement_points: vec![25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+        default_placement_points: 0,
+        points_per_secondary_stat: 0,
+        secondary_stat_label: Some("Score brut".to_string()),
+        max_placement: 10,
+        max_secondary_stat: 75000,
+        team_player_count: Some(3),
+    };
+    assert!(geoguessr.is_score_ranked());
+
+    let smash = Game {
+        id: None,
+        name: "SSBU".to_string(),
+        cover_image: String::new(),
+        format: GameFormat::Duel,
+        rules: "Rules".to_string(),
+        placement_points: vec![3, 1],
+        default_placement_points: 0,
+        points_per_secondary_stat: 0,
+        secondary_stat_label: None,
+        max_placement: 2,
+        max_secondary_stat: 0,
+        team_player_count: None,
+    };
+    assert!(!smash.is_score_ranked());
+
+    let mario_kart = Game {
+        id: None,
+        name: "MK8".to_string(),
+        cover_image: String::new(),
+        format: GameFormat::Brawl,
+        rules: "Rules".to_string(),
+        placement_points: vec![0],
+        default_placement_points: 0,
+        points_per_secondary_stat: 1,
+        secondary_stat_label: Some("Points de course".to_string()),
+        max_placement: 1,
+        max_secondary_stat: 200,
+        team_player_count: Some(3),
+    };
+    assert!(!mario_kart.is_score_ranked());
+}
