@@ -13,20 +13,20 @@ pub async fn reset_tournament(
     let _ = s3.delete_folder("submissions").await;
     let _ = db
         .collection::<Submission>("submissions")
-        .delete_many(doc! {})
+        .delete_many(doc! {}, None)
         .await?;
 
     if scope == ResetScope::ScoresOnly {
         //suppression des scores des équipes (reset à 0)
         db.collection::<Team>("teams")
-            .update_many(doc! {}, doc! {"$set":{"total_points":0}})
+            .update_many(doc! {}, doc! {"$set":{"total_points":0}}, None)
             .await?;
     } else {
         //Suppression de toutes les équipes
-        db.collection::<Team>("teams").delete_many(doc! {}).await?;
+        db.collection::<Team>("teams").delete_many(doc! {}, None).await?;
         if scope != ResetScope::UsersAndTeams {
             db.collection::<Match>("matches")
-                .delete_many(doc! {})
+                .delete_many(doc! {}, None)
                 .await?;
         }
     }

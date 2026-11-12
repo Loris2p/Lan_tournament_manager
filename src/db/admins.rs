@@ -8,7 +8,7 @@ use mongodb::{
 pub async fn count_admins(db: &Database) -> Result<u64, Errors> {
     let count = db
         .collection::<Admin>("admins")
-        .count_documents(doc! {})
+        .count_documents(doc! {}, None)
         .await?;
     Ok(count)
 }
@@ -19,7 +19,7 @@ pub async fn is_setup_required(db: &Database) -> Result<bool, Errors> {
     }
     let has_lock = db
         .collection::<mongodb::bson::Document>("system_config")
-        .find_one(doc! { "_id": "setup_done" })
+        .find_one(doc! { "_id": "setup_done" }, None)
         .await?
         .is_some();
     Ok(!has_lock)
@@ -38,7 +38,7 @@ pub async fn create_initial_admin(
 
     let lock_res = db
         .collection::<mongodb::bson::Document>("system_config")
-        .insert_one(doc! { "_id": "setup_done" })
+        .insert_one(doc! { "_id": "setup_done" }, None)
         .await;
 
     if lock_res.is_err() {
@@ -52,7 +52,7 @@ pub async fn create_initial_admin(
         Err(e) => {
             let _ = db
                 .collection::<mongodb::bson::Document>("system_config")
-                .delete_one(doc! { "_id": "setup_done" })
+                .delete_one(doc! { "_id": "setup_done" }, None)
                 .await;
             Err(e)
         }
@@ -65,7 +65,7 @@ pub async fn find_admin_by_username(
     let username_norm = username.trim().to_lowercase();
     let admin = db
         .collection::<Admin>("admins")
-        .find_one(doc! {"username": username_norm})
+        .find_one(doc! {"username": username_norm}, None)
         .await?;
     match admin {
         Some(s) => Ok(s),
@@ -76,7 +76,7 @@ pub async fn find_admin_by_username(
 pub async fn list_admins(db: &Database) -> Result<Vec<Admin>, Errors> {
     let admins = db
         .collection::<Admin>("admins")
-        .find(doc! {})
+        .find(doc! {}, None)
         .await?
         .try_collect()
         .await?; // try_collect() : pour récup le résultat sous forme de vec et non 1 par 1
@@ -95,17 +95,18 @@ pub async fn create_admin(
     };
     let res = db
         .collection::<Admin>("admins")
-        .insert_one(&new_admin)
+        .insert_one(&new_admin, None)
         .await?;
     new_admin.id = res.inserted_id.as_object_id();
 
+    let update_opts = mongodb::options::UpdateOptions::builder().upsert(true).build();
     let _ = db
         .collection::<mongodb::bson::Document>("system_config")
         .update_one(
             doc! { "_id": "admin_count" },
             doc! { "$inc": { "count": 1 } },
+            update_opts,
         )
-        .upsert(true)
         .await;
 
     Ok(new_admin)
@@ -124,6 +125,7 @@ pub async fn delete_admin(db: &Database, admin_id: ObjectId) -> Result<(), Error
         .find_one_and_update(
             doc! { "_id": "admin_count", "count": { "$gt": 1 } },
             doc! { "$inc": { "count": -1 } },
+            None,
         )
         .await?;
 
@@ -135,7 +137,7 @@ pub async fn delete_admin(db: &Database, admin_id: ObjectId) -> Result<(), Error
 
     let res = db
         .collection::<Admin>("admins")
-        .delete_one(doc! {"_id":admin_id})
+        .delete_one(doc! {"_id":admin_id}, None)
         .await?;
 
     if res.deleted_count == 0 {
@@ -145,6 +147,7 @@ pub async fn delete_admin(db: &Database, admin_id: ObjectId) -> Result<(), Error
             .update_one(
                 doc! { "_id": "admin_count" },
                 doc! { "$inc": { "count": 1 } },
+                None,
             )
             .await;
         return Err(Errors::Error404NotFound("Admin introuvable".to_string()));
@@ -154,7 +157,7 @@ pub async fn delete_admin(db: &Database, admin_id: ObjectId) -> Result<(), Error
 
 pub async fn increment_admin_token_version(db: &Database, admin_id: ObjectId) -> Result<(), Errors> {
     db.collection::<Admin>("admins")
-        .update_one(doc! {"_id": admin_id}, doc! {"$inc": {"token_version": 1}})
+        .update_one(doc! {"_id": admin_id}, doc! {"$inc": {"token_version": 1}}, None)
         .await?;
     Ok(())
 }
@@ -162,7 +165,7 @@ pub async fn increment_admin_token_version(db: &Database, admin_id: ObjectId) ->
 pub async fn verify_admin_session(db: &Database, admin_id: ObjectId, token_version: u32) -> Result<bool, Errors> {
     let count = db
         .collection::<Admin>("admins")
-        .count_documents(doc! {"_id": admin_id, "token_version": token_version as i64})
+        .count_documents(doc! {"_id": admin_id, "token_version": token_version as i64}, None)
         .await?;
     Ok(count > 0)
 }

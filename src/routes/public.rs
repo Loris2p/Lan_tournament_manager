@@ -20,6 +20,6 @@ pub async fn list_games(
     Ok(Json(response))
 }
 pub async fn health_check(State(state): State<Arc<AppState>>) -> Result<Json<Value>, Errors> {
-    let _ = &state.db.run_command(doc! { "ping": 1 }).await?;
+    let _ = &state.db.run_command(doc! { "ping": 1 }, None).await?;
     Ok(Json(json!({"status":"ok", "db":"connected"})))
 }

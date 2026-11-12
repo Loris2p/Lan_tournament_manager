@@ -14,7 +14,7 @@ pub async fn init_indexes(db: &Database) -> Result<(), Errors> {
         .options(unique_option.clone())
         .build();
     db.collection::<Admin>("admins")
-        .create_index(admin_index)
+        .create_index(admin_index, None)
         .await?;
 
     let submissions = IndexModel::builder()
@@ -22,7 +22,7 @@ pub async fn init_indexes(db: &Database) -> Result<(), Errors> {
         .options(unique_option.clone())
         .build();
     db.collection::<Submission>("submissions")
-        .create_index(submissions)
+        .create_index(submissions, None)
         .await?;
 
     let teams_captain = IndexModel::builder()
@@ -35,23 +35,24 @@ pub async fn init_indexes(db: &Database) -> Result<(), Errors> {
         .build();
 
     db.collection::<Team>("teams")
-        .create_indexes([teams_captain, teams_name])
+        .create_indexes([teams_captain, teams_name], None)
         .await?;
 
     let count = crate::db::count_admins(db).await.unwrap_or(0);
+    let update_options = mongodb::options::UpdateOptions::builder().upsert(true).build();
     let _ = db
         .collection::<mongodb::bson::Document>("system_config")
         .update_one(
             doc! { "_id": "admin_count" },
             doc! { "$set": { "count": count as i64 } },
+            update_options,
         )
-        .upsert(true)
         .await;
 
     if count > 0 {
         let _ = db
             .collection::<mongodb::bson::Document>("system_config")
-            .insert_one(doc! { "_id": "setup_done" })
+            .insert_one(doc! { "_id": "setup_done" }, None)
             .await;
     }
 

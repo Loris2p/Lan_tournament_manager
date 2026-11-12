@@ -7,7 +7,7 @@ use mongodb::bson::{doc, to_bson};
 pub async fn get_tournament_settings(db: &Database) -> Result<TournamentSettings, Errors> {
     match db
         .collection::<TournamentSettings>("tournament_settings")
-        .find_one(doc! {})
+        .find_one(doc! {}, None)
         .await?
     {
         Some(s) => Ok(s),
@@ -15,7 +15,7 @@ pub async fn get_tournament_settings(db: &Database) -> Result<TournamentSettings
             let mut tournament = TournamentSettings::default();
             let res = db
                 .collection::<TournamentSettings>("tournament_settings")
-                .insert_one(&tournament)
+                .insert_one(&tournament, None)
                 .await?;
             tournament.id = res.inserted_id.as_object_id();
             Ok(tournament)
@@ -54,6 +54,7 @@ pub async fn update_tournament_settings(
         .update_one(
             doc! {},
             doc! { "$set": set_doc },
+            None,
         )
         .await?;
 

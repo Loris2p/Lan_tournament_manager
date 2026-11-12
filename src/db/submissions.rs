@@ -30,7 +30,7 @@ pub async fn insert_submission(
     };
     let res = db
         .collection::<Submission>("submissions")
-        .insert_one(&s)
+        .insert_one(&s, None)
         .await?;
     s.id = res.inserted_id.as_object_id();
     Ok(s)
@@ -39,7 +39,7 @@ pub async fn insert_submission(
 pub async fn get_pending(db: &Database) -> Result<Vec<Submission>, Errors> {
     let res = db
         .collection::<Submission>("submissions")
-        .find(doc! {"status":SubmissionStatus::Pending})
+        .find(doc! {"status":SubmissionStatus::Pending}, None)
         .await?
         .try_collect()
         .await?;
@@ -51,6 +51,7 @@ pub async fn approve_or_reject_submission(db: &Database, submission_id: ObjectId
         .update_one(
             doc! { "_id": submission_id },
             doc! {"$set": {"status": new_status}},
+            None,
         )
         .await?;
     if res.matched_count == 0 {
@@ -61,7 +62,7 @@ pub async fn approve_or_reject_submission(db: &Database, submission_id: ObjectId
 pub async fn find_submission_by_id(db: &Database, submission_id: ObjectId)-> Result<Submission, Errors>{
     let found_submission = db
         .collection::<Submission>("submissions")
-        .find_one(doc! {"_id":submission_id})
+        .find_one(doc! {"_id":submission_id}, None)
         .await?;
     match found_submission {
         Some(m) => Ok(m),
@@ -70,6 +71,6 @@ pub async fn find_submission_by_id(db: &Database, submission_id: ObjectId)-> Res
 }pub async fn has_submission_for_match(
     db :&Database, match_id : ObjectId, team_id : ObjectId
 ) -> Result<bool, Errors>{
-    let count = db.collection::<Submission>("submissions").count_documents(doc! {"match_id":match_id, "team_id":team_id}).await?;
+    let count = db.collection::<Submission>("submissions").count_documents(doc! {"match_id":match_id, "team_id":team_id}, None).await?;
     Ok(count>0)
 }

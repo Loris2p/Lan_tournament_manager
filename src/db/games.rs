@@ -9,7 +9,7 @@ use mongodb::{
 pub async fn list_games(db: &Database) -> Result<Vec<Game>, Errors> {
     let games = db
         .collection::<Game>("games")
-        .find(doc! {})
+        .find(doc! {}, None)
         .await?
         .try_collect()
         .await?;
@@ -18,7 +18,7 @@ pub async fn list_games(db: &Database) -> Result<Vec<Game>, Errors> {
 pub async fn find_game_by_id(db: &Database, game_id: ObjectId) -> Result<Game, Errors> {
     let game = db
         .collection::<Game>("games")
-        .find_one(doc! {"_id":game_id})
+        .find_one(doc! {"_id":game_id}, None)
         .await?;
     match game {
         Some(g) => Ok(g),
@@ -53,14 +53,14 @@ pub async fn create_game(
         rules: rules.to_string(),
         team_player_count,
     };
-    let res = db.collection::<Game>("games").insert_one(&new_game).await?;
+    let res = db.collection::<Game>("games").insert_one(&new_game, None).await?;
     new_game.id = res.inserted_id.as_object_id();
     Ok(new_game)
 }
 pub async fn delete_game(db: &Database, game_id: ObjectId) -> Result<(), Errors> {
     let res = db
         .collection::<Game>("games")
-        .delete_one(doc! {"_id":game_id})
+        .delete_one(doc! {"_id":game_id}, None)
         .await?;
     if res.deleted_count == 0 {
         return Err(Errors::Error404NotFound("Jeu introuvable".to_string()));

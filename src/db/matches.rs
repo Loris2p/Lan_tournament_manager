@@ -10,7 +10,7 @@ use mongodb::{
 pub async fn get_open_matches(db: &Database) -> Result<Vec<Match>, Errors> {
     let matches = db
         .collection::<Match>("matches")
-        .find(doc! {"is_open":true})
+        .find(doc! {"is_open":true}, None)
         .await?
         .try_collect()
         .await?;
@@ -19,7 +19,7 @@ pub async fn get_open_matches(db: &Database) -> Result<Vec<Match>, Errors> {
 pub async fn get_all_matches(db: &Database) -> Result<Vec<Match>, Errors> {
     let matches = db
         .collection::<Match>("matches")
-        .find(doc! {})
+        .find(doc! {}, None)
         .await?
         .try_collect()
         .await?;
@@ -28,7 +28,7 @@ pub async fn get_all_matches(db: &Database) -> Result<Vec<Match>, Errors> {
 pub async fn find_match_by_id(db: &Database, match_id: ObjectId) -> Result<Match, Errors> {
     let found_match = db
         .collection::<Match>("matches")
-        .find_one(doc! {"_id":match_id})
+        .find_one(doc! {"_id":match_id}, None)
         .await?;
     match found_match {
         Some(m) => Ok(m),
@@ -53,7 +53,7 @@ pub async fn create_match(
         instructions: instructions.to_string(),
         assigned_teams,
     };
-    let res = db.collection::<Match>("matches").insert_one(&m).await?;
+    let res = db.collection::<Match>("matches").insert_one(&m, None).await?;
     m.id = res.inserted_id.as_object_id();
     Ok(m)
 }
@@ -64,6 +64,7 @@ pub async fn toggle_match_status(db: &Database, match_id: ObjectId) -> Result<()
         .update_one(
             doc! { "_id": match_id },
             vec![doc! {"$set": {"is_open": {"$not": ["$is_open"]}}}],
+            None,
         )
         .await?;
     if res.matched_count == 0 {
@@ -77,7 +78,7 @@ pub async fn get_open_matches_for_team(
 ) -> Result<Vec<Match>, Errors> {
     let res = db
         .collection::<Match>("matches")
-        .find(doc! {"is_open":true, "assigned_teams":team_id})
+        .find(doc! {"is_open":true, "assigned_teams":team_id}, None)
         .await?
         .try_collect()
         .await?;
@@ -93,6 +94,7 @@ pub async fn update_match_instructions(
         .update_one(
             doc! {"_id":match_id},
             doc! {"$set":{"instructions":instructions}},
+            None,
         )
         .await?;
     if res.matched_count == 0 {
