@@ -19,6 +19,7 @@ mod ws;
 
 struct Config {
     mongo_uri: String,
+    mongo_db: String,
     jwt_secret: String,
     port: u16,
     cellar_host: String,
@@ -41,6 +42,7 @@ impl Config {
     pub fn from_env() -> Self {
         let jwt_secret = get_env("JWT_SECRET");
         let mongo_uri = get_env("MONGODB_ADDON_URI");
+        let mongo_db = get_env("MONGODB_ADDON_DB");
         // Variables Cellar S3
         let cellar_host = get_env("CELLAR_ADDON_HOST");
         let cellar_key_id = get_env("CELLAR_ADDON_KEY_ID");
@@ -60,6 +62,7 @@ impl Config {
 
         Self {
             mongo_uri,
+            mongo_db,
             jwt_secret,
             port,
             cellar_host,
@@ -96,7 +99,7 @@ async fn run() -> Result<(), Errors> {
     let config = Config::from_env();
 
     let client = mongodb::Client::with_uri_str(&config.mongo_uri).await?;
-    let db = client.database("lan_tournament");
+    let db = client.database(&config.mongo_db);
     db::init_indexes(&db).await?;
     let s3 = services::S3Service::new(
         config.cellar_host,
