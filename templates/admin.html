@@ -371,6 +371,13 @@
                             <button type="button" class="btn-primary btn-bulk-scores" data-id="{{ m.id }}">
                                 Saisie Immédiate (Arbitre)
                             </button>
+                            <form method="POST" action="/admin/matches/{{ m.id }}/delete"
+                                  onsubmit="return confirm('Annuler et supprimer ce match ?');"
+                                  style="display:inline;">
+                                <button type="submit" class="btn-text" style="color: var(--red);">
+                                    Annuler
+                                </button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}
@@ -725,7 +732,7 @@
                         <thead>
                         <tr>
                             <th>ÉQUIPE</th>
-                            <th>CLASSEMENT (PLACE)</th>
+                            <th id="bulk-placement-header">CLASSEMENT (PLACE)</th>
                             <th id="bulk-sec-header">STAT SECONDAIRE</th>
                         </tr>
                         </thead>

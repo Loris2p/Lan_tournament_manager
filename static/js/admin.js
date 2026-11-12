@@ -182,37 +182,157 @@ async function openBulkScoresModal(matchId) {
         return;
     }
 
+    const form = document.getElementById('bulk-scores-form');
     document.getElementById('bulk-match-id').value = match.id;
     document.getElementById('bulk-match-title').textContent = `Saisie Groupée : ${match.game_name || match.title || 'Match'}`;
 
     const tbody = document.getElementById('bulk-scores-tbody');
     const secHeader = document.getElementById('bulk-sec-header');
+    const placementHeader = document.getElementById('bulk-placement-header');
 
     const game = cachedGames.find(g => g.id === match.game_id);
     const hasSec = Boolean(game?.secondary_stat_label);
-    if (secHeader) {
-        secHeader.textContent = hasSec ? game.secondary_stat_label.toUpperCase() : 'STAT SECONDAIRE (N/A)';
+    const teamPlayers = parseInt(game?.team_player_count || 1, 10);
+    const maxPlacement = parseInt(game?.max_placement || 64, 10);
+    const participatingTeams = cachedTeams.filter(t => (match.assigned_teams || []).includes(t.id));
+
+    const isDuel = (maxPlacement === 2 || (game?.format || '').toLowerCase() === 'duel') && participatingTeams.length === 2;
+    const isScoreRanked = Boolean(hasSec && (game?.points_per_secondary_stat === 0) && (game?.placement_points || []).length > 0 && maxPlacement > 2);
+
+    if (form) {
+        form.setAttribute('data-is-score-ranked', isScoreRanked ? 'true' : 'false');
     }
 
-    const participatingTeams = cachedTeams.filter(t => (match.assigned_teams || []).includes(t.id));
+    if (placementHeader) {
+        if (isDuel) {
+            placementHeader.textContent = 'RÉSULTAT (1V1)';
+        } else if (isScoreRanked) {
+            placementHeader.textContent = 'CLASSEMENT (AUTO)';
+        } else {
+            placementHeader.textContent = 'CLASSEMENT (PLACE)';
+        }
+    }
+
+    if (secHeader) {
+        if (isDuel && !hasSec) {
+            secHeader.style.display = 'none';
+        } else {
+            secHeader.style.display = '';
+            secHeader.textContent = hasSec 
+                ? (teamPlayers > 1 ? `${game.secondary_stat_label.toUpperCase()} (${teamPlayers} JOUEURS)` : game.secondary_stat_label.toUpperCase())
+                : 'STAT SECONDAIRE (N/A)';
+        }
+    }
 
     if (participatingTeams.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" class="cell-loading">Aucune équipe assignée à ce match.</td></tr>`;
     } else {
-        tbody.innerHTML = participatingTeams.map((t, idx) => `
-            <tr data-team-id="${t.id}">
-                <td><strong>${escapeHtml(t.name)}</strong></td>
-                <td>
-                    <input type="number" class="bulk-input-placement" min="1" value="${idx + 1}" required style="width: 80px;">
-                </td>
-                <td>
-                    <input type="number" class="bulk-input-secondary" min="0" value="0" ${hasSec ? '' : 'disabled'} style="width: 80px;">
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = participatingTeams.map((t, idx) => {
+            let placementCellHtml = '';
+            if (isDuel) {
+                placementCellHtml = `
+                    <div class="bulk-duel-buttons">
+                        <button type="button" class="btn-outcome btn-outcome-win ${idx === 0 ? 'active' : ''}" data-val="1">
+                            <span class="papicon icon-crown" aria-hidden="true"></span> Victoire
+                        </button>
+                        <button type="button" class="btn-outcome btn-outcome-loss ${idx === 1 ? 'active' : ''}" data-val="2">
+                            <span class="papicon icon-cross" aria-hidden="true"></span> Défaite
+                        </button>
+                        <input type="hidden" class="bulk-input-placement" value="${idx === 0 ? '1' : '2'}">
+                    </div>
+                `;
+            } else if (isScoreRanked) {
+                placementCellHtml = `
+                    <span class="badge-format" style="color: var(--text-muted); font-size: 0.75rem;">Auto (par score)</span>
+                    <input type="hidden" class="bulk-input-placement" value="${idx + 1}">
+                `;
+            } else {
+                placementCellHtml = `
+                    <input type="number" class="bulk-input-placement" min="1" max="${maxPlacement}" value="${idx + 1}" required style="width: 80px;">
+                `;
+            }
+
+            let secCellHtml = '';
+            if (isDuel && !hasSec) {
+                secCellHtml = `<td style="display: none;"><input type="hidden" class="bulk-input-secondary" value="0"></td>`;
+            } else if (hasSec && teamPlayers > 1) {
+                secCellHtml = `
+                    <td>
+                        <div class="bulk-multi-inputs">
+                            ${Array.from({ length: teamPlayers }, (_, pIdx) => `
+                                <input type="number" class="bulk-player-input" data-player="${pIdx + 1}" placeholder="J${pIdx + 1}" min="0" value="0">
+                            `).join('')}
+                            <span class="bulk-team-sum badge-code">Total : 0</span>
+                            <input type="hidden" class="bulk-input-secondary" value="0">
+                        </div>
+                    </td>
+                `;
+            } else {
+                secCellHtml = `
+                    <td>
+                        <input type="number" class="bulk-input-secondary" min="0" value="0" ${hasSec ? '' : 'disabled'} style="width: 80px;">
+                    </td>
+                `;
+            }
+
+            return `
+                <tr data-team-id="${t.id}">
+                    <td><strong>${escapeHtml(t.name)}</strong></td>
+                    <td>${placementCellHtml}</td>
+                    ${secCellHtml}
+                </tr>
+            `;
+        }).join('');
+
+        wireBulkEvents(tbody, isDuel, teamPlayers);
     }
 
     openModal('modal-bulk-scores');
+}
+
+function wireBulkEvents(tbody, isDuel, teamPlayers) {
+    if (isDuel) {
+        const rows = tbody.querySelectorAll('tr');
+        tbody.querySelectorAll('.btn-outcome').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const row = btn.closest('tr');
+                const val = btn.getAttribute('data-val');
+                const oppositeVal = val === '1' ? '2' : '1';
+
+                row.querySelector('.bulk-input-placement').value = val;
+                row.querySelectorAll('.btn-outcome').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-val') === val);
+                });
+
+                rows.forEach(otherRow => {
+                    if (otherRow !== row) {
+                        const input = otherRow.querySelector('.bulk-input-placement');
+                        if (input) input.value = oppositeVal;
+                        otherRow.querySelectorAll('.btn-outcome').forEach(b => {
+                            b.classList.toggle('active', b.getAttribute('data-val') === oppositeVal);
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    if (teamPlayers > 1) {
+        tbody.querySelectorAll('.bulk-player-input').forEach(input => {
+            input.addEventListener('input', () => {
+                const row = input.closest('tr');
+                const playerInputs = row.querySelectorAll('.bulk-player-input');
+                let sum = 0;
+                playerInputs.forEach(inp => {
+                    sum += (parseInt(inp.value, 10) || 0);
+                });
+                const totalEl = row.querySelector('.bulk-team-sum');
+                const secInput = row.querySelector('.bulk-input-secondary');
+                if (totalEl) totalEl.textContent = `Total : ${sum}`;
+                if (secInput) secInput.value = sum;
+            });
+        });
+    }
 }
 
 function initBulkScoresForm() {
@@ -223,19 +343,27 @@ function initBulkScoresForm() {
         e.preventDefault();
         const matchId = document.getElementById('bulk-match-id').value;
         const rows = document.querySelectorAll('#bulk-scores-tbody tr');
+        const isScoreRanked = form.getAttribute('data-is-score-ranked') === 'true';
 
         const scores = [];
         rows.forEach(row => {
             const team_id = row.getAttribute('data-team-id');
-            const placement = parseInt(row.querySelector('.bulk-input-placement')?.value, 10);
+            const placement = parseInt(row.querySelector('.bulk-input-placement')?.value, 10) || 1;
             const secondary_stat = parseInt(row.querySelector('.bulk-input-secondary')?.value, 10) || 0;
-            if (team_id && !isNaN(placement)) {
+            if (team_id) {
                 scores.push({
                     team_id,
                     score: { placement, secondary_stat }
                 });
             }
         });
+
+        if (isScoreRanked) {
+            scores.sort((a, b) => b.score.secondary_stat - a.score.secondary_stat);
+            scores.forEach((entry, idx) => {
+                entry.score.placement = idx + 1;
+            });
+        }
 
         try {
             await api.post(`/api/admin/matches/${matchId}/scores`, {

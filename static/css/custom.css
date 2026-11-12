@@ -2188,6 +2188,37 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 16px rgba(229, 9, 20, 0.35);
 }
 
+.bulk-duel-buttons {
+    display: inline-flex;
+    gap: 0.35rem;
+}
+
+.bulk-duel-buttons .btn-outcome {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+}
+
+.bulk-multi-inputs {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bulk-player-input {
+    width: 65px;
+    padding: 0.35rem 0.45rem;
+    font-family: var(--font-mono);
+    text-align: center;
+}
+
+.bulk-team-sum {
+    font-size: 0.78rem;
+    font-weight: 700;
+    min-width: 90px;
+    text-align: center;
+}
+
 
 
 
