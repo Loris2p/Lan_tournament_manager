@@ -147,7 +147,8 @@
                                         data-sub-id="{{ sub.id }}"
                                         data-team-name="{{ sub.team_name }}"
                                         data-placement="{{ sub.placement }}"
-                                        data-secondary-stat="{{ sub.secondary_stat }}">
+                                        data-secondary-stat="{{ sub.secondary_stat }}"
+                                        data-proof-url="{{ sub.proof_url }}">
                                     Modifier
                                 </button>
                                 <form method="POST" action="/admin/submissions/{{ sub.id }}/reject" style="display:inline;">
@@ -825,6 +826,9 @@
         </div>
         <form method="POST" id="edit-submission-form" class="modal-body">
             <p class="panel-desc">Corrigez les valeurs déclarées par l'équipe. Les points attendus seront recalculés automatiquement selon le barème du jeu.</p>
+            <div id="edit-sub-proof-preview" style="display: none; margin: 0.75rem 0;">
+                <img id="edit-sub-proof-img" alt="Capture de la soumission" style="width: 100%; max-height: 260px; object-fit: contain; border-radius: 6px; border: 1px solid var(--line-subtle); background: #000;">
+            </div>
             <div class="form-group" style="margin: 1rem 0;">
                 <label for="edit-sub-placement">Classement (Place)</label>
                 <input type="number" id="edit-sub-placement" name="placement" min="1" required>

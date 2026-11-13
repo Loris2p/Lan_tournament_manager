@@ -117,11 +117,14 @@ function initSubmissions() {
             const teamName = btn.getAttribute('data-team-name') || '';
             const placement = btn.getAttribute('data-placement') || '1';
             const secondaryStat = btn.getAttribute('data-secondary-stat') || '0';
+            const proofUrl = btn.getAttribute('data-proof-url') || '';
 
             const form = document.getElementById('edit-submission-form');
             const titleEl = document.getElementById('edit-sub-team-title');
             const placementInput = document.getElementById('edit-sub-placement');
             const secondaryInput = document.getElementById('edit-sub-secondary');
+            const proofPreview = document.getElementById('edit-sub-proof-preview');
+            const proofImg = document.getElementById('edit-sub-proof-img');
 
             if (form && subId) {
                 form.action = `/admin/submissions/${subId}/edit`;
@@ -131,6 +134,15 @@ function initSubmissions() {
             }
             if (placementInput) placementInput.value = placement;
             if (secondaryInput) secondaryInput.value = secondaryStat;
+            if (proofPreview && proofImg) {
+                if (proofUrl) {
+                    proofImg.src = proofUrl;
+                    proofPreview.style.display = 'block';
+                } else {
+                    proofImg.removeAttribute('src');
+                    proofPreview.style.display = 'none';
+                }
+            }
 
             openModal('modal-edit-submission');
         });
