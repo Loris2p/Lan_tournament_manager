@@ -192,6 +192,44 @@ function initMatches() {
             await openBulkScoresModal(id);
         });
     });
+
+    const searchInput = document.getElementById('match-filter-search');
+    const gameSelect = document.getElementById('match-filter-game');
+    const statusSelect = document.getElementById('match-filter-status');
+    const countBadge = document.getElementById('matches-count-badge');
+    const emptyRow = document.getElementById('matches-filter-empty');
+    const rows = Array.from(container.querySelectorAll('.match-admin-row'));
+
+    if (rows.length > 0 && (searchInput || gameSelect || statusSelect)) {
+        const applyMatchFilters = () => {
+            const query = (searchInput?.value || '').trim().toLowerCase();
+            const game = gameSelect?.value || '';
+            const status = statusSelect?.value || 'all';
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const matchSearch = !query || (row.dataset.search || '').toLowerCase().includes(query);
+                const matchGame = !game || row.dataset.game === game;
+                const matchStatus = status === 'all' || row.dataset.status === status;
+                const visible = matchSearch && matchGame && matchStatus;
+                row.style.display = visible ? '' : 'none';
+                if (visible) visibleCount += 1;
+            });
+
+            if (countBadge) {
+                countBadge.textContent = visibleCount === rows.length
+                    ? `${rows.length}`
+                    : `${visibleCount} / ${rows.length}`;
+            }
+            if (emptyRow) {
+                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        };
+
+        searchInput?.addEventListener('input', applyMatchFilters);
+        gameSelect?.addEventListener('change', applyMatchFilters);
+        statusSelect?.addEventListener('change', applyMatchFilters);
+    }
 }
 
 async function openBulkScoresModal(matchId) {
