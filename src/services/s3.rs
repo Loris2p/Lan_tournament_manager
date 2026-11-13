@@ -53,6 +53,15 @@ impl S3Service {
             .await?;
         Ok(format!("https://{}/{}/{}", self.host, self.bucket, key))
     }
+
+    pub fn normalize_url(&self, url: &str) -> String {
+        let old_prefix = format!("https://{}.{}/", self.bucket, self.host);
+        if let Some(key) = url.strip_prefix(&old_prefix) {
+            format!("https://{}/{}/{}", self.host, self.bucket, key)
+        } else {
+            url.to_string()
+        }
+    }
     fn detect_image_type(bytes: &[u8]) -> Result<(&'static str, &'static str), Errors> {
         if bytes.len() < 12 {
             return Err(Errors::Error400BadRequest(

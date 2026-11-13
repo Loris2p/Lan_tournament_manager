@@ -121,8 +121,15 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
     for s in submissions_db {
         let match_id = s.match_id;
         let sub_id = s.id.map(|id| id.to_hex()).unwrap_or_default();
-        let proof_url = s.proof_base64.unwrap_or_default();
-        let player_submissions = s.player_submissions.unwrap_or_default();
+        let proof_url = s
+            .proof_base64
+            .as_deref()
+            .map(|u| state.s3.normalize_url(u))
+            .unwrap_or_default();
+        let mut player_submissions = s.player_submissions.unwrap_or_default();
+        for p in &mut player_submissions {
+            p.proof_url = state.s3.normalize_url(&p.proof_url);
+        }
 
         submissions_view.push(AdminSubmissionView {
             id: sub_id.clone(),
