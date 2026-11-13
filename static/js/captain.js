@@ -27,6 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
     });
 
+    wsClient.on('MATCH_UPDATE', async () => {
+        await handleCaptainMatchUpdate();
+    });
+
     const newSubBtn = document.getElementById('new-submission-btn');
     if (newSubBtn) {
         newSubBtn.addEventListener('click', () => {
@@ -662,6 +666,42 @@ function isFormDirty() {
     const hasSec = Boolean(secInput && secInput.value.trim().length > 0);
     const hasPlayersData = playerSubmissionsData.some(p => p.score > 0 || Boolean(p.proof_base64));
     return hasProof || hasPlacement || hasSec || hasPlayersData;
+}
+
+async function handleCaptainMatchUpdate() {
+    try {
+        const res = await fetch('/api/captain/matches', { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const matches = await res.json();
+        if (!Array.isArray(matches)) return;
+
+        const knownIds = new Set(
+            Array.from(document.querySelectorAll('#matches-list .match-item'))
+                .map(el => el.getAttribute('data-match-id'))
+                .filter(Boolean)
+        );
+        const newMatches = matches.filter(m => m && m.id && !knownIds.has(m.id));
+        const listChanged = newMatches.length > 0 || matches.length !== knownIds.size;
+
+        if (!listChanged) return;
+
+        if (newMatches.length > 0) {
+            const label = newMatches.length === 1
+                ? `Nouveau match disponible : ${newMatches[0].title} (${newMatches[0].game_name})`
+                : `${newMatches.length} nouveaux matchs disponibles pour votre équipe !`;
+
+            if (isFormDirty()) {
+                showToast(`${label} — actualisez après votre saisie.`, 'info');
+                return;
+            }
+            showToast(label, 'info');
+            setTimeout(() => window.location.reload(), 1200);
+        } else if (!isFormDirty()) {
+            window.location.reload();
+        }
+    } catch (e) {
+        console.warn('Erreur lors de la vérification des nouveaux matchs:', e);
+    }
 }
 
 async function updateCaptainPointsSilently() {
