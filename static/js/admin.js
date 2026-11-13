@@ -198,6 +198,7 @@ function initMatches() {
     const statusSelect = document.getElementById('match-filter-status');
     const countBadge = document.getElementById('matches-count-badge');
     const emptyRow = document.getElementById('matches-filter-empty');
+    const groups = Array.from(container.querySelectorAll('.match-game-group'));
     const rows = Array.from(container.querySelectorAll('.match-admin-row'));
 
     if (rows.length > 0 && (searchInput || gameSelect || statusSelect)) {
@@ -207,13 +208,29 @@ function initMatches() {
             const status = statusSelect?.value || 'all';
             let visibleCount = 0;
 
-            rows.forEach(row => {
-                const matchSearch = !query || (row.dataset.search || '').toLowerCase().includes(query);
-                const matchGame = !game || row.dataset.game === game;
-                const matchStatus = status === 'all' || row.dataset.status === status;
-                const visible = matchSearch && matchGame && matchStatus;
-                row.style.display = visible ? '' : 'none';
-                if (visible) visibleCount += 1;
+            groups.forEach(group => {
+                const groupRows = Array.from(group.querySelectorAll('.match-admin-row'));
+                let groupVisible = 0;
+
+                groupRows.forEach(row => {
+                    const matchSearch = !query || (row.dataset.search || '').toLowerCase().includes(query);
+                    const matchGame = !game || row.dataset.game === game;
+                    const matchStatus = status === 'all' || row.dataset.status === status;
+                    const visible = matchSearch && matchGame && matchStatus;
+                    row.style.display = visible ? '' : 'none';
+                    if (visible) {
+                        visibleCount += 1;
+                        groupVisible += 1;
+                    }
+                });
+
+                group.style.display = groupVisible > 0 ? '' : 'none';
+                const groupBadge = group.querySelector('.group-match-count');
+                if (groupBadge) {
+                    groupBadge.textContent = groupVisible === groupRows.length
+                        ? `${groupRows.length}`
+                        : `${groupVisible} / ${groupRows.length}`;
+                }
             });
 
             if (countBadge) {

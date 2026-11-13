@@ -10,6 +10,7 @@ use axum::response::{IntoResponse, Redirect, Response};
 use axum_extra::extract::{CookieJar, Form};
 use mongodb::bson::oid::ObjectId;
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub struct AdminSubmissionView {
@@ -20,6 +21,17 @@ pub struct AdminSubmissionView {
     pub calculated_points: u32,
     pub proof_url: String,
     pub player_submissions: Vec<PlayerSubmission>,
+}
+
+pub struct AdminSubmissionGroup {
+    pub match_title: String,
+    pub game_name: String,
+    pub submissions: Vec<AdminSubmissionView>,
+}
+
+pub struct AdminMatchGroup {
+    pub game_name: String,
+    pub matches: Vec<AdminMatchView>,
 }
 
 #[allow(dead_code)]
@@ -50,8 +62,10 @@ pub struct AdminUserView {
 pub struct AdminTemplate {
     pub admin_username: String,
     pub submissions: Vec<AdminSubmissionView>,
+    pub submission_groups: Vec<AdminSubmissionGroup>,
     pub games: Vec<AdminGameView>,
     pub matches: Vec<AdminMatchView>,
+    pub match_groups: Vec<AdminMatchGroup>,
     pub teams: Vec<PublicTeam>,
     pub pending_teams: Vec<PublicTeam>,
     pub admins: Vec<AdminUserView>,
@@ -95,18 +109,57 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
     let admins_db = db::list_admins(&state.db).await.unwrap_or_default();
     let pending_teams_db = db::get_pending_teams(&state.db).await.unwrap_or_default();
 
-    let submissions_view: Vec<AdminSubmissionView> = submissions_db
-        .into_iter()
-        .map(|s| AdminSubmissionView {
-            id: s.id.map(|id| id.to_hex()).unwrap_or_default(),
+    let match_meta: HashMap<ObjectId, (String, String)> = matches_db
+        .iter()
+        .filter_map(|m| m.id.map(|id| (id, (m.title.clone(), m.game_name.clone()))))
+        .collect();
+
+    let mut submission_groups: Vec<AdminSubmissionGroup> = Vec::new();
+    let mut sub_group_idx: HashMap<ObjectId, usize> = HashMap::new();
+    let mut submissions_view: Vec<AdminSubmissionView> = Vec::with_capacity(submissions_db.len());
+
+    for s in submissions_db {
+        let match_id = s.match_id;
+        let sub_id = s.id.map(|id| id.to_hex()).unwrap_or_default();
+        let proof_url = s.proof_base64.unwrap_or_default();
+        let player_submissions = s.player_submissions.unwrap_or_default();
+
+        submissions_view.push(AdminSubmissionView {
+            id: sub_id.clone(),
+            team_name: s.team_name.clone(),
+            placement: s.score.placement,
+            secondary_stat: s.score.secondary_stat,
+            calculated_points: s.calculated_points,
+            proof_url: proof_url.clone(),
+            player_submissions: player_submissions.clone(),
+        });
+
+        let sub_for_group = AdminSubmissionView {
+            id: sub_id,
             team_name: s.team_name,
             placement: s.score.placement,
             secondary_stat: s.score.secondary_stat,
             calculated_points: s.calculated_points,
-            proof_url: s.proof_base64.unwrap_or_default(),
-            player_submissions: s.player_submissions.unwrap_or_default(),
-        })
-        .collect();
+            proof_url,
+            player_submissions,
+        };
+
+        if let Some(&idx) = sub_group_idx.get(&match_id) {
+            submission_groups[idx].submissions.push(sub_for_group);
+        } else {
+            let (match_title, game_name) = match_meta
+                .get(&match_id)
+                .cloned()
+                .unwrap_or_else(|| ("Match supprimé".to_string(), "Inconnu".to_string()));
+            let idx = submission_groups.len();
+            sub_group_idx.insert(match_id, idx);
+            submission_groups.push(AdminSubmissionGroup {
+                match_title,
+                game_name,
+                submissions: vec![sub_for_group],
+            });
+        }
+    }
 
     let games_view: Vec<AdminGameView> = games_db
         .into_iter()
@@ -122,17 +175,42 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
         })
         .collect();
 
-    let matches_view: Vec<AdminMatchView> = matches_db
-        .into_iter()
-        .map(|m| AdminMatchView {
-            id: m.id.map(|id| id.to_hex()).unwrap_or_default(),
+    let mut matches_view: Vec<AdminMatchView> = Vec::with_capacity(matches_db.len());
+    let mut match_groups: Vec<AdminMatchGroup> = Vec::new();
+    let mut match_group_idx: HashMap<String, usize> = HashMap::new();
+
+    for m in matches_db {
+        let id = m.id.map(|id| id.to_hex()).unwrap_or_default();
+        let assigned_teams_count = m.assigned_teams.len();
+        matches_view.push(AdminMatchView {
+            id: id.clone(),
+            title: m.title.clone(),
+            game_name: m.game_name.clone(),
+            is_open: m.is_open,
+            instructions: m.instructions.clone(),
+            assigned_teams_count,
+        });
+
+        let match_for_group = AdminMatchView {
+            id,
             title: m.title,
-            game_name: m.game_name,
+            game_name: m.game_name.clone(),
             is_open: m.is_open,
             instructions: m.instructions,
-            assigned_teams_count: m.assigned_teams.len(),
-        })
-        .collect();
+            assigned_teams_count,
+        };
+
+        if let Some(&idx) = match_group_idx.get(&m.game_name) {
+            match_groups[idx].matches.push(match_for_group);
+        } else {
+            let idx = match_groups.len();
+            match_group_idx.insert(m.game_name.clone(), idx);
+            match_groups.push(AdminMatchGroup {
+                game_name: m.game_name,
+                matches: vec![match_for_group],
+            });
+        }
+    }
 
     let admins_view: Vec<AdminUserView> = admins_db
         .into_iter()
@@ -157,8 +235,10 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
     let template = AdminTemplate {
         admin_username,
         submissions: submissions_view,
+        submission_groups,
         games: games_view,
         matches: matches_view,
+        match_groups,
         teams: teams_db,
         pending_teams: pending_teams_view,
         admins: admins_view,

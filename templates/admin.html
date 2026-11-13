@@ -92,62 +92,75 @@
             <button type="button" class="btn-text" id="refresh-submissions-btn">Actualiser la file</button>
         </div>
 
-        <div id="submissions-list" class="submissions-grid">
-            {% if submissions.is_empty() %}
+        <div id="submissions-list">
+            {% if submission_groups.is_empty() %}
             <div class="empty-state">Toutes les captures ont été traitées ! File d'attente vide.</div>
             {% else %}
-            {% for sub in submissions %}
-            <div class="submission-card" data-sub-id="{{ sub.id }}">
-                <div class="sub-media" data-zoom-url="{{ sub.proof_url }}" title="Cliquer pour agrandir la capture">
-                    {% if !sub.proof_url.is_empty() %}
-                    <img src="{{ sub.proof_url }}" alt="Preuve de score" loading="lazy">
-                    {% else %}
-                    <div class="slide-image-placeholder">SANS PHOTO</div>
-                    {% endif %}
-                    <span class="sub-zoom-hint">ZOOM [CLIQUEZ]</span>
-                </div>
-                <div class="sub-content">
-                    <div class="sub-header">
-                        <span class="sub-team-title">{{ sub.team_name }}</span>
-                        <span class="badge-code">{{ sub.calculated_points }} PTS ATTENDUS</span>
+            {% for group in submission_groups %}
+            <details open class="submission-match-group" style="margin-bottom: 1.5rem;">
+                <summary style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: rgba(255,255,255,0.04); border: 1px solid var(--line-subtle); border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                        <span class="badge-format">{{ group.match_title }}</span>
+                        <strong>{{ group.game_name }}</strong>
                     </div>
-                    <div class="sub-scores-declared">
-                        <span class="sub-placement-pill">PLACE : #{{ sub.placement }}</span>
-                        {% if sub.secondary_stat > 0 %}
-                        <span class="sub-secondary-pill">+ {{ sub.secondary_stat }} bonus</span>
-                        {% endif %}
-                    </div>
-                    {% if !sub.player_submissions.is_empty() %}
-                    <div class="sub-player-details" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                        {% for p in sub.player_submissions %}
-                        <div class="sub-player-chip" style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(255,255,255,0.06); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.1);">
-                            <span><strong>J{{ p.player_number }}:</strong> {{ p.score }}</span>
-                            <img src="{{ p.proof_url }}" class="sub-media" data-zoom-url="{{ p.proof_url }}" alt="Preuve J{{ p.player_number }}" style="width: 26px; height: 26px; object-fit: cover; border-radius: 3px; cursor: pointer; border: 1px solid var(--border-color, #475569);" title="Agrandir la capture du Joueur {{ p.player_number }}">
+                    <span class="badge-code">{{ group.submissions.len() }} soumission(s)</span>
+                </summary>
+                <div class="submissions-grid">
+                    {% for sub in group.submissions %}
+                    <div class="submission-card" data-sub-id="{{ sub.id }}">
+                        <div class="sub-media" data-zoom-url="{{ sub.proof_url }}" title="Cliquer pour agrandir la capture">
+                            {% if !sub.proof_url.is_empty() %}
+                            <img src="{{ sub.proof_url }}" alt="Preuve de score" loading="lazy">
+                            {% else %}
+                            <div class="slide-image-placeholder">SANS PHOTO</div>
+                            {% endif %}
+                            <span class="sub-zoom-hint">ZOOM [CLIQUEZ]</span>
                         </div>
-                        {% endfor %}
+                        <div class="sub-content">
+                            <div class="sub-header">
+                                <span class="sub-team-title">{{ sub.team_name }}</span>
+                                <span class="badge-code">{{ sub.calculated_points }} PTS ATTENDUS</span>
+                            </div>
+                            <div class="sub-scores-declared">
+                                <span class="sub-placement-pill">PLACE : #{{ sub.placement }}</span>
+                                {% if sub.secondary_stat > 0 %}
+                                <span class="sub-secondary-pill">+ {{ sub.secondary_stat }} bonus</span>
+                                {% endif %}
+                            </div>
+                            {% if !sub.player_submissions.is_empty() %}
+                            <div class="sub-player-details" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                                {% for p in sub.player_submissions %}
+                                <div class="sub-player-chip" style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(255,255,255,0.06); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.1);">
+                                    <span><strong>J{{ p.player_number }}:</strong> {{ p.score }}</span>
+                                    <img src="{{ p.proof_url }}" class="sub-media" data-zoom-url="{{ p.proof_url }}" alt="Preuve J{{ p.player_number }}" style="width: 26px; height: 26px; object-fit: cover; border-radius: 3px; cursor: pointer; border: 1px solid var(--border-color, #475569);" title="Agrandir la capture du Joueur {{ p.player_number }}">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="sub-actions">
+                                <form method="POST" action="/admin/submissions/{{ sub.id }}/approve" style="display:inline;">
+                                    <button type="submit" class="btn-primary">
+                                        <span class="papicon icon-check" aria-hidden="true"></span> Valider & Créditer
+                                    </button>
+                                </form>
+                                <button type="button" class="btn-outline btn-edit-submission"
+                                        data-sub-id="{{ sub.id }}"
+                                        data-team-name="{{ sub.team_name }}"
+                                        data-placement="{{ sub.placement }}"
+                                        data-secondary-stat="{{ sub.secondary_stat }}">
+                                    Modifier
+                                </button>
+                                <form method="POST" action="/admin/submissions/{{ sub.id }}/reject" style="display:inline;">
+                                    <button type="submit" class="btn-outline">
+                                        <span class="papicon icon-cross" aria-hidden="true"></span> Rejeter
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
-                    <div class="sub-actions">
-                        <form method="POST" action="/admin/submissions/{{ sub.id }}/approve" style="display:inline;">
-                            <button type="submit" class="btn-primary">
-                                <span class="papicon icon-check" aria-hidden="true"></span> Valider & Créditer
-                            </button>
-                        </form>
-                        <button type="button" class="btn-outline btn-edit-submission"
-                                data-sub-id="{{ sub.id }}"
-                                data-team-name="{{ sub.team_name }}"
-                                data-placement="{{ sub.placement }}"
-                                data-secondary-stat="{{ sub.secondary_stat }}">
-                            Modifier
-                        </button>
-                        <form method="POST" action="/admin/submissions/{{ sub.id }}/reject" style="display:inline;">
-                            <button type="submit" class="btn-outline">
-                                <span class="papicon icon-cross" aria-hidden="true"></span> Rejeter
-                            </button>
-                        </form>
-                    </div>
+                    {% endfor %}
                 </div>
-            </div>
+            </details>
             {% endfor %}
             {% endif %}
         </div>
@@ -361,74 +374,79 @@
                 </div>
                 {% endif %}
                 <div id="matches-admin-list" class="matches-admin-container">
-                    {% if matches.is_empty() %}
+                    {% if match_groups.is_empty() %}
                     <div class="empty-state">Aucun match programmé. Utilisez le formulaire pour ouvrir une session.
                     </div>
                     {% else %}
-                    <div class="table-frame">
-                        <table class="standings-table">
-                            <thead>
-                            <tr>
-                                <th>MATCH &amp; JEU</th>
-                                <th>STATUT</th>
-                                <th>ÉQUIPES</th>
-                                <th style="text-align: right;">ACTIONS</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for m in matches %}
-                            <tr class="match-admin-row"
-                                data-status="{% if m.is_open %}open{% else %}closed{% endif %}"
-                                data-game="{{ m.game_name }}"
-                                data-search="{{ m.title }} {{ m.game_name }} {{ m.instructions }}">
-                                <td>
-                                    <div>
-                                        <span class="badge-format">{{ m.title }}</span>
-                                        <strong style="margin-left: 0.4rem;">{{ m.game_name }}</strong>
-                                    </div>
-                                    {% if !m.instructions.trim().is_empty() %}
-                                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
-                                        Lobby : {{ m.instructions }}
-                                    </div>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="pulse-indicator" {% if !m.is_open %}style="background: rgba(113, 113, 122, 0.2); color: var(--text-muted);"{% endif %}>
-                                        {% if m.is_open %}OUVERT{% else %}FERMÉ{% endif %}
-                                    </span>
-                                </td>
-                                <td>{{ m.assigned_teams_count }}</td>
-                                <td style="text-align: right;">
-                                    <div style="display: inline-flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
-                                        <form method="POST" action="/admin/matches/{{ m.id }}/toggle" style="display:inline;">
-                                            <button type="submit" class="btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
-                                                {% if m.is_open %}Clôturer{% else %}Ouvrir{% endif %}
+                    {% for group in match_groups %}
+                    <details open class="match-game-group" data-game="{{ group.game_name }}" style="margin-bottom: 1.25rem;">
+                        <summary style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; background: rgba(255,255,255,0.04); border: 1px solid var(--line-subtle); border-radius: 8px; margin-bottom: 0.65rem;">
+                            <strong>{{ group.game_name }}</strong>
+                            <span class="badge-code group-match-count">{{ group.matches.len() }}</span>
+                        </summary>
+                        <div class="table-frame">
+                            <table class="standings-table">
+                                <thead>
+                                <tr>
+                                    <th>MATCH</th>
+                                    <th>STATUT</th>
+                                    <th>ÉQUIPES</th>
+                                    <th style="text-align: right;">ACTIONS</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for m in group.matches %}
+                                <tr class="match-admin-row"
+                                    data-status="{% if m.is_open %}open{% else %}closed{% endif %}"
+                                    data-game="{{ m.game_name }}"
+                                    data-search="{{ m.title }} {{ m.game_name }} {{ m.instructions }}">
+                                    <td>
+                                        <div>
+                                            <span class="badge-format">{{ m.title }}</span>
+                                        </div>
+                                        {% if !m.instructions.trim().is_empty() %}
+                                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                            Lobby : {{ m.instructions }}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="pulse-indicator" {% if !m.is_open %}style="background: rgba(113, 113, 122, 0.2); color: var(--text-muted);"{% endif %}>
+                                            {% if m.is_open %}OUVERT{% else %}FERMÉ{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ m.assigned_teams_count }}</td>
+                                    <td style="text-align: right;">
+                                        <div style="display: inline-flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                                            <form method="POST" action="/admin/matches/{{ m.id }}/toggle" style="display:inline;">
+                                                <button type="submit" class="btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                                                    {% if m.is_open %}Clôturer{% else %}Ouvrir{% endif %}
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn-text btn-edit-instructions" data-id="{{ m.id }}"
+                                                    data-instructions="{{ m.instructions }}" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+                                                Accès
                                             </button>
-                                        </form>
-                                        <button type="button" class="btn-text btn-edit-instructions" data-id="{{ m.id }}"
-                                                data-instructions="{{ m.instructions }}" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
-                                            Accès
-                                        </button>
-                                        <button type="button" class="btn-primary btn-bulk-scores" data-id="{{ m.id }}" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
-                                            Scores
-                                        </button>
-                                        <form method="POST" action="/admin/matches/{{ m.id }}/delete"
-                                              onsubmit="return confirm('Annuler et supprimer ce match ?');"
-                                              style="display:inline;">
-                                            <button type="submit" class="btn-text" style="color: var(--red); padding: 0.35rem 0.5rem; font-size: 0.8rem;">
-                                                Annuler
+                                            <button type="button" class="btn-primary btn-bulk-scores" data-id="{{ m.id }}" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                                                Scores
                                             </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            <tr id="matches-filter-empty" style="display: none;">
-                                <td colspan="4" class="empty-state">Aucun match ne correspond aux filtres sélectionnés.</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                            <form method="POST" action="/admin/matches/{{ m.id }}/delete"
+                                                  onsubmit="return confirm('Annuler et supprimer ce match ?');"
+                                                  style="display:inline;">
+                                                <button type="submit" class="btn-text" style="color: var(--red); padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+                                                    Annuler
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                    {% endfor %}
+                    <div id="matches-filter-empty" class="empty-state" style="display: none;">Aucun match ne correspond aux filtres sélectionnés.</div>
                     {% endif %}
                 </div>
             </div>

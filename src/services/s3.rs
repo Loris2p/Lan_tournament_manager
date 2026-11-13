@@ -51,7 +51,7 @@ impl S3Service {
             .acl(ObjectCannedAcl::PublicRead)
             .send()
             .await?;
-        Ok(format!("https://{}.{}/{}", self.bucket, self.host, key))
+        Ok(format!("https://{}/{}/{}", self.host, self.bucket, key))
     }
     fn detect_image_type(bytes: &[u8]) -> Result<(&'static str, &'static str), Errors> {
         if bytes.len() < 12 {
