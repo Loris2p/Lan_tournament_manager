@@ -196,7 +196,8 @@ async function openBulkScoresModal(matchId) {
     const maxPlacement = parseInt(game?.max_placement || 64, 10);
     const participatingTeams = cachedTeams.filter(t => (match.assigned_teams || []).includes(t.id));
 
-    const isDuel = (maxPlacement === 2 || (game?.format || '').toLowerCase() === 'duel') && participatingTeams.length === 2;
+    const isFallGuys = (game?.name || '').toLowerCase().includes('fall guys');
+    const isDuel = !isFallGuys && (maxPlacement === 2 || (game?.format || '').toLowerCase() === 'duel') && participatingTeams.length === 2;
     const isScoreRanked = Boolean(hasSec && (game?.points_per_secondary_stat === 0) && (game?.placement_points || []).length > 0 && maxPlacement > 2);
 
     if (form) {
@@ -204,7 +205,9 @@ async function openBulkScoresModal(matchId) {
     }
 
     if (placementHeader) {
-        if (isDuel) {
+        if (isFallGuys) {
+            placementHeader.textContent = 'PRIME VICTOIRE SHOW';
+        } else if (isDuel) {
             placementHeader.textContent = 'RÉSULTAT (1V1)';
         } else if (isScoreRanked) {
             placementHeader.textContent = 'CLASSEMENT (AUTO)';
@@ -219,7 +222,9 @@ async function openBulkScoresModal(matchId) {
         } else {
             secHeader.style.display = '';
             secHeader.textContent = hasSec 
-                ? (teamPlayers > 1 ? `${game.secondary_stat_label.toUpperCase()} (${teamPlayers} JOUEURS)` : game.secondary_stat_label.toUpperCase())
+                ? (isFallGuys 
+                    ? `MANCHES FRANCHIES (${teamPlayers} JOUEURS)`
+                    : (teamPlayers > 1 ? `${game.secondary_stat_label.toUpperCase()} (${teamPlayers} JOUEURS)` : game.secondary_stat_label.toUpperCase()))
                 : 'STAT SECONDAIRE (N/A)';
         }
     }
@@ -229,7 +234,19 @@ async function openBulkScoresModal(matchId) {
     } else {
         tbody.innerHTML = participatingTeams.map((t, idx) => {
             let placementCellHtml = '';
-            if (isDuel) {
+            if (isFallGuys) {
+                placementCellHtml = `
+                    <div class="bulk-duel-buttons">
+                        <button type="button" class="btn-outcome btn-outcome-win" data-val="1">
+                            <span class="papicon icon-crown" aria-hidden="true"></span> Gagné (+3)
+                        </button>
+                        <button type="button" class="btn-outcome btn-outcome-loss active" data-val="2">
+                            <span class="papicon icon-cross" aria-hidden="true"></span> Non (+0)
+                        </button>
+                        <input type="hidden" class="bulk-input-placement" value="2">
+                    </div>
+                `;
+            } else if (isDuel) {
                 placementCellHtml = `
                     <div class="bulk-duel-buttons">
                         <button type="button" class="btn-outcome btn-outcome-win ${idx === 0 ? 'active' : ''}" data-val="1">
@@ -262,7 +279,7 @@ async function openBulkScoresModal(matchId) {
                             ${Array.from({ length: teamPlayers }, (_, pIdx) => `
                                 <input type="number" class="bulk-player-input" data-player="${pIdx + 1}" placeholder="J${pIdx + 1}" min="0" value="0">
                             `).join('')}
-                            <span class="bulk-team-sum badge-code">Total : 0</span>
+                            <span class="bulk-team-sum badge-code">${isFallGuys ? 'Manches : 0' : 'Total : 0'}</span>
                             <input type="hidden" class="bulk-input-secondary" value="0">
                         </div>
                     </td>
@@ -284,14 +301,41 @@ async function openBulkScoresModal(matchId) {
             `;
         }).join('');
 
-        wireBulkEvents(tbody, isDuel, teamPlayers);
+        wireBulkEvents(tbody, isDuel, teamPlayers, isFallGuys);
     }
 
     openModal('modal-bulk-scores');
 }
 
-function wireBulkEvents(tbody, isDuel, teamPlayers) {
-    if (isDuel) {
+function wireBulkEvents(tbody, isDuel, teamPlayers, isFallGuys) {
+    if (isFallGuys) {
+        const rows = tbody.querySelectorAll('tr');
+        tbody.querySelectorAll('.btn-outcome').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const row = btn.closest('tr');
+                const val = btn.getAttribute('data-val');
+
+                if (val === '1') {
+                    // Une seule équipe peut remporter la prime de victoire finale
+                    rows.forEach(r => {
+                        const input = r.querySelector('.bulk-input-placement');
+                        const isTarget = (r === row);
+                        if (input) input.value = isTarget ? '1' : '2';
+                        r.querySelectorAll('.btn-outcome').forEach(b => {
+                            b.classList.toggle('active', isTarget ? b.getAttribute('data-val') === '1' : b.getAttribute('data-val') === '2');
+                        });
+                    });
+                } else {
+                    // Annuler la victoire sur cette équipe
+                    const input = row.querySelector('.bulk-input-placement');
+                    if (input) input.value = '2';
+                    row.querySelectorAll('.btn-outcome').forEach(b => {
+                        b.classList.toggle('active', b.getAttribute('data-val') === '2');
+                    });
+                }
+            });
+        });
+    } else if (isDuel) {
         const rows = tbody.querySelectorAll('tr');
         tbody.querySelectorAll('.btn-outcome').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -328,7 +372,7 @@ function wireBulkEvents(tbody, isDuel, teamPlayers) {
                 });
                 const totalEl = row.querySelector('.bulk-team-sum');
                 const secInput = row.querySelector('.bulk-input-secondary');
-                if (totalEl) totalEl.textContent = `Total : ${sum}`;
+                if (totalEl) totalEl.textContent = isFallGuys ? `Manches : ${sum}` : `Total : ${sum}`;
                 if (secInput) secInput.value = sum;
             });
         });

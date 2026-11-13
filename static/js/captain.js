@@ -84,8 +84,9 @@ function selectMatchElement(el) {
     const maxSecondary = parseInt(el.getAttribute('data-max-secondary') || '100', 10);
     currentTeamPlayerCount = parseInt(el.getAttribute('data-team-player-count') || '1', 10);
 
+    const isFallGuys = game.toLowerCase().includes('fall guys');
     const isScoreRanked = Boolean(secondaryLabel && secondaryLabel.trim().length > 0 && secondaryPoints === 0 && maxPlacement > 2);
-    selectedMatch = { id: matchId, title, game_name: game, instructions, maxPlacement, isScoreRanked };
+    selectedMatch = { id: matchId, title, game_name: game, instructions, maxPlacement, isScoreRanked, isFallGuys };
 
     const detailsPanel = document.getElementById('selected-match-details');
     const noMatchAlert = document.getElementById('no-match-alert');
@@ -116,12 +117,32 @@ function selectMatchElement(el) {
     if (isScoreRanked) {
         if (placementGroup) placementGroup.style.display = 'none';
         if (placementInput) placementInput.value = '1';
+    } else if (isFallGuys) {
+        if (placementGroup) placementGroup.style.display = 'block';
+        if (duelPlacementGroup) duelPlacementGroup.style.display = 'grid';
+        if (standardPlacementGroup) standardPlacementGroup.style.display = 'none';
+        if (placementLabel) placementLabel.textContent = "PRIME DE VICTOIRE DU SHOW";
+        
+        const winBtn = duelPlacementGroup.querySelector('.btn-outcome-win');
+        const lossBtn = duelPlacementGroup.querySelector('.btn-outcome-loss');
+        if (winBtn) winBtn.innerHTML = '<span class="papicon icon-crown" aria-hidden="true"></span> Show Remporté (+3 pts)';
+        if (lossBtn) lossBtn.innerHTML = '<span class="papicon icon-cross" aria-hidden="true"></span> Pas de victoire (+0 pt)';
+        
+        if (placementInput) placementInput.value = '2';
+        if (lossBtn) lossBtn.classList.add('active');
+        if (winBtn) winBtn.classList.remove('active');
     } else {
         if (placementGroup) placementGroup.style.display = 'block';
         if (maxPlacement === 2) {
             if (duelPlacementGroup) duelPlacementGroup.style.display = 'grid';
             if (standardPlacementGroup) standardPlacementGroup.style.display = 'none';
             if (placementLabel) placementLabel.textContent = "RÉSULTAT DU MATCH";
+            
+            const winBtn = duelPlacementGroup.querySelector('.btn-outcome-win');
+            const lossBtn = duelPlacementGroup.querySelector('.btn-outcome-loss');
+            if (winBtn) winBtn.innerHTML = '<span class="papicon icon-crown" aria-hidden="true"></span> Victoire';
+            if (lossBtn) lossBtn.innerHTML = '<span class="papicon icon-cross" aria-hidden="true"></span> Défaite';
+            
             if (placementInput) placementInput.value = '';
             if (duelPlacementGroup) {
                 duelPlacementGroup.querySelectorAll('.btn-outcome').forEach(b => b.classList.remove('active'));
@@ -247,7 +268,9 @@ function renderMultiPlayerCards() {
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 0.75rem; align-items: start;">
                 <div>
-                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">SCORE DU JOUEUR</label>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
+                        ${selectedMatch?.isFallGuys ? 'MANCHES FRANCHIES (SURVIE)' : 'SCORE DU JOUEUR'}
+                    </label>
                     <input type="number" class="player-score-input" data-player="${p.player_number}" min="0" value="${p.score || 0}" required style="width: 100%;">
                 </div>
                 <div>
@@ -343,7 +366,9 @@ function updateMultiPlayerSum() {
     const sum = playerSubmissionsData.reduce((acc, p) => acc + (p.score || 0), 0);
     const badge = document.getElementById('multi-players-calc-badge');
     const secInput = document.getElementById('sub-secondary');
-    if (badge) badge.textContent = `CUMUL : ${sum}`;
+    if (badge) {
+        badge.textContent = selectedMatch?.isFallGuys ? `MANCHES CUMULÉES : ${sum}` : `CUMUL : ${sum}`;
+    }
     if (secInput) secInput.value = sum;
 }
 
@@ -576,6 +601,8 @@ function initFormSubmit() {
         if (confPlacement) {
             if (selectedMatch?.isScoreRanked) {
                 confPlacement.textContent = "Calculé au score du round";
+            } else if (selectedMatch?.isFallGuys) {
+                confPlacement.textContent = placementInput.value === '1' ? 'Show Remporté (+3 pts)' : 'Pas de victoire finale (+0 pt)';
             } else if (selectedMatch?.maxPlacement === 2) {
                 confPlacement.textContent = placementInput.value === '1' ? 'Victoire' : 'Défaite';
             } else {
@@ -628,7 +655,7 @@ function isFormDirty() {
     const placementInput = document.getElementById('sub-placement');
     const secInput = document.getElementById('sub-secondary');
     const hasProof = Boolean(proofInput && proofInput.value && proofInput.value.trim().length > 0);
-    const hasPlacement = Boolean(placementInput && !selectedMatch?.isScoreRanked && placementInput.value.trim().length > 0);
+    const hasPlacement = Boolean(placementInput && !selectedMatch?.isScoreRanked && !selectedMatch?.isFallGuys && placementInput.value.trim().length > 0);
     const hasSec = Boolean(secInput && secInput.value.trim().length > 0);
     const hasPlayersData = playerSubmissionsData.some(p => p.score > 0 || Boolean(p.proof_base64));
     return hasProof || hasPlacement || hasSec || hasPlayersData;
