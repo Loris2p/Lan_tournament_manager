@@ -90,9 +90,41 @@ pub async fn find_submission_by_id(db: &Database, submission_id: ObjectId)-> Res
         Some(m) => Ok(m),
         None => Err(Errors::Error404NotFound("Submission introuvable".to_string())),
     }
-}pub async fn has_submission_for_match(
-    db :&Database, match_id : ObjectId, team_id : ObjectId
-) -> Result<bool, Errors>{
-    let count = db.collection::<Submission>("submissions").count_documents(doc! {"match_id":match_id, "team_id":team_id}, None).await?;
-    Ok(count>0)
+}
+
+pub async fn has_submission_for_match(
+    db: &Database,
+    match_id: ObjectId,
+    team_id: ObjectId,
+) -> Result<bool, Errors> {
+    let count = db
+        .collection::<Submission>("submissions")
+        .count_documents(
+            doc! {
+                "match_id": match_id,
+                "team_id": team_id,
+                "status": { "$ne": SubmissionStatus::Rejected }
+            },
+            None,
+        )
+        .await?;
+    Ok(count > 0)
+}
+
+pub async fn delete_active_submissions_for_match_team(
+    db: &Database,
+    match_id: ObjectId,
+    team_id: ObjectId,
+) -> Result<(), Errors> {
+    db.collection::<Submission>("submissions")
+        .delete_many(
+            doc! {
+                "match_id": match_id,
+                "team_id": team_id,
+                "status": { "$ne": SubmissionStatus::Rejected }
+            },
+            None,
+        )
+        .await?;
+    Ok(())
 }

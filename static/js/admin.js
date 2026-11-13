@@ -19,6 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initTournamentSchedule();
     initBulkScoresForm();
     initResetZone();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === 'invalid_score') {
+        showToast("Score invalide selon les limites configurées pour ce jeu.", "error");
+        const cleanUrl = new URL(window.location);
+        cleanUrl.searchParams.delete('error');
+        window.history.replaceState({}, '', cleanUrl);
+    }
 });
 
 function initWebSocket() {
@@ -130,7 +138,7 @@ function initSubmissions() {
                 form.action = `/admin/submissions/${subId}/edit`;
             }
             if (titleEl) {
-                titleEl.textContent = `Modifier la soumission — ${teamName}`;
+                titleEl.textContent = `Modifier la soumission : ${teamName}`;
             }
             if (placementInput) placementInput.value = placement;
             if (secondaryInput) secondaryInput.value = secondaryStat;

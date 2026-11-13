@@ -288,7 +288,7 @@ pub async fn admin_edit_submission(
         secondary_stat: form.secondary_stat,
     };
     if game.validate_score(&score).is_err() {
-        return Redirect::to("/admin?tab=arbitrage").into_response();
+        return Redirect::to("/admin?tab=arbitrage&error=invalid_score").into_response();
     }
 
     let calculated_points = game.calculate_points(&score);
@@ -330,7 +330,12 @@ pub async fn admin_reject_submission(
     if submission.status != SubmissionStatus::Pending {
         return Redirect::to("/admin?tab=arbitrage").into_response();
     }
-    let _ = db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Rejected).await;
+    if db::approve_or_reject_submission(&state.db, id, SubmissionStatus::Rejected)
+        .await
+        .is_ok()
+    {
+        let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
+    }
     Redirect::to("/admin?tab=arbitrage").into_response()
 }
 

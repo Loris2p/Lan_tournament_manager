@@ -602,7 +602,7 @@ function initFormSubmit() {
         const confPlayersList = document.getElementById('confirm-players-list');
         const confProofStatus = document.getElementById('confirm-proof-status');
 
-        if (confGame) confGame.textContent = `${selectedMatch.game_name} — ${selectedMatch.title}`;
+        if (confGame) confGame.textContent = `${selectedMatch.game_name} - ${selectedMatch.title}`;
         if (confPlacement) {
             if (selectedMatch?.isScoreRanked) {
                 confPlacement.textContent = "Calculé au score du round";
@@ -691,7 +691,7 @@ async function handleCaptainMatchUpdate() {
                 : `${newMatches.length} nouveaux matchs disponibles pour votre équipe !`;
 
             if (isFormDirty()) {
-                showToast(`${label} — actualisez après votre saisie.`, 'info');
+                showToast(`${label} (actualisez après votre saisie).`, 'info');
                 return;
             }
             showToast(label, 'info');

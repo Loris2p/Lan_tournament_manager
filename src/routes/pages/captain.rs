@@ -69,6 +69,7 @@ impl CaptainTemplate {
             Some("invalid_match") => Some("Match sélectionné introuvable."),
             Some("match_closed") => Some("Ce match a déjà été clôturé par les arbitres."),
             Some("not_assigned") => Some("Votre équipe n'est pas inscrite à ce match."),
+            Some("already_submitted") => Some("Vous avez déjà envoyé une soumission pour ce match."),
             Some("invalid_image") => Some("La preuve fournie doit être une image valide."),
             Some("invalid_score") => {
                 Some("Le score de placement ou la statistique secondaire est invalide.")

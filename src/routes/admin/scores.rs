@@ -38,6 +38,7 @@ pub async fn reject_submission(
     _admin: AdminUser,
 ) -> Result<Json<Value>, Errors> {
     db::approve_or_reject_submission(&state.db, submission_id, SubmissionStatus::Rejected).await?;
+    let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }
 
@@ -56,6 +57,7 @@ pub async fn submit_match_scores(
     for e in req.results {
         let pts = game.calculate_points(&e.score);
         let team_name = db::find_team_by_id(&state.db, e.team_id).await?.name;
+        db::delete_active_submissions_for_match_team(&state.db, match_id, e.team_id).await?;
         db::insert_submission(
             &state.db,
             match_id,
@@ -72,6 +74,7 @@ pub async fn submit_match_scores(
     db::recalculate_tournament_scores(&state.db).await?;
     if req.close_match && m.is_open {
         db::toggle_match_status(&state.db, match_id).await?;
+        let _ = state.ws_tx.send("MATCH_UPDATE".to_string());
     }
     let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({"success":true})))

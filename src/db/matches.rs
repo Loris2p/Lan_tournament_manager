@@ -1,5 +1,5 @@
 use crate::errors::Errors;
-use crate::models::{Match, Submission};
+use crate::models::{Match, Submission, SubmissionStatus};
 use futures::TryStreamExt;
 use mongodb::{
     Database,
@@ -91,7 +91,14 @@ pub async fn get_open_matches_for_team(
 ) -> Result<Vec<Match>, Errors> {
     let submitted_match_ids = db
         .collection::<Submission>("submissions")
-        .distinct("match_id", doc! { "team_id": team_id }, None)
+        .distinct(
+            "match_id",
+            doc! {
+                "team_id": team_id,
+                "status": { "$ne": SubmissionStatus::Rejected }
+            },
+            None,
+        )
         .await?;
 
     let res = db
