@@ -86,7 +86,8 @@ function selectMatchElement(el) {
 
     const isFallGuys = game.toLowerCase().includes('fall guys');
     const isScoreRanked = Boolean(secondaryLabel && secondaryLabel.trim().length > 0 && secondaryPoints === 0 && maxPlacement > 2);
-    selectedMatch = { id: matchId, title, game_name: game, instructions, maxPlacement, isScoreRanked, isFallGuys };
+    const noPlacementNeeded = isScoreRanked || maxPlacement <= 1;
+    selectedMatch = { id: matchId, title, game_name: game, instructions, maxPlacement, isScoreRanked, isFallGuys, noPlacementNeeded };
 
     const detailsPanel = document.getElementById('selected-match-details');
     const noMatchAlert = document.getElementById('no-match-alert');
@@ -114,7 +115,7 @@ function selectMatchElement(el) {
     const duelPlacementGroup = document.getElementById('duel-placement-group');
     const standardPlacementGroup = document.getElementById('standard-placement-group');
 
-    if (isScoreRanked) {
+    if (noPlacementNeeded) {
         if (placementGroup) placementGroup.style.display = 'none';
         if (placementInput) placementInput.value = '1';
     } else if (isFallGuys) {
@@ -601,6 +602,8 @@ function initFormSubmit() {
         if (confPlacement) {
             if (selectedMatch?.isScoreRanked) {
                 confPlacement.textContent = "Calculé au score du round";
+            } else if (selectedMatch?.noPlacementNeeded) {
+                confPlacement.textContent = "Score cumulé direct";
             } else if (selectedMatch?.isFallGuys) {
                 confPlacement.textContent = placementInput.value === '1' ? 'Show Remporté (+3 pts)' : 'Pas de victoire finale (+0 pt)';
             } else if (selectedMatch?.maxPlacement === 2) {
@@ -655,7 +658,7 @@ function isFormDirty() {
     const placementInput = document.getElementById('sub-placement');
     const secInput = document.getElementById('sub-secondary');
     const hasProof = Boolean(proofInput && proofInput.value && proofInput.value.trim().length > 0);
-    const hasPlacement = Boolean(placementInput && !selectedMatch?.isScoreRanked && !selectedMatch?.isFallGuys && placementInput.value.trim().length > 0);
+    const hasPlacement = Boolean(placementInput && !selectedMatch?.noPlacementNeeded && !selectedMatch?.isFallGuys && placementInput.value.trim().length > 0);
     const hasSec = Boolean(secInput && secInput.value.trim().length > 0);
     const hasPlayersData = playerSubmissionsData.some(p => p.score > 0 || Boolean(p.proof_base64));
     return hasProof || hasPlacement || hasSec || hasPlayersData;

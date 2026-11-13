@@ -199,20 +199,26 @@ async function openBulkScoresModal(matchId) {
     const isFallGuys = (game?.name || '').toLowerCase().includes('fall guys');
     const isDuel = !isFallGuys && (maxPlacement === 2 || (game?.format || '').toLowerCase() === 'duel') && participatingTeams.length === 2;
     const isScoreRanked = Boolean(hasSec && (game?.points_per_secondary_stat === 0) && (game?.placement_points || []).length > 0 && maxPlacement > 2);
+    const hidePlacementCol = !isFallGuys && !isDuel && !isScoreRanked && maxPlacement <= 1;
 
     if (form) {
         form.setAttribute('data-is-score-ranked', isScoreRanked ? 'true' : 'false');
     }
 
     if (placementHeader) {
-        if (isFallGuys) {
-            placementHeader.textContent = 'PRIME VICTOIRE SHOW';
-        } else if (isDuel) {
-            placementHeader.textContent = 'RÉSULTAT (1V1)';
-        } else if (isScoreRanked) {
-            placementHeader.textContent = 'CLASSEMENT (AUTO)';
+        if (hidePlacementCol) {
+            placementHeader.style.display = 'none';
         } else {
-            placementHeader.textContent = 'CLASSEMENT (PLACE)';
+            placementHeader.style.display = '';
+            if (isFallGuys) {
+                placementHeader.textContent = 'PRIME VICTOIRE SHOW';
+            } else if (isDuel) {
+                placementHeader.textContent = 'RÉSULTAT (1V1)';
+            } else if (isScoreRanked) {
+                placementHeader.textContent = 'CLASSEMENT (AUTO)';
+            } else {
+                placementHeader.textContent = 'CLASSEMENT (PLACE)';
+            }
         }
     }
 
@@ -236,36 +242,50 @@ async function openBulkScoresModal(matchId) {
             let placementCellHtml = '';
             if (isFallGuys) {
                 placementCellHtml = `
-                    <div class="bulk-duel-buttons">
-                        <button type="button" class="btn-outcome btn-outcome-win" data-val="1">
-                            <span class="papicon icon-crown" aria-hidden="true"></span> Gagné (+3)
-                        </button>
-                        <button type="button" class="btn-outcome btn-outcome-loss active" data-val="2">
-                            <span class="papicon icon-cross" aria-hidden="true"></span> Non (+0)
-                        </button>
-                        <input type="hidden" class="bulk-input-placement" value="2">
-                    </div>
+                    <td>
+                        <div class="bulk-duel-buttons">
+                            <button type="button" class="btn-outcome btn-outcome-win" data-val="1">
+                                <span class="papicon icon-crown" aria-hidden="true"></span> Gagné (+3)
+                            </button>
+                            <button type="button" class="btn-outcome btn-outcome-loss active" data-val="2">
+                                <span class="papicon icon-cross" aria-hidden="true"></span> Non (+0)
+                            </button>
+                            <input type="hidden" class="bulk-input-placement" value="2">
+                        </div>
+                    </td>
                 `;
             } else if (isDuel) {
                 placementCellHtml = `
-                    <div class="bulk-duel-buttons">
-                        <button type="button" class="btn-outcome btn-outcome-win ${idx === 0 ? 'active' : ''}" data-val="1">
-                            <span class="papicon icon-crown" aria-hidden="true"></span> Victoire
-                        </button>
-                        <button type="button" class="btn-outcome btn-outcome-loss ${idx === 1 ? 'active' : ''}" data-val="2">
-                            <span class="papicon icon-cross" aria-hidden="true"></span> Défaite
-                        </button>
-                        <input type="hidden" class="bulk-input-placement" value="${idx === 0 ? '1' : '2'}">
-                    </div>
+                    <td>
+                        <div class="bulk-duel-buttons">
+                            <button type="button" class="btn-outcome btn-outcome-win ${idx === 0 ? 'active' : ''}" data-val="1">
+                                <span class="papicon icon-crown" aria-hidden="true"></span> Victoire
+                            </button>
+                            <button type="button" class="btn-outcome btn-outcome-loss ${idx === 1 ? 'active' : ''}" data-val="2">
+                                <span class="papicon icon-cross" aria-hidden="true"></span> Défaite
+                            </button>
+                            <input type="hidden" class="bulk-input-placement" value="${idx === 0 ? '1' : '2'}">
+                        </div>
+                    </td>
                 `;
             } else if (isScoreRanked) {
                 placementCellHtml = `
-                    <span class="badge-format" style="color: var(--text-muted); font-size: 0.75rem;">Auto (par score)</span>
-                    <input type="hidden" class="bulk-input-placement" value="${idx + 1}">
+                    <td>
+                        <span class="badge-format" style="color: var(--text-muted); font-size: 0.75rem;">Auto (par score)</span>
+                        <input type="hidden" class="bulk-input-placement" value="${idx + 1}">
+                    </td>
+                `;
+            } else if (hidePlacementCol) {
+                placementCellHtml = `
+                    <td style="display: none;">
+                        <input type="hidden" class="bulk-input-placement" value="1">
+                    </td>
                 `;
             } else {
                 placementCellHtml = `
-                    <input type="number" class="bulk-input-placement" min="1" max="${maxPlacement}" value="${idx + 1}" required style="width: 80px;">
+                    <td>
+                        <input type="number" class="bulk-input-placement" min="1" max="${maxPlacement}" value="${idx + 1}" required style="width: 80px;">
+                    </td>
                 `;
             }
 
@@ -295,7 +315,7 @@ async function openBulkScoresModal(matchId) {
             return `
                 <tr data-team-id="${t.id}">
                     <td><strong>${escapeHtml(t.name)}</strong></td>
-                    <td>${placementCellHtml}</td>
+                    ${placementCellHtml}
                     ${secCellHtml}
                 </tr>
             `;
