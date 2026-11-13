@@ -167,6 +167,48 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
     HtmlTemplate(template).into_response()
 }
 
+#[derive(Deserialize)]
+pub struct EditSubmissionForm {
+    pub placement: u8,
+    #[serde(default)]
+    pub secondary_stat: u32,
+}
+
+pub async fn admin_edit_submission(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<ObjectId>,
+    _admin: AdminUser,
+    Form(form): Form<EditSubmissionForm>,
+) -> Response {
+    let submission = match db::find_submission_by_id(&state.db, id).await {
+        Ok(s) => s,
+        Err(_) => return Redirect::to("/admin?tab=arbitrage").into_response(),
+    };
+    if submission.status != SubmissionStatus::Pending {
+        return Redirect::to("/admin?tab=arbitrage").into_response();
+    }
+    let m = match db::find_match_by_id(&state.db, submission.match_id).await {
+        Ok(m) => m,
+        Err(_) => return Redirect::to("/admin?tab=arbitrage").into_response(),
+    };
+    let game = match db::find_game_by_id(&state.db, m.game_id).await {
+        Ok(g) => g,
+        Err(_) => return Redirect::to("/admin?tab=arbitrage").into_response(),
+    };
+
+    let score = crate::models::SubmissionScore {
+        placement: form.placement,
+        secondary_stat: form.secondary_stat,
+    };
+    if game.validate_score(&score).is_err() {
+        return Redirect::to("/admin?tab=arbitrage").into_response();
+    }
+
+    let calculated_points = game.calculate_points(&score);
+    let _ = db::update_submission_score(&state.db, id, score, calculated_points).await;
+    Redirect::to("/admin?tab=arbitrage").into_response()
+}
+
 pub async fn admin_approve_submission(
     State(state): State<Arc<AppState>>,
     Path(id): Path<ObjectId>,

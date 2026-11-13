@@ -108,6 +108,34 @@ async function refreshSubmissionsSilently() {
 function initSubmissions() {
     wireSubmissionMediaZoom();
 
+    const listEl = document.getElementById('submissions-list');
+    if (listEl) {
+        listEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-edit-submission');
+            if (!btn) return;
+            const subId = btn.getAttribute('data-sub-id');
+            const teamName = btn.getAttribute('data-team-name') || '';
+            const placement = btn.getAttribute('data-placement') || '1';
+            const secondaryStat = btn.getAttribute('data-secondary-stat') || '0';
+
+            const form = document.getElementById('edit-submission-form');
+            const titleEl = document.getElementById('edit-sub-team-title');
+            const placementInput = document.getElementById('edit-sub-placement');
+            const secondaryInput = document.getElementById('edit-sub-secondary');
+
+            if (form && subId) {
+                form.action = `/admin/submissions/${subId}/edit`;
+            }
+            if (titleEl) {
+                titleEl.textContent = `Modifier la soumission — ${teamName}`;
+            }
+            if (placementInput) placementInput.value = placement;
+            if (secondaryInput) secondaryInput.value = secondaryStat;
+
+            openModal('modal-edit-submission');
+        });
+    }
+
     document.getElementById('refresh-submissions-btn')?.addEventListener('click', async () => {
         await refreshSubmissionsSilently();
         showToast("File d'arbitrage synchronisée !", "info");

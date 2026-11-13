@@ -36,6 +36,10 @@ pub fn create_router() -> Router<Arc<AppState>> {
             post(pages::admin_approve_submission),
         )
         .route(
+            "/admin/submissions/{id}/edit",
+            post(pages::admin_edit_submission),
+        )
+        .route(
             "/admin/submissions/{id}/reject",
             post(pages::admin_reject_submission),
         )
