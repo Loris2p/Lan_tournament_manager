@@ -44,6 +44,9 @@ pub async fn update_tournament_settings(
     if let Some(paused) = req.is_paused {
         set_doc.insert("is_paused", paused);
     }
+    if let Some(enable_general) = req.enable_general_leaderboard {
+        set_doc.insert("enable_general_leaderboard", enable_general);
+    }
 
     if set_doc.is_empty() {
         return Ok(());

@@ -47,6 +47,11 @@ pub async fn get_leaderboard(db: &Database) -> Result<Vec<PublicTeam>, Errors> {
         .await?
         .try_collect()
         .await?;
+    let games = crate::db::list_games(db).await.unwrap_or_default();
+    let games_map: HashMap<ObjectId, String> = games
+        .into_iter()
+        .filter_map(|g| g.id.map(|id| (id, g.name)))
+        .collect();
     let mut leaderboard = Vec::new();
     for t in sorted_teams {
         let id = match t.id {
@@ -57,11 +62,14 @@ pub async fn get_leaderboard(db: &Database) -> Result<Vec<PublicTeam>, Errors> {
                 ));
             }
         };
+        let game_name = t.game_id.and_then(|gid| games_map.get(&gid).cloned());
         leaderboard.push(PublicTeam {
             id,
             name: t.name,
             captain_username: t.captain_username,
             total_points: t.total_points,
+            game_id: t.game_id.map(|gid| gid.to_hex()),
+            game_name,
         });
     }
     Ok(leaderboard)
@@ -98,6 +106,7 @@ pub async fn create_team(
     name: &str,
     captain_username: &str,
     captain_password_hash: &str,
+    game_id: Option<ObjectId>,
 ) -> Result<Team, Errors> {
     let mut equipe = Team {
         id: None,
@@ -107,6 +116,7 @@ pub async fn create_team(
         total_points: 0,
         token_version: 0,
         is_verified: true,
+        game_id,
     };
     let res = db.collection::<Team>("teams").insert_one(&equipe, None).await?;
     equipe.id = res.inserted_id.as_object_id();
@@ -119,6 +129,7 @@ pub async fn register_team(
     name: &str,
     captain_username: &str,
     captain_password_hash: &str,
+    game_id: Option<ObjectId>,
 ) -> Result<Team, Errors> {
     let mut equipe = Team {
         id: None,
@@ -128,6 +139,7 @@ pub async fn register_team(
         total_points: 0,
         token_version: 0,
         is_verified: false,
+        game_id,
     };
     let res = db.collection::<Team>("teams").insert_one(&equipe, None).await?;
     equipe.id = res.inserted_id.as_object_id();

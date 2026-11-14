@@ -183,6 +183,25 @@ function initGames() {
 }
 
 function initMatches() {
+    const gameSelect = document.getElementById('match-game-select');
+    const teamsSelector = document.getElementById('match-teams-selector');
+    if (gameSelect && teamsSelector) {
+        const filterMatchTeamsByGame = () => {
+            const selectedGameId = gameSelect.value;
+            teamsSelector.querySelectorAll('.team-checkbox-label').forEach(label => {
+                const teamGameId = label.getAttribute('data-game-id') || '';
+                const visible = !selectedGameId || !teamGameId || teamGameId === selectedGameId;
+                label.style.display = visible ? '' : 'none';
+                if (!visible) {
+                    const cb = label.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = false;
+                }
+            });
+        };
+        gameSelect.addEventListener('change', filterMatchTeamsByGame);
+        filterMatchTeamsByGame();
+    }
+
     const container = document.getElementById('matches-admin-list');
     if (!container) return;
 
@@ -622,15 +641,31 @@ function initResetZone() {
 function initTournamentSettings() {
     const form = document.getElementById('settings-points-form');
     const input = document.getElementById('tournament-placement-points');
+    const enableCheckbox = document.getElementById('enable-general-leaderboard');
+    const pointsGroup = document.getElementById('global-points-group');
     const defaultBtn = document.getElementById('btn-default-points');
     const statusMsg = document.getElementById('settings-status-msg');
 
     if (!form || !input) return;
 
+    const syncPointsVisibility = () => {
+        if (!enableCheckbox || !pointsGroup) return;
+        const enabled = enableCheckbox.checked;
+        pointsGroup.style.opacity = enabled ? '1' : '0.45';
+        input.disabled = !enabled;
+        if (defaultBtn) defaultBtn.disabled = !enabled;
+    };
+
+    enableCheckbox?.addEventListener('change', syncPointsVisibility);
+
     api.get('/api/admin/settings')
         .then(settings => {
             if (settings && Array.isArray(settings.global_placement_points)) {
                 input.value = settings.global_placement_points.join(', ');
+            }
+            if (enableCheckbox && settings) {
+                enableCheckbox.checked = settings.enable_general_leaderboard !== false;
+                syncPointsVisibility();
             }
         })
         .catch(err => {
@@ -644,19 +679,25 @@ function initTournamentSettings() {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const enableGeneral = enableCheckbox ? enableCheckbox.checked : true;
         const rawValues = input.value
             .split(',')
             .map(s => parseInt(s.trim(), 10))
             .filter(n => !isNaN(n));
 
-        if (rawValues.length === 0) {
+        if (enableGeneral && rawValues.length === 0) {
             showToast("Veuillez saisir au moins une valeur de point.", "error");
             return;
         }
 
+        const payload = { enable_general_leaderboard: enableGeneral };
+        if (rawValues.length > 0) {
+            payload.global_placement_points = rawValues;
+        }
+
         try {
-            await api.post('/api/admin/settings', { global_placement_points: rawValues });
-            showToast("Barème général du tournoi enregistré avec succès !", "success");
+            await api.post('/api/admin/settings', payload);
+            showToast("Paramètres du classement général enregistrés avec succès !", "success");
             if (statusMsg) {
                 statusMsg.innerHTML = '<span class="papicon icon-check" aria-hidden="true"></span> Enregistré';
                 statusMsg.style.color = "var(--green, #22c55e)";

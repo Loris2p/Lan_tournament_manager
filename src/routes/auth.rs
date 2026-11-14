@@ -208,8 +208,20 @@ pub async fn register(
         ));
     }
 
+    if let Some(gid) = req.game_id {
+        if crate::db::find_game_by_id(&state.db, gid).await.is_err() {
+            return Err(Errors::Error400BadRequest(
+                "Le tournoi sélectionné est introuvable.".to_string(),
+            ));
+        }
+    } else if !crate::db::list_games(&state.db).await.unwrap_or_default().is_empty() {
+        return Err(Errors::Error400BadRequest(
+            "Veuillez sélectionner un tournoi pour votre équipe.".to_string(),
+        ));
+    }
+
     let h_pwd = hash_password(&req.captain_password)?;
-    crate::db::register_team(&state.db, team_name, &captain_username, &h_pwd).await?;
+    crate::db::register_team(&state.db, team_name, &captain_username, &h_pwd, req.game_id).await?;
 
     Ok(Json(json!({
         "success": true,

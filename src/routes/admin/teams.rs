@@ -26,7 +26,7 @@ pub async fn create_team(
         ));
     };
     let h_pwd = auth::hash_password(&req.captain_password)?;
-    db::create_team(&state.db, &req.name, &captain_username, &h_pwd).await?;
+    db::create_team(&state.db, &req.name, &captain_username, &h_pwd, req.game_id).await?;
     let _ = &state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     Ok(Json(json!({"success":true})))
 }
@@ -66,6 +66,11 @@ pub async fn get_pending_teams(
     _admin: AdminUser,
 ) -> Result<Json<Value>, Errors> {
     let teams = db::get_pending_teams(&state.db).await?;
+    let games = db::list_games(&state.db).await.unwrap_or_default();
+    let games_map: std::collections::HashMap<ObjectId, String> = games
+        .into_iter()
+        .filter_map(|g| g.id.map(|id| (id, g.name)))
+        .collect();
     let views: Vec<crate::models::PublicTeam> = teams
         .into_iter()
         .filter_map(|t| {
@@ -74,6 +79,8 @@ pub async fn get_pending_teams(
                 name: t.name,
                 captain_username: t.captain_username,
                 total_points: t.total_points,
+                game_id: t.game_id.map(|gid| gid.to_hex()),
+                game_name: t.game_id.and_then(|gid| games_map.get(&gid).cloned()),
             })
         })
         .collect();

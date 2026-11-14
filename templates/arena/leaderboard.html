@@ -11,12 +11,15 @@
     </header>
 
     <nav class="admin-tabs ar-tabs" id="leaderboard-tabs-nav">
+        {% if enable_general_leaderboard %}
         <button type="button" class="tab-btn active" data-tab="general"><span class="papicon icon-crown" aria-hidden="true"></span> Général</button>
+        {% endif %}
         {% for g in game_leaderboards %}
-        <button type="button" class="tab-btn" data-tab="game-{{ g.game_id }}">{{ g.game_name }}</button>
+        <button type="button" class="tab-btn{% if !enable_general_leaderboard && loop.first %} active{% endif %}" data-tab="game-{{ g.game_id }}">{{ g.game_name }}</button>
         {% endfor %}
     </nav>
 
+    {% if enable_general_leaderboard %}
     <div class="tab-pane active" id="tab-general">
         <p class="ar-count" id="standings-count">{{ teams.len() }} ÉQUIPE{% if teams.len() > 1 %}S{% endif %} EN COURSE</p>
 
@@ -64,31 +67,32 @@
             </table>
         </div>
     </div>
+    {% endif %}
 
     {% for g in game_leaderboards %}
-    <div class="tab-pane" id="tab-game-{{ g.game_id }}">
+    <div class="tab-pane{% if !enable_general_leaderboard && loop.first %} active{% endif %}" id="tab-game-{{ g.game_id }}">
         <div class="ar-game-head">
             <div>
                 <p class="ar-eyebrow">Épreuve · {{ g.format }}</p>
                 <h2 class="ar-game-title">{{ g.game_name }}</h2>
             </div>
-            <p class="ar-note">Scores de l'épreuve et points attribués au classement général</p>
+            <p class="ar-note">{% if enable_general_leaderboard %}Scores de l'épreuve et points attribués au classement général{% else %}Classement de l'épreuve{% endif %}</p>
         </div>
         <div class="ar-table-wrap">
             <table class="ar-table">
                 <thead>
-                    <tr><th>Rang</th><th>Équipe</th><th>Score brut</th><th>Points tournoi</th></tr>
+                    <tr><th>Rang</th><th>Équipe</th><th>Score brut</th>{% if enable_general_leaderboard %}<th>Points tournoi</th>{% endif %}</tr>
                 </thead>
                 <tbody>
                     {% if g.entries.is_empty() %}
-                    <tr><td colspan="4" class="ar-empty">Aucun résultat validé pour {{ g.game_name }} pour le moment.</td></tr>
+                    <tr><td colspan="{% if enable_general_leaderboard %}4{% else %}3{% endif %}" class="ar-empty">Aucun résultat validé pour {{ g.game_name }} pour le moment.</td></tr>
                     {% else %}
                     {% for e in g.entries %}
                     <tr>
                         <td class="ar-rk">{% if e.rank < 10 %}0{{ e.rank }}{% else %}{{ e.rank }}{% endif %}</td>
                         <td class="ar-tm">{{ e.team_name }}</td>
                         <td class="ar-raw">{{ e.raw_score }} pts</td>
-                        <td class="ar-pt">+{{ e.tournament_points }} PTS</td>
+                        {% if enable_general_leaderboard %}<td class="ar-pt">+{{ e.tournament_points }} PTS</td>{% endif %}
                     </tr>
                     {% endfor %}
                     {% endif %}

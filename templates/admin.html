@@ -335,9 +335,9 @@
                             <span class="field-hint">Inscrivez d'abord des équipes dans l'onglet Équipes.</span>
                             {% else %}
                             {% for t in teams %}
-                            <label class="team-checkbox-label">
+                            <label class="team-checkbox-label" data-game-id="{% if let Some(gid) = t.game_id %}{{ gid }}{% endif %}">
                                 <input type="checkbox" name="match_teams" value="{{ t.id }}">
-                                <span>{{ t.name }}</span>
+                                <span>{{ t.name }}{% if let Some(gname) = t.game_name %} <small style="color: var(--text-muted);">({{ gname }})</small>{% endif %}</span>
                             </label>
                             {% endfor %}
                             {% endif %}
@@ -467,6 +467,7 @@
                     <thead>
                     <tr>
                         <th>NOM D'ÉQUIPE</th>
+                        <th>TOURNOI</th>
                         <th>CAPITAINE</th>
                         <th style="text-align: right;">ACTIONS</th>
                     </tr>
@@ -475,6 +476,13 @@
                     {% for t in pending_teams %}
                     <tr>
                         <td><strong>{{ t.name }}</strong></td>
+                        <td>
+                            {% if let Some(gname) = t.game_name %}
+                            <span class="badge-format">{{ gname }}</span>
+                            {% else %}
+                            <span style="color: var(--text-muted);">—</span>
+                            {% endif %}
+                        </td>
                         <td>{{ t.captain_username }}</td>
                         <td style="text-align: right;">
                             <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end;">
@@ -507,6 +515,16 @@
                 <p class="panel-desc">Génère les identifiants de connexion pour le capitaine de l'équipe.</p>
 
                 <form id="create-team-form" class="admin-form" method="POST" action="/admin/teams">
+                    <div class="form-group">
+                        <label for="team-game-id">TOURNOI / JEU</label>
+                        <select id="team-game-id" name="game_id">
+                            <option value="">-- Aucun / Tous --</option>
+                            {% for g in games %}
+                            <option value="{{ g.id }}">{{ g.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label for="team-name">NOM DE L'ÉQUIPE</label>
                         <input type="text" id="team-name" name="name" required
@@ -551,6 +569,9 @@
                         <tr>
                             <td>
                                 <strong>{{ t.name }}</strong>
+                                {% if let Some(gname) = t.game_name %}
+                                <span class="badge-format" style="margin-left: 0.35rem; font-size: 0.72rem;">{{ gname }}</span>
+                                {% endif %}
                                 {% if !t.captain_username.is_empty() %}
                                 <br><small style="color: var(--text-muted);">Capitaine : {{ t.captain_username
                                 }}</small>
@@ -582,11 +603,14 @@
         </div>
 
         <div class="admin-panel" style="margin-top: 1.5rem;">
-            <h3>BARÈME DU TOURNOI GÉNÉRAL</h3>
-            <p class="panel-desc">Points généraux attribués aux équipes selon leur classement final à chaque
-                épreuve.</p>
+            <h3>CLASSEMENT GÉNÉRAL &amp; BARÈME DU TOURNOI</h3>
+            <p class="panel-desc">Activez ou désactivez le classement général cumulé, et configurez les points généraux attribués aux équipes selon leur classement final à chaque épreuve.</p>
             <form id="settings-points-form" class="admin-form" style="max-width: 650px;">
-                <div class="form-group">
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1rem;">
+                    <input type="checkbox" id="enable-general-leaderboard" name="enable_general_leaderboard" checked style="width: auto;">
+                    <label for="enable-general-leaderboard" style="margin: 0; cursor: pointer;">ACTIVER LE CLASSEMENT GÉNÉRAL (CUMUL DES POINTS ENTRE ÉPREUVES)</label>
+                </div>
+                <div class="form-group" id="global-points-group">
                     <label for="tournament-placement-points">POINTS PAR RANG (SÉPARÉS PAR DES VIRGULES)</label>
                     <input type="text" id="tournament-placement-points" name="global_placement_points" required
                            placeholder="Ex: 25, 18, 15, 12, 10, 8, 6, 4, 2, 1">

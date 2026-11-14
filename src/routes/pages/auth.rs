@@ -21,12 +21,19 @@ pub struct LoginPageQuery {
     pub registered: Option<String>,
 }
 
+#[derive(Clone)]
+pub struct LoginGameOption {
+    pub id: String,
+    pub name: String,
+}
+
 #[derive(Template)]
 #[template(path = "login.html")]
 pub struct LoginTemplate {
     pub is_first_setup: bool,
     pub error: Option<String>,
     pub is_registered: bool,
+    pub games: Vec<LoginGameOption>,
 }
 
 impl LoginTemplate {
@@ -83,11 +90,18 @@ pub async fn serve_login_page(
     let is_first_setup = db::is_setup_required(&state.db).await.unwrap_or(false);
 
     let is_registered = query.registered.is_some();
+    let games = db::list_games(&state.db)
+        .await
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|g| g.id.map(|id| LoginGameOption { id: id.to_hex(), name: g.name }))
+        .collect();
 
     HtmlTemplate(LoginTemplate {
         is_first_setup,
         error: query.error,
         is_registered,
+        games,
     })
     .into_response()
 }
@@ -98,6 +112,8 @@ pub struct RegisterForm {
     pub captain_username: String,
     pub password: String,
     pub password_confirm: String,
+    #[serde(default)]
+    pub game_id: String,
 }
 
 pub async fn handle_register_form(
@@ -124,6 +140,19 @@ pub async fn handle_register_form(
 
     let db = &state.db;
 
+    let games = db::list_games(db).await.unwrap_or_default();
+    let game_oid = if form.game_id.trim().is_empty() {
+        if !games.is_empty() {
+            return Redirect::to("/login?error=invalid_register").into_response();
+        }
+        None
+    } else {
+        match ObjectId::parse_str(form.game_id.trim()) {
+            Ok(oid) if db::find_game_by_id(db, oid).await.is_ok() => Some(oid),
+            _ => return Redirect::to("/login?error=invalid_register").into_response(),
+        }
+    };
+
     if db::find_admin_by_username(db, &captain_username).await.is_ok()
         || db::find_team_by_captain_username(db, &captain_username).await.is_ok()
     {
@@ -135,7 +164,7 @@ pub async fn handle_register_form(
         Err(_) => return Redirect::to("/login?error=server_error").into_response(),
     };
 
-    match db::register_team(db, team_name, &captain_username, &h_pwd).await {
+    match db::register_team(db, team_name, &captain_username, &h_pwd, game_oid).await {
         Ok(_) => Redirect::to("/login?registered=1").into_response(),
         Err(Errors::Error409Conflict(_)) => {
             Redirect::to("/login?error=team_name_taken").into_response()

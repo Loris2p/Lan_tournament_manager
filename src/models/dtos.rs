@@ -77,6 +77,8 @@ pub struct CreateTeamRequest {
     pub name: String,
     pub captain_username: String,
     pub captain_password: String,
+    #[serde(default)]
+    pub game_id: Option<ObjectId>,
 }
 
 #[derive(Deserialize)]
@@ -148,4 +150,5 @@ pub struct UpdateTournamentSettingsRequest {
     pub start_at: Option<String>,
     pub end_at: Option<String>,
     pub is_paused: Option<bool>,
+    pub enable_general_leaderboard: Option<bool>,
 }

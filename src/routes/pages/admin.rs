@@ -227,14 +227,27 @@ pub async fn serve_admin_page(State(state): State<Arc<AppState>>, jar: CookieJar
         })
         .collect();
 
+    let games_name_map: HashMap<String, String> = games_view
+        .iter()
+        .map(|g| (g.id.clone(), g.name.clone()))
+        .collect();
+
     let pending_teams_view: Vec<PublicTeam> = pending_teams_db
         .into_iter()
         .filter_map(|t| {
-            t.id.map(|id| PublicTeam {
-                id: id.to_hex(),
-                name: t.name,
-                captain_username: t.captain_username,
-                total_points: t.total_points,
+            t.id.map(|id| {
+                let game_id = t.game_id.map(|gid| gid.to_hex());
+                let game_name = game_id
+                    .as_ref()
+                    .and_then(|gid| games_name_map.get(gid).cloned());
+                PublicTeam {
+                    id: id.to_hex(),
+                    name: t.name,
+                    captain_username: t.captain_username,
+                    total_points: t.total_points,
+                    game_id,
+                    game_name,
+                }
             })
         })
         .collect();
@@ -487,6 +500,8 @@ pub struct CreateTeamForm {
     pub name: String,
     pub captain_username: String,
     pub captain_password: String,
+    #[serde(default)]
+    pub game_id: String,
 }
 
 pub async fn admin_create_team_form(
@@ -494,8 +509,9 @@ pub async fn admin_create_team_form(
     _admin: AdminUser,
     Form(form): Form<CreateTeamForm>,
 ) -> Response {
+    let game_oid = ObjectId::parse_str(form.game_id.trim()).ok();
     if let Ok(hash) = hash_password(&form.captain_password) {
-        let _ = db::create_team(&state.db, &form.name, &form.captain_username, &hash).await;
+        let _ = db::create_team(&state.db, &form.name, &form.captain_username, &hash, game_oid).await;
         let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     }
     Redirect::to("/admin?tab=teams").into_response()

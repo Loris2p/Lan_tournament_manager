@@ -118,6 +118,7 @@ pub struct TournamentStatusView {
     pub end_at: Option<String>,
     pub is_paused: bool,
     pub is_running: bool,
+    pub enable_general_leaderboard: bool,
 }
 
 pub async fn get_tournament_status_view(db: &mongodb::Database) -> TournamentStatusView {
@@ -173,6 +174,7 @@ pub async fn get_tournament_status_view(db: &mongodb::Database) -> TournamentSta
         end_at: settings.end_at,
         is_paused: settings.is_paused,
         is_running: !settings.is_paused,
+        enable_general_leaderboard: settings.enable_general_leaderboard,
     }
 }
 

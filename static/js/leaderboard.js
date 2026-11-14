@@ -93,6 +93,11 @@ async function refreshLeaderboardSilently() {
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
 
+        if (!!document.getElementById('tab-general') !== !!doc.getElementById('tab-general')) {
+            window.location.reload();
+            return;
+        }
+
         const selectors = [
             '#standings-count',
             '#podium-container',

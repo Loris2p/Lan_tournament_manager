@@ -104,6 +104,8 @@ pub struct PublicTeam {
     pub name: String,
     pub captain_username: String,
     pub total_points: u32,
+    pub game_id: Option<String>,
+    pub game_name: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Team {
@@ -117,6 +119,8 @@ pub struct Team {
     pub token_version: u32,
     #[serde(default = "default_true")]
     pub is_verified: bool,
+    #[serde(default)]
+    pub game_id: Option<ObjectId>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Match {
@@ -184,6 +188,8 @@ pub struct TournamentSettings {
     pub end_at: Option<String>,
     #[serde(default)]
     pub is_paused: bool,
+    #[serde(default = "default_true")]
+    pub enable_general_leaderboard: bool,
 }
 impl TournamentSettings {
     pub fn points_for_rank(&self, rank: usize) -> u32 {
@@ -202,6 +208,7 @@ impl Default for TournamentSettings{
             start_at: None,
             end_at: None,
             is_paused: false,
+            enable_general_leaderboard: true,
         }
     }
 }

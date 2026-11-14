@@ -20,9 +20,12 @@ pub async fn set_settings(
     Json(req): Json<UpdateTournamentSettingsRequest>,
 ) -> Result<Json<Value>, Errors> {
     let recalculate = req.global_placement_points.is_some();
+    let leaderboard_changed = recalculate || req.enable_general_leaderboard.is_some();
     db::update_tournament_settings(&state.db, &req).await?;
     if recalculate {
         db::recalculate_tournament_scores(&state.db).await?;
+    }
+    if leaderboard_changed {
         let _ = state.ws_tx.send("LEADERBOARD_UPDATE".to_string());
     }
     let _ = state.ws_tx.send("TOURNAMENT_SCHEDULE_UPDATE".to_string());

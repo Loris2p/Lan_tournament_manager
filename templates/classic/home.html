@@ -178,7 +178,7 @@
             <div class="rule-box">
                 <span class="rule-num">03</span>
                 <h4>Attribution des Points</h4>
-                <p>Chaque épreuve établit son classement propre, converti au général selon le barème du tournoi : 1er (25 pts), 2e (18), 3e (15), 4e (12), 5e (10), 6e (8), 7e (6), 8e (4), 9e (2), 10e (1 pt).</p>
+                <p>{% if status.enable_general_leaderboard %}Chaque épreuve établit son classement propre, converti au général selon le barème du tournoi : 1er (25 pts), 2e (18), 3e (15), 4e (12), 5e (10), 6e (8), 7e (6), 8e (4), 9e (2), 10e (1 pt).{% else %}Chaque épreuve établit son propre classement indépendant, sans classement général cumulé.{% endif %}</p>
             </div>
             <div class="rule-box">
                 <span class="rule-num">04</span>

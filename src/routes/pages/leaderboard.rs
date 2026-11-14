@@ -15,6 +15,7 @@ pub struct LeaderboardTemplate {
     pub game_leaderboards: Vec<GameLeaderboardView>,
     pub auth: NavAuth,
     pub arena: bool,
+    pub enable_general_leaderboard: bool,
 }
 
 impl LeaderboardTemplate {
@@ -36,7 +37,15 @@ pub async fn serve_leaderboard_page(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
 ) -> Response {
-    let teams = db::get_leaderboard(&state.db).await.unwrap_or_default();
+    let settings = db::get_tournament_settings(&state.db)
+        .await
+        .unwrap_or_default();
+    let enable_general_leaderboard = settings.enable_general_leaderboard;
+    let teams = if enable_general_leaderboard {
+        db::get_leaderboard(&state.db).await.unwrap_or_default()
+    } else {
+        Vec::new()
+    };
     let live_matches = db::get_open_matches(&state.db).await.unwrap_or_default();
     let game_leaderboards = db::get_game_leaderboards(&state.db)
         .await
@@ -49,6 +58,7 @@ pub async fn serve_leaderboard_page(
         game_leaderboards,
         auth,
         arena: wants_arena(&jar),
+        enable_general_leaderboard,
     })
     .into_response()
 }

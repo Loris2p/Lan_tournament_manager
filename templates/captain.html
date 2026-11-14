@@ -46,13 +46,20 @@
                 <h1 class="ar-title ar-title-sm">
                     <span>ÉQUIPE</span> <span class="ar-accent" id="captain-team-name">{{ team_name }}</span>
                 </h1>
+                {% if let Some(gname) = game_name %}
+                <p style="margin: 0.25rem 0 0.5rem 0;"><span class="ar-badge-pill">TOURNOI · {{ gname }}</span></p>
+                {% endif %}
                 <p class="ar-lead">
                     Consultez vos matchs ouverts, rejoignez les lobbies et envoyez votre capture de fin de partie.
                 </p>
             </div>
             <div class="ar-team-score-card">
+                {% if tournament_status.enable_general_leaderboard %}
                 <span class="ar-score-label">POINTS AU CLASSEMENT</span>
                 <span class="ar-score-val" id="captain-team-points">{{ total_points }} <small>PTS</small></span>
+                {% else %}
+                <span class="ar-score-label">CLASSEMENT PAR ÉPREUVE</span>
+                {% endif %}
                 <a href="/leaderboard.html" class="ar-score-link" target="_blank">Classement en direct ↗</a>
             </div>
         </div>

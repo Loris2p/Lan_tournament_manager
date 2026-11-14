@@ -54,6 +54,7 @@ pub struct SubmissionForm {
 pub struct CaptainTemplate {
     pub team_name: String,
     pub total_points: u32,
+    pub game_name: Option<String>,
     pub matches: Vec<CaptainMatchView>,
     pub status: Option<String>,
     pub tournament_status: TournamentStatusView,
@@ -142,11 +143,17 @@ pub async fn serve_captain_page(
         })
         .collect();
 
+    let game_name = team
+        .game_id
+        .and_then(|gid| games_map.get(&gid))
+        .map(|g| g.name.clone());
+
     let tournament_status = get_tournament_status_view(&state.db).await;
 
     let template = CaptainTemplate {
         team_name: team.name,
         total_points: team.total_points,
+        game_name,
         matches: matches_view,
         status: query.status,
         tournament_status,

@@ -2,11 +2,13 @@
 
         <div class="tabs-toolbar" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line-subtle); margin-top: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; gap: 0.75rem;">
             <nav class="admin-tabs" id="leaderboard-tabs-nav" style="border-bottom: none; margin-bottom: 0;">
+                {% if enable_general_leaderboard %}
                 <button type="button" class="tab-btn active" data-tab="general">
                     <span class="papicon icon-crown" aria-hidden="true"></span> Classement Général
                 </button>
+                {% endif %}
                 {% for g in game_leaderboards %}
-                <button type="button" class="tab-btn" data-tab="game-{{ g.game_id }}">
+                <button type="button" class="tab-btn{% if !enable_general_leaderboard && loop.first %} active{% endif %}" data-tab="game-{{ g.game_id }}">
                     {{ g.game_name }}
                 </button>
                 {% endfor %}
@@ -18,6 +20,7 @@
             </div>
         </div>
 
+        {% if enable_general_leaderboard %}
         <div class="tab-pane active" id="tab-general">
             <section class="section" id="standings">
                 <div class="section-titlebar">
@@ -112,14 +115,15 @@
                 </div>
             </section>
         </div>
+        {% endif %}
 
         {% for g in game_leaderboards %}
-        <div class="tab-pane" id="tab-game-{{ g.game_id }}">
+        <div class="tab-pane{% if !enable_general_leaderboard && loop.first %} active{% endif %}" id="tab-game-{{ g.game_id }}">
             <section class="section">
                 <div class="section-titlebar">
                     <div>
                         <h2>CLASSEMENT — {{ g.game_name }}</h2>
-                        <p class="section-subtitle">Scores spécifiques au jeu et attribution des points au barème général</p>
+                        <p class="section-subtitle">{% if enable_general_leaderboard %}Scores spécifiques au jeu et attribution des points au barème général{% else %}Scores et classement spécifiques à l'épreuve{% endif %}</p>
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <span class="badge-format">{{ g.format }}</span>
@@ -134,13 +138,13 @@
                                 <th class="col-rank">RANG</th>
                                 <th class="col-team">ÉQUIPE</th>
                                 <th class="col-points">SCORE ÉPREUVE (BRUT)</th>
-                                <th class="col-points">POINTS TOURNOI</th>
+                                {% if enable_general_leaderboard %}<th class="col-points">POINTS TOURNOI</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
                             {% if g.entries.is_empty() %}
                                 <tr>
-                                    <td colspan="4" class="cell-loading">Aucun résultat validé pour {{ g.game_name }} pour le moment.</td>
+                                    <td colspan="{% if enable_general_leaderboard %}4{% else %}3{% endif %}" class="cell-loading">Aucun résultat validé pour {{ g.game_name }} pour le moment.</td>
                                 </tr>
                             {% else %}
                                 {% for e in g.entries %}
@@ -150,9 +154,11 @@
                                         <td class="col-points" style="font-family: var(--font-mono); color: var(--text-primary);">
                                             {{ e.raw_score }} pts
                                         </td>
+                                        {% if enable_general_leaderboard %}
                                         <td class="col-points" style="font-weight: 700; color: var(--accent, #e53e3e);">
                                             +{{ e.tournament_points }} PTS
                                         </td>
+                                        {% endif %}
                                     </tr>
                                 {% endfor %}
                             {% endif %}
